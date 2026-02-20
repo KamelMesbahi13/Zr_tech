@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>تسجيل الدخول - ZR Technologie</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d93f2",
+                        "primary-dark": "#005CFF",
+                        "primary-light": "#00D2FF",
+                        "background-light": "#f5f7f8",
+                        // Using the requested Deep Navy #0A101D as the dark background base
+                        "background-dark": "#0A101D",
+                        "surface-dark": "#162032",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["IBM Plex Sans Arabic", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Ensuring font consistency */
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+        .font-english {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center font-body text-slate-900 dark:text-slate-100 overflow-hidden relative">
+<!-- Background Decorative Elements for Tech feel -->
+<div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary-dark/10 rounded-full blur-[120px]"></div>
+</div>
+<!-- Main Container -->
+<div class="relative z-10 w-full max-w-md h-full flex flex-col p-6 sm:p-8">
+<!-- Header / Logo Area -->
+<div class="flex flex-col items-center justify-center pt-8 pb-8">
+<div class="w-16 h-16 bg-gradient-to-tr from-primary-dark to-primary-light rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-[32px]">devices</span>
+</div>
+<h1 class="font-english text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-1">ZR Technologie</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">وجهتك الأولى لكل ما يخص التكنولوجيا</p>
+</div>
+<!-- Auth Tabs -->
+<div class="w-full bg-slate-200 dark:bg-surface-dark p-1 rounded-xl flex mb-8">
+<button class="flex-1 py-2.5 text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-[#232e42] shadow-sm rounded-lg transition-all duration-200">
+                تسجيل الدخول
+            </button>
+<button class="flex-1 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-200">
+                إنشاء حساب
+            </button>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-5 w-full">
+<!-- Email Input -->
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="email">
+                    البريد الإلكتروني
+                </label>
+<div class="relative group">
+<div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<input class="block w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark pr-11 pl-4 py-3.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-primary-light focus:ring-1 focus:ring-primary-light sm:text-sm font-english transition-all duration-200" dir="ltr" id="email" placeholder="name@example.com" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="password">
+                        كلمة المرور
+                    </label>
+</div>
+<div class="relative group">
+<div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<input class="block w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark pr-11 pl-11 py-3.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-primary-light focus:ring-1 focus:ring-primary-light sm:text-sm font-english transition-all duration-200" dir="ltr" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 hover:text-slate-300 focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+<div class="flex justify-end pt-1">
+<a class="text-xs font-medium text-primary hover:text-primary-light transition-colors" href="#">
+                        هل نسيت كلمة المرور؟
+                    </a>
+</div>
+</div>
+<!-- Login Button -->
+<button class="mt-4 w-full bg-gradient-to-l from-primary-light to-primary-dark hover:from-primary hover:to-primary-dark text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-primary/25 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2" type="button">
+<span>دخول</span>
+<span class="material-symbols-outlined text-sm rtl:rotate-180">arrow_forward</span>
+</button>
+</form>
+<!-- Social Login / Divider -->
+<div class="mt-8">
+<div class="relative">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="bg-background-light dark:bg-background-dark px-2 text-slate-500">أو تابع باستخدام</span>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#1e2a3b] transition-colors" type="button">
+<svg aria-hidden="true" class="h-5 w-5" viewbox="0 0 24 24">
+<path d="M12.0003 20.45c-2.2096 0-4.2514-.8471-5.8336-2.2359l-2.4338 1.9567C6.5457 22.756 9.1386 24 12.0003 24c4.6868 0 8.723-2.9238 10.3547-7.0694l-2.7303-2.1287C18.3377 18.0645 15.4244 20.45 12.0003 20.45z" fill="#34A853"></path>
+<path d="M22.355 16.9306c.642-1.6152.9998-3.385.9998-5.2306 0-.6934-.0697-1.3712-.1969-2.0298H12.0003v4.2694h6.0567c-.2477 1.543-.9845 2.8718-1.9515 3.861l2.7303 2.1287c.294-.271.5724-.5634.8192-.8987z" fill="#4285F4"></path>
+<path d="M5.626 7.5514C4.9458 8.877 4.5606 10.3926 4.5606 12c0 1.619.3908 3.1444 1.0792 4.4754l2.4338-1.9567C7.6258 13.5658 7.3806 12.8054 7.3806 12c0-.816.2505-1.5866.6997-2.2366L5.626 7.5514z" fill="#FBBC05"></path>
+<path d="M12.0003 3.55c1.8485 0 3.5222.6845 4.821 1.8055l2.585-2.6784C17.3486 .979 14.8136 0 12.0003 0 7.2917 0 3.1423 2.8092 1.341 6.8486l2.4534 1.972C5.459 5.5645 8.4897 3.55 12.0003 3.55z" fill="#EA4335"></path>
+</svg>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Google</span>
+</button>
+<button class="flex items-center justify-center gap-3 w-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#1e2a3b] transition-colors" type="button">
+<svg aria-hidden="true" class="h-5 w-5 text-slate-900 dark:text-white" fill="currentColor" viewbox="0 0 24 24">
+<path d="M13.2678 1.50305C14.3489 .366405 15.8286 -.141121 15.6583 1.64251C14.0752 1.69614 12.8596 2.76813 12.2384 3.47775C11.5204 4.31464 10.7423 5.48006 12.0911 6.8465C13.2387 8.01996 14.8172 7.63476 14.8172 7.63476C14.8172 7.63476 15.3456 6.30822 15.1415 5.52906C14.9374 4.7509 13.2678 1.50305 13.2678 1.50305ZM13.824 8.78368C10.0384 8.67562 8.35624 11.2338 8.35624 13.9103C8.35624 17.5878 11.7291 21.6853 14.6593 21.5772C15.8626 21.5332 16.3278 20.8402 17.7656 20.8402C19.2034 20.8402 19.5398 21.5772 20.8938 21.5332C22.6186 21.4782 23.7508 17.9628 23.7508 17.9628C23.7508 17.9628 21.284 17.0678 21.319 14.2863C21.354 11.7828 23.4478 10.6868 23.4478 10.6868C22.2598 9.00468 19.8978 8.83568 19.8978 8.83568C18.2518 8.71868 16.8208 9.77368 15.9868 9.77368C15.1528 9.77368 14.2258 8.82468 13.824 8.78368Z"></path>
+</svg>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Apple</span>
+</button>
+</div>
+</div>
+<p class="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            ليس لديك حساب؟ 
+            <a class="font-semibold text-primary hover:text-primary-light transition-colors" href="#">
+                أنشئ حساباً جديداً
+            </a>
+</p>
+</div>
+</body></html>

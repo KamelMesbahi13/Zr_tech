@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "712586347978",
+    "project_id": "zr-tech",
+    "storage_bucket": "zr-tech.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:712586347978:android:73d3edfeec4ca53692fb33",
+        "android_client_info": {
+          "package_name": "com.zrtech.zr_tech_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzJYRxEX-fnmMTMC2s41y3Xz6lehTyRZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

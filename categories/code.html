@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Retail Categories - ZR Technologie</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#0d93f2",
+              "background-light": "#f5f7f8",
+              "background-dark": "#0A101D", // Deep Navy from requirements
+              "surface-dark": "#121b2e", // Slightly lighter navy for components
+              "text-main": "#FFFFFF",
+              "text-muted": "#9cadba",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "Cairo", "sans-serif"],
+              "body": ["Cairo", "sans-serif"], // Arabic optimization
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom Scrollbar for hidden overflow if needed */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-text-main font-body min-h-screen flex flex-col antialiased selection:bg-primary selection:text-white">
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col w-full max-w-md mx-auto relative overflow-hidden bg-background-light dark:bg-background-dark pb-24">
+<!-- Header & Search Section -->
+<header class="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-white/5 px-4 pt-12 pb-4">
+<!-- Title Row -->
+<div class="flex items-center justify-between mb-4">
+<h1 class="text-2xl font-bold font-display tracking-tight text-slate-900 dark:text-white">الفئات</h1>
+<button class="text-slate-900 dark:text-white p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[28px]">notifications</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="relative w-full group">
+<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+<span class="material-symbols-outlined text-text-muted group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full p-3 pr-10 pl-4 text-sm text-slate-900 border border-gray-200 rounded-xl bg-white focus:ring-primary focus:border-primary dark:bg-surface-dark dark:border-white/5 dark:placeholder-gray-400 dark:text-white focus:outline-none transition-all shadow-sm" placeholder="بحث عن منتجات..." required="" type="text"/>
+</div>
+</header>
+<!-- Categories Grid -->
+<div class="flex-1 overflow-y-auto px-3 py-4">
+<!-- 4 Columns Grid -->
+<div class="grid grid-cols-4 gap-3">
+<!-- Category Item 1: Cables -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Cables and wires arranged neatly" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Cables and wires arranged neatly" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-pnanfgsRJ5BIbYazJJOKbNOnNrsxUyPwrl-w2C8SAu_Bk_ItGS3l5l1S1Io65YAnHQKJAlAEsVrZB4zrerg7qGOeBciMA-6wuPL2JEZmgTD8fQsuHPWyORqK-5nkKFEuPmnapCdIvXNGF0npLvRZek4pQ19GRJw4Pv15gkhClKoumDffuo2Fy3IIpxjCTfcpF8_ENb2yvk6G8hidRR_LZa0eKr2sJv4f_8fr-rfh8a0fC3ucYbe6mtpeXxPHRYwl-5A0bbuNSPa4"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">كابلات</span>
+</a>
+<!-- Category Item 2: Chargers -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Modern white wall charger" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Modern white wall charger" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeNiB1DjysNW3AJGscjFY16A8Yp5nw67mOVa3TtD1aK6DJ3-6-duUC1addJ-0WGP-6FzHglbzZPPH9XPPqhYdUgHIA45dxFxamMMJhTY4GU7AU-YPmas_m--mi1MY8fvQU9AWVxO0BdYki_ewaxoM4S56TtHJWt6Az1l-LIB-tEUUBCuhRO20uXlsJmaMO0CZWhi89qz-LceQxmQdfbzhHh2R56FLwyGVrgWkVGW2IkFw9W1tTZhZSs321UtqWEiHKYgzN3iP71kBz"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">شواحن</span>
+</a>
+<!-- Category Item 3: Headphones -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Wireless over-ear headphones" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Wireless over-ear headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkgTHrVRzR4sHh38G57yo3ykt_uCkWhnmqWQ5AldNRJ7w3grsegAKGCrY2VP1G7QfC_rfS2EV_9eL91wpVnvTAA1gRsUh5oaTFXj-JFnF6-6yJJ9-vB2M3gKu-X0Gvzr5rFRzYITcEs2dsx7c8g0CAdDa8pSb5H23sDrpewfq9PtJ1EjMwnytewG2lOCAHXI8rkXWCPhmCw4_Yh5A447Jcw4tS1Wb1eVYTJIU2tGgV5oW0p9EbL9eQdo-wFvzBc5REoehQjVk9hGc4"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">سماعات</span>
+</a>
+<!-- Category Item 4: Cases -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Smartphone protective cases" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Smartphone protective cases" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUofJbRF__XXX9LflKoUCj5FfwYRjIviKIn6o7jEsrE4WzpLmKqVJ4FeF63IAIW1JH0nqytHBtQEPEGt6tZ1qZY2uL7C1ILJdpJDMCMqv3mxgUgNITKsuh-3A43uxEr3MPN8eC4YcthWhIL4jtf5KDRHku--saITIwCjDCLx_VHJpw_SnOELAiDSg9F6vN5ZshiYtWovbSdkpJOkGo9ErlAQeu8K-nft-AibPo7utOn2kLqFNzLBaZmhLKZ303i2-zmG3VPtoSsNxM"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">أغطية</span>
+</a>
+<!-- Category Item 5: Stands -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Metal phone stand on desk" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Metal phone stand on desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBavybtOOX-B9nIAXk-oJs4JgHjk45eP7SvHlUOySrPkASdt8hheD7SxUtf6QTuYHu-8axCEKsEPfgW1TUQ09ofpDJQbobFrMYaf2FDcQhxgrhbmEj8v0a3hUQFhTf4Si_ou5TsesR_N4bEujz98SiTL25QsqVlVG5Ba9b2uyuqkf0aOvE1AxrMpF8Y6S4yYlO-HMufpMjaWvTHHsvb-ol7PMOd1rkezfqXSV75ElQ-hFsPWgULSBhgXKE4GaCmAX9iEtl9bEvask0i"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">حوامل</span>
+</a>
+<!-- Category Item 6: Power Banks -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Sleek portable power bank" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Sleek portable power bank" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYjs0Zvq2e9sC78ZkmB_8BqimL-DWWVGaGOC6-ai7Lo3DAuy3ln5wv7TUKupDgWz9T1LD746a0n4JQ1vSbnUyhc3Gw_UIrYbcuzjzAY18YJ1SGQOqf62OzF1QuKeeW6mDnjApN_AIWycEOpbcv_q1DDoNjUq4pGPr575QWkgxxibOmbAAfehHBOoLC5lWhhkucoPEEP23gqiJwZpqPmi1ypad-GkntUBRRcdNyMMV4DJ5aDte9jkMc1Go-53heP5i3w8SorQTOCns8"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">بطاريات</span>
+</a>
+<!-- Category Item 7: Screen Protectors -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Glass screen protector application" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Glass screen protector application" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWO4Ob24PlaqV-rnUu-7-Rf5HvuUt7hhNE6oyUVmwRjvD97L1J7Sq5Wxln1W5SnH8rTQNyVnmPDIyYTCzXf0Gco__OkBXhIznO5D0sfQpp7kgOL0romEme4BAHYEXuQgMycFGy2EiSLkjseFA0F48Cwwph45rI_LIXMMgxkU2f52vcByJ7hqD1jU63pPIU_Upml2z2x9ChuyLDGpvAqZMaYo8FOwz0SGQHoq0IFTCk0DknWIcoYUx6HhzatAIVvB3M8l73g7PaRfDI"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">حماية</span>
+</a>
+<!-- Category Item 8: Tools -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Precision screwdriver set" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Precision screwdriver set" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxBAnMac1DEOdbTZFKvVvJwpzVcZLwyDWd1Q5qEOdw6YAX_Gz7prNPOLwFYPlswkhAseHSt0n_uFk2MPxh2yEzkA6JlHN4ujUccBBGUUqB7YzYwpnZ_vuVwfs8v6_Tvyb--y5WFCGR4hgqsKuPnQ-Rq_-B8jGE8hJzm8-DOqpjKoH8Noww3W644AwPVIg1EyVBrwo9p6Uxg7U3_kpodTYFSc3GbnRSXEgOLmJHndFrMToS89Nj89WzAL6AxB5RmiD3Nm4WNglXQrQ9"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">أدوات</span>
+</a>
+<!-- Category Item 9: Smart Watches -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Modern smart watch on wrist" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Modern smart watch on wrist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKd3Tc45PydtCLSBbtnjgItkedHB0DjEkj480neapLbF-wV6QNve91rtbenMnLyP1nfuxPj4OxbcizxKQOc1noq6GTTs48QrOOpVeZdaGmsWLhqlQK7pLwhvEtKETSkVix75OttNGRz_fukRL4MNbrCGtUVsY1ZkaP3yIYaKs5NmCSSe5lnfk6g4-NPSXS-Ki4MdjVNhHlM_oml3_dtXAsrMvvvTgj9PoHQSRkFdcY_vKcqiNUMsiP2ZPHDnbcreYNAsDrh5bDOeYZ"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">ساعات</span>
+</a>
+<!-- Category Item 10: Speakers -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Portable bluetooth speaker" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Portable bluetooth speaker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_4Em5Kl6ytUTbec_rksxCZ17fqpT5gLw6WQ3U9NDTyKTizGdr56v4NXdm2iZNSKPPJ0HH-qqZ3yj5-mbkEXbGJjwyf7S8dHPmg2ka1YNT8EQ8oIvBPXRtzPh5xe22D3-vQagwg2uLkYxsXOFrmd65BFAHc5sEqIDGfMobpdR_h7ag5CefOkJmhysZ8SRaUPs-kN1tC_xp_I91ZgnUcOuuknuC-SQIwk7JPN0aGUAQdOtpscX4Jq3pzwwzazvtAG3lvxS1_L4QmleM"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">مكبرات</span>
+</a>
+<!-- Category Item 11: Tablets -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Tablet with stylus" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Tablet with stylus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnrZGwx1ORl-cqK1NhLnPfspbknFYjXb7tAQVWV8DHylIQjYA1Z1FwDqUn4LXD7r8YrfHKe_j6qCM5Jj87vrCiJYFGzxEIFYSJIrepfnLs4Be7u4ZzsI8dzlhsspBZFUYSXtFfQzNpWbA4vGeE_6l6JVE_P6lnJGXW6uKQzdwh_qcQ24qkH6p-jhkp1oxOdIXJwGDNYMEHH7tUokRHxPBG8kPVzJ3Y60zz6lKJUqCCQRXyj8I-WjQ_i_Qd9PB899CM5fI48l5DfIm7"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">لوحات</span>
+</a>
+<!-- Category Item 12: Mice -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Wireless computer mouse" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Wireless computer mouse" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXO8Vj0Jty8AgyFNudi4q9OdwaCiCRRfDJNZo7g153umXx0C8jU_1moENJgY3DM9egdEihUFGnN5Bn9pjqSDKgz3Gb2iXVMot-eGBTRsi2XoqCYXJdRkmI64hBBx2u5wZRqzhYY0oEjp0ibCXOACBnzbckgpPuR8vq0lM_b-7VADjMQxWtNAOotr3k-QThpgWHZJVLJJyul1fe3ug6mY4ZoeU8kWAn39mLWVdqoZR9B-TIsXnxKCsVUOrs3K2raIm8ZUNscov0PvYz"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">فأرات</span>
+</a>
+<!-- Category Item 13: Bags -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Laptop backpack on table" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Laptop backpack on table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBorlIOAotXfmvjOkxLhDCvB67uRk3710Var4oyUPbzjUimNc5GXNraHu105JJ_Smi03QKn1iAt-x49M0D7BXX6MbIP9O2vSvYQ8ACbBBQD9nDlSrFiblivsy8OWvJLiuON0yc8Vbo-HDN4FVc2PzDeBaUckTBF-imqF_UOnSSvDc8RQ2Ac0UkJt6nejYxVAAyXYQeASEIHnC65jNvrZO2U3vbMiHIVG4Ki-UI04WHVazb-b3iFLYb0NLTzqXuMmlYjq-9JdIkXEIi"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">حقائب</span>
+</a>
+<!-- Category Item 14: Cameras -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Professional camera lens" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Professional camera lens" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaW0w_traxeZBNiEL56hwEZITVOPhIWX5wd3_Afa9C46Eoo0524SWc8LXzGYSAUyQSEdtilMIlWXfZzPofo1TIwZq-x2_nr885iQMQ1Zi39ki1onfFhjclP-yl0Byp7_9EvZkH1qJ-ZWrTyV0qS22LjlkhoE-5xlutJIRVt6FJvEfXyctiNe6Uq6J7RQm27vvniuVewFjYb_OWe7BbFxtnrpNXmPg4Ac3VhN60u91tpPMU2xXPYiwwWo8lnoNfmyJ_sBhHDFEuHcYY"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">كاميرات</span>
+</a>
+<!-- Category Item 15: Gaming -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Gaming controller neon light" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Gaming controller neon light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqFrf-dWm3wuR6b8bTEE5MaUgPLZNU79jKvbBqfA9FETzlcRlLpdSDuAaueBfuU9lBynQFb7unn0C9TmH6DOn4PAxsr8CWWnbJpgd1UffU8znxPUF1pBv85aXEyqHF9C1GB6C0gAxRwc9UoOB6-bOeaYgV-C3yos8edgprc4FecyB5U8KT3nZ79O23A564kaAM2QaZMSvu2qM10mhlh8M4NWvs7VnyPAfrfvUGQ6kJP8R2tOYHha5h6vx8s6dAXUz0ugkoH6AFdNbp"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">ألعاب</span>
+</a>
+<!-- Category Item 16: Networking -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Wifi router blinking lights" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Wifi router blinking lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4ZWsVKq_nF3woZx9poHTXTTtb3rnUzjpOvVWK9luPxOSnfa7UX3NV4akVVtPsTMjkmF_LgxgMW4GNjMUAP-njlL42ZPM0M5i8c2cJOWzGJl5jje2PxEm2mQAlSjmOiRjv6xnnXdbu5XS0i4kL4C4nV6S13XHe-Io0p7Lq7ROGmPibnmqNXKER9imxc2c974Q6PmYc9Wa1kcllCSVpsvFwBkKuS4-GFG3E1FHvyvZqoLewpgtDeTigEc8mk1bd_LN4m9vN4HtqO2ir"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">شبكات</span>
+</a>
+<!-- Category Item 17: Printers -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Office laser printer" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Office laser printer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9H8JrzEXRDtotdkOl7G4RWCPubWQ-qjMsRH8SCcSZ1nnS5bQqYWhX0oTssp__WUM9L7AqRhlzy5lh1wXXrnHx6eUca8GXCuRTUZu67VxoDu6VFrDPcWuGWLIXeB_cgSytNAGqbUgGnf-nuXZB279zqFopSkxdfMlB8PO3zNHKZSAOMKEVgFgOgcY0ZhkHsflrQWAWeINbe26hiCgXhFSG3xisXPOKlP6Y5hUii5O5u3AdS25eeOrwmOZ11Rslv-hdvCgQxKAJsAjg"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">طابعات</span>
+</a>
+<!-- Category Item 18: Storage -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="External hard drive" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="External hard drive" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcq_1TeMjWepBNPTeF4hCt06MmrRwCpolgJwlFbUI5hA1XG_TrYp5ksApp2R8MosPFV6xmp9ZKQbaGLZ9te8Hth-DQ67kz1jrFMX4MoEOKwtbi2neBLGJbC6sdYCMjhfZIe-Pjnc6lk9z3HEto5Dftqy9lmfVoRffzVm7JML7eUWctGDskA3RHpED9hmAz2aMBKnDbUCnGIfoTCQgp0bouOy0YvrfHnCYZzc9XQd0d5mW3RZl5FvQtdfniqOsAIyOy4wxaBO8y7u6z"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">تخزين</span>
+</a>
+<!-- Category Item 19: Keyboards -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Mechanical keyboard glowing" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Mechanical keyboard glowing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBY4pbr8WEPuibm-4MR7jASMtkE9WtjwAH5N2nQR_0Ud9QtFRN2WS7xKGl1wetSN3jlz9vI1Ca1Qiz042_OOyDqDdG-IXDVZSe3xMusK2gsWjCRPfc_GvwWMEULVhWm1cxqY9MzL_8rKzfDrNh0u32sx7946WGW4nt8M2QR2_UCZozBvNzuzvLNhRdV4JHTXs2d5YRqYmeAFhWGtoZ3ZfbWXTardsJP6M-E7__LZqhrb33mHBjtDdvplxKbrixPYFIZzxnJ2XiPfO8L"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">لوحات مفاتيح</span>
+</a>
+<!-- Category Item 20: Drones -->
+<a class="group flex flex-col items-center gap-2" href="#">
+<div class="relative w-full aspect-square rounded-2xl bg-surface-dark border border-white/5 overflow-hidden group-hover:border-primary/50 transition-colors shadow-sm">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+<img alt="Small drone flying" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300" data-alt="Small drone flying" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEXFowCkdqBuKrqDmxyzu_ZR7ieB8jGxil2wJGz0z5D6UQh1oJH4or4mwV8mTU6QRJGvMGAzA63c5RRpInkIVf8A_cC6DFE6eq3H6aHjloiiQzmvazesPtNT0weJT-uZdkvwMtfDEyGHp_LdxH6LFm1xjqyTLh1kFtwwlMHmneI0cKdw2ZoSqDmeDesFgOFgi0_JRAVmJAGC3Uj61ZqAl3H0kWDpba_MLlBIYYWrB1jUt39AFD4nb7hL4daIuflE9rnHnMN0zEh5lg"/>
+</div>
+<span class="text-[11px] font-medium text-center truncate w-full text-slate-700 dark:text-gray-300 group-hover:text-primary transition-colors">درون</span>
+</a>
+</div>
+<!-- Bottom padding for content to not hide behind nav -->
+<div class="h-8"></div>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-surface-dark/95 backdrop-blur-lg border-t border-gray-200 dark:border-white/5 pb-5 pt-3 px-6 max-w-md mx-auto shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.1)]">
+<div class="flex items-center justify-between gap-2">
+<!-- Home -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 group/nav" href="#">
+<div class="flex h-7 items-center justify-center text-slate-400 group-hover/nav:text-primary dark:group-hover/nav:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">home</span>
+</div>
+<span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 group-hover/nav:text-primary dark:group-hover/nav:text-primary transition-colors">الرئيسية</span>
+</a>
+<!-- Categories (Active) -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1" href="#">
+<div class="relative flex h-7 items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px] fill-current">category</span>
+<span class="absolute -bottom-6 w-1 h-1 rounded-full bg-primary"></span>
+</div>
+<span class="text-[10px] font-bold text-primary">الفئات</span>
+</a>
+<!-- Cart -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 group/nav" href="#">
+<div class="relative flex h-7 items-center justify-center text-slate-400 group-hover/nav:text-primary dark:group-hover/nav:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">shopping_cart</span>
+<span class="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white dark:ring-surface-dark">3</span>
+</div>
+<span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 group-hover/nav:text-primary dark:group-hover/nav:text-primary transition-colors">السلة</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-1 flex-col items-center justify-center gap-1 group/nav" href="#">
+<div class="flex h-7 items-center justify-center text-slate-400 group-hover/nav:text-primary dark:group-hover/nav:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">person</span>
+</div>
+<span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 group-hover/nav:text-primary dark:group-hover/nav:text-primary transition-colors">حسابي</span>
+</a>
+</div>
+</nav>
+</main>
+</body></html>

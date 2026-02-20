@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>إنشاء حساب - ZR Technologie</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00e1ff",
+                        "primary-dark": "#005CFF",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0A101D", /* Updated to match user request: Deep Navy */
+                        "surface-dark": "#131b2b",
+                        "border-dark": "#1e2a3b",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["IBM Plex Sans Arabic", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar to keep it clean */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        
+        /* Gradient text utility */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #00e1ff, #005CFF);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-body antialiased min-h-screen flex flex-col items-center justify-center overflow-x-hidden selection:bg-primary selection:text-black">
+<div class="w-full max-w-md mx-auto px-6 py-8 flex flex-col h-full min-h-screen sm:min-h-0 sm:h-auto justify-center relative">
+<!-- Header / Logo -->
+<div class="mb-8 text-center">
+<h1 class="font-display text-4xl font-bold tracking-tight text-white mb-2">ZR Technologie</h1>
+<p class="text-slate-400 text-sm font-medium">وجهتك الأولى للإكسسوارات التقنية</p>
+</div>
+<!-- Tab Switcher -->
+<div class="mb-8">
+<div class="flex border-b border-border-dark relative">
+<a class="flex-1 pb-4 text-center relative group" href="#">
+<span class="text-slate-400 font-bold text-sm transition-colors group-hover:text-slate-300">تسجيل الدخول</span>
+<div class="absolute bottom-0 left-0 w-full h-0.5 bg-transparent transition-all"></div>
+</a>
+<a class="flex-1 pb-4 text-center relative" href="#">
+<span class="text-primary font-bold text-sm">إنشاء حساب</span>
+<!-- Active Indicator Gradient -->
+<div class="absolute -bottom-[1px] left-0 w-full h-[3px] bg-gradient-to-r from-primary to-primary-dark shadow-[0_0_10px_rgba(0,225,255,0.5)]"></div>
+</a>
+</div>
+</div>
+<!-- Form Inputs -->
+<form class="space-y-5" onsubmit="event.preventDefault();">
+<!-- Full Name -->
+<div class="space-y-1.5">
+<label class="block text-sm font-medium text-slate-300" for="name">الاسم الكامل</label>
+<div class="relative group">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</span>
+<input class="block w-full rounded-lg border border-border-dark bg-surface-dark py-3.5 pr-11 pl-4 text-white placeholder-slate-500 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200" id="name" placeholder="محمد علي" type="text"/>
+</div>
+</div>
+<!-- Email -->
+<div class="space-y-1.5">
+<label class="block text-sm font-medium text-slate-300" for="email">البريد الإلكتروني</label>
+<div class="relative group">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</span>
+<input class="block w-full rounded-lg border border-border-dark bg-surface-dark py-3.5 pr-11 pl-4 text-white placeholder-slate-500 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200" id="email" placeholder="example@domain.com" type="email"/>
+</div>
+</div>
+<!-- Phone Number -->
+<div class="space-y-1.5">
+<label class="block text-sm font-medium text-slate-300" for="phone">رقم الهاتف</label>
+<div class="relative group">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">smartphone</span>
+</span>
+<input class="block w-full rounded-lg border border-border-dark bg-surface-dark py-3.5 pr-11 pl-4 text-right text-white placeholder-slate-500 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200" dir="ltr" id="phone" placeholder="05XXXXXXXX" type="tel"/>
+</div>
+</div>
+<!-- Password -->
+<div class="space-y-1.5">
+<label class="block text-sm font-medium text-slate-300" for="password">كلمة المرور</label>
+<div class="relative group">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</span>
+<input class="block w-full rounded-lg border border-border-dark bg-surface-dark py-3.5 pr-11 pl-11 text-white placeholder-slate-500 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Terms Checkbox (Optional but good UX) -->
+<div class="flex items-start gap-3 pt-2">
+<div class="flex h-6 items-center">
+<input class="h-4 w-4 rounded border-slate-600 bg-surface-dark text-primary focus:ring-primary/20 focus:ring-offset-0" id="terms" type="checkbox"/>
+</div>
+<div class="text-sm leading-6">
+<label class="font-medium text-slate-400" for="terms">أوافق على <a class="text-primary hover:underline" href="#">الشروط والأحكام</a> و <a class="text-primary hover:underline" href="#">سياسة الخصوصية</a></label>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full relative overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary-dark p-4 text-sm font-bold text-black shadow-[0_0_20px_rgba(0,225,255,0.3)] transition-transform active:scale-[0.98] hover:shadow-[0_0_30px_rgba(0,225,255,0.5)]" type="submit">
+<span class="relative z-10 flex items-center justify-center gap-2">
+                    إنشاء حساب
+                    <span class="material-symbols-outlined text-[20px] rtl:-scale-x-100">arrow_forward</span>
+</span>
+</button>
+</form>
+<!-- Footer -->
+<div class="mt-8 text-center">
+<p class="text-sm text-slate-400">
+                هل لديك حساب بالفعل؟ 
+                <a class="font-bold text-primary hover:text-primary-dark transition-colors" href="#">تسجيل الدخول</a>
+</p>
+</div>
+<!-- Decorative Elements for "Tech" vibe -->
+<div class="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-20"></div>
+<div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-20 -left-20 w-64 h-64 bg-primary-dark/10 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+</body></html>

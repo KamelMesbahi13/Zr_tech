@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ZR Technologie - Choose Shopping Type</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d93f2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0A101D", // Adjusted to Deep Navy requested
+                        "surface-dark": "#161E2E",
+                        "electric-blue-start": "#00D2FF",
+                        "electric-blue-end": "#005CFF",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Sans Arabic", "Space Grotesk", "sans-serif"], // Prioritize Arabic font for RTL
+                        "body": ["Noto Sans Arabic", "Space Grotesk", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Gradient Text & Borders */
+        .text-gradient {
+            background: linear-gradient(to right, #00D2FF, #005CFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .border-gradient {
+            position: relative;
+            background: #161E2E; /* surface-dark fallback */
+            border-radius: 0.75rem; /* rounded-xl */
+            z-index: 1;
+        }
+        .border-gradient::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 0.85rem; 
+            background: linear-gradient(to bottom right, #00D2FF, #005CFF);
+            z-index: -1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display min-h-screen flex flex-col items-center justify-center relative overflow-hidden text-slate-900 dark:text-slate-100 selection:bg-primary/30">
+<!-- Decorative background elements -->
+<div class="fixed top-[-20%] left-[-10%] w-[300px] h-[300px] bg-electric-blue-end/20 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="fixed bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-electric-blue-start/10 rounded-full blur-[100px] pointer-events-none"></div>
+<!-- Main Container -->
+<div class="w-full max-w-md px-6 py-8 flex flex-col h-full min-h-[100vh]">
+<!-- Header -->
+<header class="flex items-center justify-between mb-8">
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white">
+<span class="material-symbols-outlined text-[24px]">arrow_forward</span>
+</button>
+<div class="text-white text-base font-bold tracking-tight">ZR Technologie</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-transparent text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">help</span>
+</button>
+</header>
+<!-- Title Section -->
+<div class="mt-4 mb-10 text-center">
+<h1 class="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight leading-tight">
+                اختر نوع التسوق
+            </h1>
+<p class="text-slate-400 text-sm md:text-base leading-relaxed">
+                يرجى تحديد طريقة الشراء للمتابعة لتخصيص تجربتك
+            </p>
+</div>
+<!-- Selection Cards -->
+<div class="flex-1 flex flex-col justify-center gap-6 w-full">
+<!-- Wholesale Option -->
+<button class="group relative w-full text-right outline-none">
+<!-- Card Container with Gradient Border Effect -->
+<div class="border-gradient transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98]">
+<div class="relative bg-surface-dark rounded-xl p-6 h-full flex items-center justify-between overflow-hidden">
+<!-- Content -->
+<div class="flex flex-col z-10">
+<h2 class="text-xl font-bold text-white mb-1 group-hover:text-electric-blue-start transition-colors">بالجملة</h2>
+<p class="text-slate-400 text-sm">للشركات والتجار</p>
+</div>
+<!-- Icon Container -->
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#00D2FF]/20 to-[#005CFF]/20 flex items-center justify-center border border-[#00D2FF]/30 group-hover:border-[#00D2FF] transition-all z-10">
+<span class="material-symbols-outlined text-[#00D2FF] text-[28px]">inventory_2</span>
+</div>
+<!-- Subtle background pattern/image for context -->
+<div class="absolute inset-0 opacity-10 bg-cover bg-center mix-blend-overlay pointer-events-none" data-alt="Abstract warehouse shelves pattern" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQh72t3F9rA5Aq1zCQRCbmYJOPRZaZkU3JdV4RlSDNtG6oD-lplWWfP-489j66p9BCf3L3wPNcI18uBj4X729AaVCe8SOg9uk-I64IX4VNwM7YZOvRkfgSQQXOO59iNAdiUhxBbrpMPImgEGQejAmsKTxUk1ciZ0oq-ftFE8jqeZNbi9Cud7yQ6Uvru7qF6SoF6-hflgp70Krhb2aKZVn1XUCbDj8wkkQCNL0l7LXir-ePcEoF2pXg8_mQnjnQUResqEjgS52-Q0XX');">
+</div>
+<!-- Hover Glow -->
+<div class="absolute right-0 top-0 w-32 h-32 bg-electric-blue-start/20 blur-[60px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+</button>
+<!-- Retail Option -->
+<button class="group relative w-full text-right outline-none">
+<!-- Card Container with Gradient Border Effect -->
+<div class="border-gradient transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98]">
+<div class="relative bg-surface-dark rounded-xl p-6 h-full flex items-center justify-between overflow-hidden">
+<!-- Content -->
+<div class="flex flex-col z-10">
+<h2 class="text-xl font-bold text-white mb-1 group-hover:text-electric-blue-start transition-colors">بالتجزئة</h2>
+<p class="text-slate-400 text-sm">للاستخدام الشخصي</p>
+</div>
+<!-- Icon Container -->
+<div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#00D2FF]/20 to-[#005CFF]/20 flex items-center justify-center border border-[#00D2FF]/30 group-hover:border-[#00D2FF] transition-all z-10">
+<span class="material-symbols-outlined text-[#00D2FF] text-[28px]">shopping_bag</span>
+</div>
+<!-- Subtle background pattern/image for context -->
+<div class="absolute inset-0 opacity-10 bg-cover bg-center mix-blend-overlay pointer-events-none" data-alt="Abstract shopping mall blur" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCIdhjOyancB-K0-iBNQF3uWJhM9i3UJFU9KRnfGPrcTp6qHyi4tL2R1M7k0L-OTJ4ldgDjy_02OBRGrr-PJmi_e3BuAZc6m4BB9vjMWZdDuO813SYl_8ki9023eR5RKUwxN51R03yRl708jxObKRX3JU4tKmLqWPyS2kRoXrTDyBYNwKsgZ8PMl3Pz3Ibw3QZJhGiDYOENcrKjMIqrHvVAB6wAWnUdClGdc5sSxUVysB7FLTp_KHxO1zNlotU_pk8B8hVTPi4s5wQV');">
+</div>
+<!-- Hover Glow -->
+<div class="absolute right-0 top-0 w-32 h-32 bg-electric-blue-end/20 blur-[60px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+</button>
+</div>
+<!-- Spacer -->
+<div class="h-8"></div>
+<!-- Footer -->
+<footer class="mt-auto text-center pb-6">
+<button class="text-slate-500 text-sm hover:text-white transition-colors flex items-center justify-center gap-2 mx-auto">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span>تسجيل الخروج</span>
+</button>
+</footer>
+</div>
+</body></html>

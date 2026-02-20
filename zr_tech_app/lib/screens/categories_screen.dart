@@ -11,10 +11,18 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   final CategoryService _categoryService = CategoryService();
+  final TextEditingController _searchController = TextEditingController();
   List<CategoryModel> _categories = [];
+  List<CategoryModel> _filteredCategories = [];
   bool _isLoading = true;
   bool _hasSeeded = false;
   String _shoppingType = 'gros';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -44,7 +52,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (!mounted) return;
     setState(() {
       _categories = categories;
+      _filteredCategories = categories;
       _isLoading = false;
+    });
+  }
+
+  void _filterCategories(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredCategories = _categories;
+      } else {
+        _filteredCategories = _categories
+            .where((cat) => cat.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
     });
   }
 
@@ -75,12 +96,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
+                controller: _searchController,
+                onChanged: _filterCategories,
                 textDirection: TextDirection.rtl,
                 style: const TextStyle(color: Colors.white, fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: 'بحث عن منتجات...',
+                  hintText: 'بحث عن فئات...',
                   hintStyle: const TextStyle(color: AppColors.textSlate400),
                   prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: AppColors.textMuted, size: 20),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterCategories('');
+                          },
+                        )
+                      : null,
                   filled: true,
                   fillColor: AppColors.surfaceDark,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -95,10 +127,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                  : _categories.isEmpty
+                  : _filteredCategories.isEmpty
                       ? const Center(
                           child: Text(
-                            'لا توجد فئات متاحة',
+                            'لا توجد نتائج مطابقة',
                             style: TextStyle(color: AppColors.textSlate400, fontSize: 16),
                           ),
                         )
@@ -110,9 +142,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             mainAxisSpacing: 12,
                             childAspectRatio: 0.75,
                           ),
-                          itemCount: _categories.length,
+                          itemCount: _filteredCategories.length,
                           itemBuilder: (context, index) {
-                            final cat = _categories[index];
+                            final cat = _filteredCategories[index];
                             return Column(
                               children: [
                                 Expanded(

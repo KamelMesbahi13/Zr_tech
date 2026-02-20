@@ -126,7 +126,13 @@ class _SignupScreenState extends State<SignupScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
+                  // Logo
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 120,
+                    height: 120,
+                  ),
+                  const SizedBox(height: 8),
                   // Title
                   const Text(
                     'ZR Technologie',

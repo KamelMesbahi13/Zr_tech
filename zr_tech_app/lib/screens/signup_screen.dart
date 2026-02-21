@@ -256,7 +256,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       hintText: '••••••••',
                       hintStyle: const TextStyle(fontFamily: 'Space Grotesk', color: AppColors.textSlate500),
                       prefixIcon: const Padding(
-                        padding: EdgeInsets.only(left: 12, right: 8),
+                        padding: EdgeInsetsDirectional.only(start: 12, end: 8),
                         child: Icon(Icons.lock_outline, color: AppColors.textSlate500, size: 20),
                       ),
                       suffixIcon: IconButton(
@@ -416,7 +416,7 @@ class _SignupScreenState extends State<SignupScreen> {
       textAlign: textDirection == TextDirection.rtl ? TextAlign.right : TextAlign.left,
       keyboardType: keyboardType,
       style: TextStyle(
-        color: Colors.white,
+        color: AppColors.textPrimary,
         fontFamily: fontFamily ?? 'IBM Plex Sans Arabic',
         fontSize: 14,
       ),
@@ -427,7 +427,7 @@ class _SignupScreenState extends State<SignupScreen> {
           color: AppColors.textSlate500,
         ),
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 12, right: 8),
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
           child: Icon(icon, color: AppColors.textSlate500, size: 20),
         ),
         filled: true,

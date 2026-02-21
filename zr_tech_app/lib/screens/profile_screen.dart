@@ -81,12 +81,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 22),
+                              icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 22),
                             ),
                             const Text(
                               'حسابي',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -134,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Text(
                           _user?.name ?? 'مستخدم',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -253,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Info
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
@@ -267,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   value,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     fontFamily: isLTR ? 'Space Grotesk' : null,

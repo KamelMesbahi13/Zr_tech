@@ -203,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Email Field
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: AlignmentDirectional.centerStart,
                     child: Text(
                       'البريد الإلكتروني',
                       style: TextStyle(
@@ -224,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'name@example.com',
                       hintStyle: const TextStyle(fontFamily: 'Space Grotesk'),
                       prefixIcon: const Padding(
-                        padding: EdgeInsets.only(left: 12, right: 8),
+                        padding: EdgeInsetsDirectional.only(start: 12, end: 8),
                         child: Icon(Icons.mail_outline, color: AppColors.textSlate400, size: 22),
                       ),
                       filled: true,
@@ -247,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Password Field
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: AlignmentDirectional.centerStart,
                     child: Text(
                       'كلمة المرور',
                       style: TextStyle(
@@ -267,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: '••••••••',
                       hintStyle: const TextStyle(fontFamily: 'Space Grotesk'),
                       prefixIcon: const Padding(
-                        padding: EdgeInsets.only(left: 12, right: 8),
+                        padding: EdgeInsetsDirectional.only(start: 12, end: 8),
                         child: Icon(Icons.lock_outline, color: AppColors.textSlate400, size: 22),
                       ),
                       suffixIcon: IconButton(
@@ -300,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 4),
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: AlignmentDirectional.centerStart,
                     child: TextButton(
                       onPressed: () {},
                       child: const Text(

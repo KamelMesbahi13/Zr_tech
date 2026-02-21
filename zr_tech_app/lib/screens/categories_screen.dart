@@ -135,7 +135,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           ),
                         )
                       : GridView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 4,
                             crossAxisSpacing: 12,

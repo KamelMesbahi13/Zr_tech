@@ -42,12 +42,20 @@ class ZRTechApp extends StatelessWidget {
     return MaterialApp(
       title: 'ZR Technologie',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       locale: const Locale('ar'),
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
-          child: child!,
+          child: Container(
+            color: const Color(0xFFEEEFF2),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: child!,
+              ),
+            ),
+          ),
         );
       },
       initialRoute: '/login',

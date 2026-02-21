@@ -145,36 +145,49 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           itemCount: _filteredCategories.length,
                           itemBuilder: (context, index) {
                             final cat = _filteredCategories[index];
-                            return Column(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      color: AppColors.surfaceDark,
-                                      border: Border.all(color: AppColors.borderSubtle),
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: Image.network(
-                                      cat.image,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      errorBuilder: (c, e, s) => Container(
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/products',
+                                  arguments: {
+                                    'shoppingType': _shoppingType,
+                                    'categoryId': cat.id,
+                                    'categoryName': cat.name,
+                                  },
+                                );
+                              },
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
                                         color: AppColors.surfaceDark,
-                                        child: const Icon(Icons.image, color: AppColors.textSlate500, size: 28),
+                                        border: Border.all(color: AppColors.borderSubtle),
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: Image.network(
+                                        cat.image,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorBuilder: (c, e, s) => Container(
+                                          color: AppColors.surfaceDark,
+                                          child: const Icon(Icons.image, color: AppColors.textSlate500, size: 28),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  cat.name,
-                                  style: const TextStyle(color: AppColors.textSlate300, fontSize: 11, fontWeight: FontWeight.w500),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    cat.name,
+                                    style: const TextStyle(color: AppColors.textSlate300, fontSize: 11, fontWeight: FontWeight.w500),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),

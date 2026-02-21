@@ -8,6 +8,8 @@ import 'screens/shopping_type_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/admin_panel_screen.dart';
+import 'screens/products_screen.dart';
+import 'screens/product_detail_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +58,8 @@ class ZRTechApp extends StatelessWidget {
         '/categories': (context) => const CategoriesScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/admin': (context) => const AdminPanelScreen(),
+        '/products': (context) => const ProductsScreen(),
+        '/product-detail': (context) => const ProductDetailScreen(),
       },
     );
   }

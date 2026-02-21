@@ -10,6 +10,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static const String _adminEmail = 'admin@zrtech.com';
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -45,7 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      Navigator.pushReplacementNamed(context, '/shopping-type');
+      // Check if admin email → redirect to admin panel
+      final email = _emailController.text.trim().toLowerCase();
+      if (email == _adminEmail) {
+        Navigator.pushReplacementNamed(context, '/admin');
+      } else {
+        Navigator.pushReplacementNamed(context, '/shopping-type');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

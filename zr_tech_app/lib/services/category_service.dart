@@ -26,6 +26,67 @@ class CategoryService {
     return categories;
   }
 
+  /// Generate the next category ID (cat_XXX format).
+  Future<String> _getNextCategoryId(String shoppingType) async {
+    final snapshot = await _dbRef.child('categories').child(shoppingType).get();
+    int maxNum = 0;
+
+    if (snapshot.exists && snapshot.value != null) {
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      for (final key in data.keys) {
+        // Extract number from cat_XXX
+        final match = RegExp(r'cat_(\d+)').firstMatch(key);
+        if (match != null) {
+          final num = int.tryParse(match.group(1)!) ?? 0;
+          if (num > maxNum) maxNum = num;
+        }
+      }
+    }
+
+    final nextNum = maxNum + 1;
+    return 'cat_${nextNum.toString().padLeft(3, '0')}';
+  }
+
+  /// Add a new category to one or both shopping types.
+  Future<void> addCategory({
+    required String name,
+    required String image,
+    required int order,
+    required List<String> types, // ['gros'], ['detail'], or ['gros', 'detail']
+  }) async {
+    for (final type in types) {
+      final catId = await _getNextCategoryId(type);
+      await _dbRef.child('categories').child(type).child(catId).set({
+        'name': name,
+        'image': image,
+        'order': order,
+      });
+    }
+  }
+
+  /// Update an existing category.
+  Future<void> updateCategory({
+    required String shoppingType,
+    required String categoryId,
+    required String name,
+    required String image,
+    required int order,
+  }) async {
+    await _dbRef.child('categories').child(shoppingType).child(categoryId).update({
+      'name': name,
+      'image': image,
+      'order': order,
+    });
+  }
+
+  /// Delete a category.
+  Future<void> deleteCategory({
+    required String shoppingType,
+    required String categoryId,
+  }) async {
+    await _dbRef.child('categories').child(shoppingType).child(categoryId).remove();
+  }
+
   /// Seed initial categories into the database.
   /// Call this once to populate the database with the hardcoded data.
   Future<void> seedCategories() async {

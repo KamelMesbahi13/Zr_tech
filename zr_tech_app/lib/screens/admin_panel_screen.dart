@@ -600,7 +600,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
-                          gradient: AppColors.primaryGradient,
+                          color: AppColors.primary,
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.25),
@@ -807,7 +807,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
-                          gradient: AppColors.primaryGradient,
+                          color: AppColors.primary,
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.25),
@@ -1073,7 +1073,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
           textAlign: isLTR ? TextAlign.left : TextAlign.right,
           keyboardType: keyboardType,
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontFamily: isLTR ? 'Space Grotesk' : null,
             fontSize: 14,
           ),
@@ -1220,7 +1220,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                       controller: _tabController,
                       indicator: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        gradient: AppColors.primaryGradient,
+                        color: AppColors.primary,
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withValues(alpha: 0.3),
@@ -1310,7 +1310,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: AppColors.primaryGradient,
+          color: AppColors.primary,
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.4),

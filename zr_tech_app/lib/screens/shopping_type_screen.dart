@@ -20,14 +20,14 @@ class ShoppingTypeScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(width: 40, height: 40, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.05)),
-                        child: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 20), padding: EdgeInsets.zero)),
-                      const Text('ZR Technologie', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk')),
+                      Container(width: 40, height: 40, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.surfaceAlt),
+                        child: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 20), padding: EdgeInsets.zero)),
+                      const Text('ZR Technologie', style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk')),
                       IconButton(onPressed: () {}, icon: const Icon(Icons.help_outline, color: AppColors.textSlate400, size: 24)),
                     ],
                   ),
                   const SizedBox(height: 32),
-                  const Text('اختر نوع التسوق', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+                  const Text('اختر نوع التسوق', style: TextStyle(color: AppColors.textPrimary, fontSize: 30, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   const Text('يرجى تحديد طريقة الشراء للمتابعة لتخصيص تجربتك', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSlate400, fontSize: 14)),
                   Expanded(
@@ -69,7 +69,7 @@ class ShoppingTypeScreen extends StatelessWidget {
             ),
             const Spacer(),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               Text(subtitle, style: const TextStyle(color: AppColors.textSlate400, fontSize: 14)),
             ]),

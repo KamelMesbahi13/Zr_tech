@@ -83,11 +83,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 children: [
                   IconButton(
                     onPressed: () {},
-                    icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
+                    icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 28),
                   ),
                   Text(
                     _shoppingType == 'gros' ? 'الفئات - بالجملة' : 'الفئات - بالتجزئة',
-                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -99,7 +99,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 controller: _searchController,
                 onChanged: _filterCategories,
                 textDirection: TextDirection.rtl,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'بحث عن فئات...',
                   hintStyle: const TextStyle(color: AppColors.textSlate400),

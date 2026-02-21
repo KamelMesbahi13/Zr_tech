@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontFamily: 'Space Grotesk',
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -163,14 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: AppColors.tabActive,
+                              color: AppColors.primary,
                               borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 4,
-                                ),
-                              ],
                             ),
                             child: const Text(
                               'تسجيل الدخول',
@@ -225,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textDirection: TextDirection.ltr,
                     textAlign: TextAlign.left,
                     keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(color: Colors.white, fontFamily: 'Space Grotesk', fontSize: 14),
+                    style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Space Grotesk', fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'name@example.com',
                       hintStyle: const TextStyle(fontFamily: 'Space Grotesk'),
@@ -268,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     textDirection: TextDirection.ltr,
                     obscureText: _obscurePassword,
-                    style: const TextStyle(color: Colors.white, fontFamily: 'Space Grotesk', fontSize: 14),
+                    style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Space Grotesk', fontSize: 14),
                     decoration: InputDecoration(
                       hintText: '••••••••',
                       hintStyle: const TextStyle(fontFamily: 'Space Grotesk'),
@@ -324,42 +318,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login Button
                   SizedBox(
                     width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        gradient: AppColors.primaryGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.25),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+                    child: ElevatedButton(
+                      onPressed: _handleLogin,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'دخول',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_back, color: Colors.white, size: 18),
-                          ],
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'دخول',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -445,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: Colors.white, size: 22),
+                Icon(icon, color: AppColors.textPrimary, size: 22),
                 const SizedBox(width: 10),
                 Text(
                   label,

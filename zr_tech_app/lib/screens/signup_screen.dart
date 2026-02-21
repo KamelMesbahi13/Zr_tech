@@ -140,7 +140,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       fontFamily: 'Space Grotesk',
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -251,7 +251,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     controller: _passwordController,
                     textDirection: TextDirection.ltr,
                     obscureText: _obscurePassword,
-                    style: const TextStyle(color: Colors.white, fontFamily: 'Space Grotesk', fontSize: 14),
+                    style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Space Grotesk', fontSize: 14),
                     decoration: InputDecoration(
                       hintText: '••••••••',
                       hintStyle: const TextStyle(fontFamily: 'Space Grotesk', color: AppColors.textSlate500),
@@ -333,42 +333,22 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Submit Button
                   SizedBox(
                     width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        gradient: AppColors.primaryGradientLTR,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.cyan.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: _handleSignUp,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                    child: ElevatedButton(
+                      onPressed: _handleSignUp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              'إنشاء حساب',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_back, color: Colors.black, size: 20),
-                          ],
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'إنشاء حساب',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),

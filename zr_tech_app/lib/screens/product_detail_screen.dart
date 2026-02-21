@@ -100,11 +100,11 @@ class ProductDetailScreen extends StatelessWidget {
                           height: 40,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.05),
+                            color: AppColors.surfaceAlt,
                           ),
                           child: IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                            icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 20),
                             padding: EdgeInsets.zero,
                           ),
                         ),
@@ -112,7 +112,7 @@ class ProductDetailScreen extends StatelessWidget {
                         const Text(
                           'تفاصيل المنتج',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -196,7 +196,7 @@ class ProductDetailScreen extends StatelessWidget {
                     child: Text(
                       product.name,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.3,
@@ -274,7 +274,7 @@ class ProductDetailScreen extends StatelessWidget {
                         const Text(
                           'وصف المنتج',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -311,24 +311,12 @@ class ProductDetailScreen extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
-                        gradient: product.isAvailable
-                            ? AppColors.primaryGradient
-                            : null,
                         color: product.isAvailable
-                            ? null
-                            : AppColors.surfaceDarkAlt,
-                        boxShadow: product.isAvailable
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.25),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : null,
+                            ? AppColors.primary
+                            : AppColors.surfaceAlt,
                         border: product.isAvailable
                             ? null
-                            : Border.all(color: AppColors.borderDark),
+                            : Border.all(color: AppColors.border),
                       ),
                       child: ElevatedButton(
                         onPressed: product.isAvailable

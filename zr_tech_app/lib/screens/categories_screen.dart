@@ -85,9 +85,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     onPressed: () {},
                     icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 28),
                   ),
-                  Text(
-                    _shoppingType == 'gros' ? 'الفئات - بالجملة' : 'الفئات - بالتجزئة',
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      _shoppingType == 'gros' ? 'الفئات - بالجملة' : 'الفئات - بالتجزئة',
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/shopping-type'),
+                    icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 24),
                   ),
                 ],
               ),

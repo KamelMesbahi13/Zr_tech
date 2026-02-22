@@ -47,18 +47,13 @@ class ZRTechApp extends StatelessWidget {
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
-          child: Container(
-            color: const Color(0xFFEEEFF2),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: child!,
-              ),
-            ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: child!,
           ),
         );
       },
-      initialRoute: '/login',
+      initialRoute: '/shopping-type',
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),

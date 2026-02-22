@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import '../services/auth_service.dart';
 
 class ShoppingTypeScreen extends StatelessWidget {
   const ShoppingTypeScreen({super.key});
@@ -20,8 +19,7 @@ class ShoppingTypeScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(width: 40, height: 40, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.surfaceAlt),
-                        child: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 20), padding: EdgeInsets.zero)),
+                      const SizedBox(width: 40),
                       const Text('ZR Technologie', style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk')),
                       IconButton(onPressed: () {}, icon: const Icon(Icons.help_outline, color: AppColors.textSlate400, size: 24)),
                     ],
@@ -32,15 +30,10 @@ class ShoppingTypeScreen extends StatelessWidget {
                   const Text('يرجى تحديد طريقة الشراء للمتابعة لتخصيص تجربتك', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSlate400, fontSize: 14)),
                   Expanded(
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      _card('بالجملة', 'للشركات والتجار', Icons.inventory_2_outlined, () => Navigator.pushNamed(context, '/categories', arguments: 'gros')),
+                      _card('بالجملة', 'للشركات والتجار', Icons.inventory_2_outlined, () => Navigator.pushNamed(context, '/login')),
                       const SizedBox(height: 24),
                       _card('بالتجزئة', 'للاستخدام الشخصي', Icons.shopping_bag_outlined, () => Navigator.pushNamed(context, '/categories', arguments: 'detail')),
                     ]),
-                  ),
-                  TextButton.icon(
-                    onPressed: () { AuthService().logout(); Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false); },
-                    icon: const Icon(Icons.logout, color: AppColors.textSlate500, size: 18),
-                    label: const Text('تسجيل الخروج', style: TextStyle(color: AppColors.textSlate500, fontSize: 14)),
                   ),
                   const SizedBox(height: 16),
                 ],

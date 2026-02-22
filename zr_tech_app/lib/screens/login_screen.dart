@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (email == _adminEmail) {
         Navigator.pushReplacementNamed(context, '/admin');
       } else {
-        Navigator.pushReplacementNamed(context, '/shopping-type');
+        Navigator.pushReplacementNamed(context, '/categories', arguments: 'gros');
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

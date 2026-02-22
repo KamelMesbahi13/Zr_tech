@@ -32,7 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _handleLogout() async {
     await AuthService().logout();
     if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
+    Navigator.pushNamedAndRemoveUntil(context, '/shopping-type', (r) => false);
   }
 
   @override

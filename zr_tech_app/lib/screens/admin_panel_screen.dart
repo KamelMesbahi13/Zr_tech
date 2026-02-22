@@ -1216,19 +1216,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
                 Expanded(
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // ── SIDEBAR (Right side in RTL) ──
                       Container(
-                        width: 140,
-                        margin: const EdgeInsets.only(right: 12, left: 20, bottom: 20),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceDarkAlt,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.borderDark),
+                        width: 240,
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceAlt,
+                          border: Border(
+                            left: BorderSide(color: AppColors.borderDark),
+                          ),
                         ),
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.only(top: 24, bottom: 24, right: 16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

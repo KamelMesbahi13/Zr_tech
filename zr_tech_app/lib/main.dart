@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
+import 'screens/admin_login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/shopping_type_screen.dart';
 import 'screens/categories_screen.dart';
@@ -56,6 +57,7 @@ class ZRTechApp extends StatelessWidget {
       initialRoute: '/shopping-type',
       routes: {
         '/login': (context) => const LoginScreen(),
+        '/admin-login': (context) => const AdminLoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/shopping-type': (context) => const ShoppingTypeScreen(),
         '/categories': (context) => const CategoriesScreen(),

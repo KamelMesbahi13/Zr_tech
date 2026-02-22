@@ -4,7 +4,9 @@ import 'package:file_picker/file_picker.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
+import '../services/product_service.dart';
 import '../models/category_model.dart';
+import '../models/product_model.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -13,46 +15,49 @@ class AdminPanelScreen extends StatefulWidget {
   State<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
-class _AdminPanelScreenState extends State<AdminPanelScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final CategoryService _categoryService = CategoryService();
+  final ProductService _productService = ProductService();
+
+  int _sectionIndex = 0; // 0 = categories, 1 = products
+  int _typeIndex = 0; // 0 = gros, 1 = detail
 
   List<CategoryModel> _grosCategories = [];
   List<CategoryModel> _detailCategories = [];
+  List<ProductModel> _grosProducts = [];
+  List<ProductModel> _detailProducts = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) setState(() {});
-    });
-    _loadCategories();
+    _loadData();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadCategories() async {
+  Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
       final gros = await _categoryService.getCategories('gros');
       final detail = await _categoryService.getCategories('detail');
+      final grosProd = await _productService.getAllProducts('gros');
+      final detailProd = await _productService.getAllProducts('detail');
       if (!mounted) return;
       setState(() {
         _grosCategories = gros;
         _detailCategories = detail;
+        _grosProducts = grosProd;
+        _detailProducts = detailProd;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _showErrorSnackBar('حدث خطأ أثناء تحميل الفئات');
+      _showErrorSnackBar('حدث خطأ أثناء تحميل البيانات');
     }
   }
 
@@ -78,10 +83,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
     );
   }
 
-  String get _currentType => _tabController.index == 0 ? 'gros' : 'detail';
+  String get _currentType => _typeIndex == 0 ? 'gros' : 'detail';
 
   List<CategoryModel> get _currentCategories =>
-      _tabController.index == 0 ? _grosCategories : _detailCategories;
+      _typeIndex == 0 ? _grosCategories : _detailCategories;
+
+  List<ProductModel> get _currentProducts =>
+      _typeIndex == 0 ? _grosProducts : _detailProducts;
 
   void _handleLogout() async {
     await AuthService().logout();
@@ -237,7 +245,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           Icons.upload_file,
                           size: 16,
                           color: !useUrl
-                              ? Colors.white
+                              ? AppColors.primaryDark
                               : AppColors.textSlate400,
                         ),
                         const SizedBox(width: 6),
@@ -246,7 +254,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: !useUrl
-                                ? Colors.white
+                                ? AppColors.primaryDark
                                 : AppColors.textSlate400,
                             fontSize: 13,
                             fontWeight:
@@ -282,7 +290,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           Icons.link,
                           size: 16,
                           color:
-                              useUrl ? Colors.white : AppColors.textSlate400,
+                              useUrl ? AppColors.primaryDark : AppColors.textSlate400,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -290,7 +298,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: useUrl
-                                ? Colors.white
+                                ? AppColors.primaryDark
                                 : AppColors.textSlate400,
                             fontSize: 13,
                             fontWeight:
@@ -315,7 +323,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
             textDirection: TextDirection.ltr,
             textAlign: TextAlign.left,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontFamily: 'Space Grotesk',
               fontSize: 14,
             ),
@@ -520,7 +528,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                     const Text(
                       'إضافة فئة جديدة',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -638,7 +646,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                                     if (!mounted) return;
                                     Navigator.pop(context);
                                     _showSuccessSnackBar('تمت إضافة الفئة بنجاح');
-                                    _loadCategories();
+                                    _loadData();
                                   } catch (e) {
                                     setSheetState(() => isSaving = false);
                                     _showErrorSnackBar(
@@ -739,7 +747,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                     const Text(
                       'تعديل الفئة',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -845,7 +853,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                                     Navigator.pop(context);
                                     _showSuccessSnackBar(
                                         'تم تعديل الفئة بنجاح');
-                                    _loadCategories();
+                                    _loadData();
                                   } catch (e) {
                                     setSheetState(() => isSaving = false);
                                     _showErrorSnackBar(
@@ -918,7 +926,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                     child: Text(
                       'تأكيد الحذف',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -946,7 +954,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                         TextSpan(
                           text: '«${category.name}»',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1002,7 +1010,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                             if (!mounted) return;
                             Navigator.pop(context);
                             _showSuccessSnackBar('تم حذف الفئة بنجاح');
-                            _loadCategories();
+                            _loadData();
                           } catch (e) {
                             setDialogState(() => isDeleting = false);
                             _showErrorSnackBar('حدث خطأ أثناء حذف الفئة');
@@ -1164,14 +1172,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           const Text(
                             'لوحة التحكم',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'إدارة فئات المنتجات',
+                            'إدارة الفئات والمنتجات',
                             style: TextStyle(
                               color: AppColors.textSlate400,
                               fontSize: 13,
@@ -1206,100 +1214,87 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                   ),
                 ),
 
-                // ── TAB BAR ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceDarkAlt,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.borderDark),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicator: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: AppColors.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      dividerColor: Colors.transparent,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: AppColors.textSlate400,
-                      labelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      tabs: const [
-                        Tab(text: 'بالجملة'),
-                        Tab(text: 'بالتجزئة'),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // ── CATEGORY COUNT ──
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                Expanded(
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // ── SIDEBAR (Right side in RTL) ──
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                        width: 140,
+                        margin: const EdgeInsets.only(right: 12, left: 20, bottom: 20),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.surfaceDarkAlt,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.borderDark),
                         ),
-                        child: Text(
-                          '${_currentCategories.length}',
-                          style: const TextStyle(
-                            color: AppColors.primaryLight,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Space Grotesk',
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSidebarSection(
+                                title: 'الفئات',
+                                icon: Icons.category,
+                                sectionIndex: 0,
+                              ),
+                              if (_sectionIndex == 0) _buildSidebarSubItems(),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Divider(color: AppColors.borderDark, height: 1),
+                              ),
+                              _buildSidebarSection(
+                                title: 'المنتجات',
+                                icon: Icons.inventory_2,
+                                sectionIndex: 1,
+                              ),
+                              if (_sectionIndex == 1) _buildSidebarSubItems(),
+                            ],
                           ),
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        'الفئات',
-                        style: TextStyle(
-                          color: AppColors.textSlate400,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      
+                      // ── MAIN CONTENT (Left side in RTL) ──
+                      Expanded(
+                        child: Column(
+                          children: [
+                            // ── ITEM COUNT ──
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${_sectionIndex == 0 ? _currentCategories.length : _currentProducts.length}',
+                                      style: const TextStyle(color: AppColors.primaryLight, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${_sectionIndex == 0 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
+                                    style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // ── LIST ──
+                            Expanded(
+                              child: _isLoading
+                                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                                  : _sectionIndex == 0
+                                      ? _buildCategoryList(_currentCategories)
+                                      : _buildProductList(_currentProducts),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-
-                // ── CATEGORY LIST ──
-                Expanded(
-                  child: _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                              color: AppColors.primary),
-                        )
-                      : TabBarView(
-                          controller: _tabController,
-                          children: [
-                            _buildCategoryList(_grosCategories),
-                            _buildCategoryList(_detailCategories),
-                          ],
-                        ),
                 ),
               ],
             ),
@@ -1320,13 +1315,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
           ],
         ),
         child: FloatingActionButton.extended(
-          onPressed: _showAddCategoryDialog,
+          onPressed: _sectionIndex == 0 ? _showAddCategoryDialog : _showAddProductDialog,
           backgroundColor: Colors.transparent,
           elevation: 0,
           icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text(
-            'إضافة فئة',
-            style: TextStyle(
+          label: Text(
+            _sectionIndex == 0 ? 'إضافة فئة' : 'إضافة منتج',
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 14,
@@ -1370,7 +1365,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: _loadCategories,
+      onRefresh: _loadData,
       color: AppColors.primary,
       backgroundColor: AppColors.surfaceDark,
       child: ListView.builder(
@@ -1395,73 +1390,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
       ),
       child: Row(
         children: [
-          // Action buttons
-          Column(
-            children: [
-              // Edit button
-              _buildSmallButton(
-                icon: Icons.edit_outlined,
-                color: AppColors.primary,
-                onTap: () => _showEditCategoryDialog(category),
-              ),
-              const SizedBox(height: 8),
-              // Delete button
-              _buildSmallButton(
-                icon: Icons.delete_outline,
-                color: Colors.red,
-                onTap: () => _showDeleteConfirmation(category),
-              ),
-            ],
-          ),
-          const SizedBox(width: 14),
-          // Category info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  category.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'الترتيب: ${category.order}',
-                        style: const TextStyle(
-                          color: AppColors.primaryLight,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      category.id,
-                      style: const TextStyle(
-                        color: AppColors.textSlate500,
-                        fontSize: 11,
-                        fontFamily: 'Space Grotesk',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
           // Thumbnail
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -1470,18 +1398,676 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
               height: 60,
               color: AppColors.surfaceCard,
               child: category.image.isNotEmpty
-                  ? _buildImageWidget(
-                      category.image,
-                      fit: BoxFit.cover,
-                    )
-                  : const Icon(
-                      Icons.image_outlined,
-                      color: AppColors.textSlate500,
-                      size: 28,
-                    ),
+                  ? _buildImageWidget(category.image, fit: BoxFit.cover)
+                  : const Icon(Icons.image_outlined, color: AppColors.textSlate500, size: 28),
             ),
           ),
+          const SizedBox(width: 14),
+          // Category info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                      child: Text('الترتيب: ${category.order}', style: const TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(category.id, style: const TextStyle(color: AppColors.textSlate500, fontSize: 11, fontFamily: 'Space Grotesk')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Action buttons
+          Column(
+            children: [
+              _buildSmallButton(icon: Icons.edit_outlined, color: AppColors.primary, onTap: () => _showEditCategoryDialog(category)),
+              const SizedBox(height: 8),
+              _buildSmallButton(icon: Icons.delete_outline, color: Colors.red, onTap: () => _showDeleteConfirmation(category)),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  // ─── PRODUCT LIST WIDGET ──────────────────────────────────────
+
+  Widget _buildProductList(List<ProductModel> products) {
+    if (products.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inventory_2_outlined, color: AppColors.textSlate500, size: 56),
+            const SizedBox(height: 16),
+            const Text('لا توجد منتجات', style: TextStyle(color: AppColors.textSlate400, fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            const Text('اضغط على + لإضافة منتج جديد', style: TextStyle(color: AppColors.textSlate500, fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    final categories = _currentCategories;
+    
+    // Create a map of categoryId -> list of products
+    final Map<String, List<ProductModel>> productsByCategory = {};
+    for (var cat in categories) {
+      productsByCategory[cat.id] = [];
+    }
+    
+    final List<ProductModel> uncategorized = [];
+    for (var product in products) {
+      if (productsByCategory.containsKey(product.categoryId)) {
+        productsByCategory[product.categoryId]!.add(product);
+      } else {
+        uncategorized.add(product);
+      }
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: AppColors.primary,
+      backgroundColor: AppColors.surfaceDark,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        children: [
+          for (var cat in categories)
+            if ((productsByCategory[cat.id] ?? []).isNotEmpty)
+              _buildCategoryExpansionTile(cat, productsByCategory[cat.id]!),
+          if (uncategorized.isNotEmpty)
+            _buildCategoryExpansionTile(
+              CategoryModel(id: 'uncategorized', name: 'غير مصنف', image: '', order: 999), 
+              uncategorized,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryExpansionTile(CategoryModel category, List<ProductModel> categoryProducts) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDarkAlt,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderDark),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          iconColor: AppColors.primary,
+          collapsedIconColor: AppColors.textSlate400,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              if (category.image.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 40, height: 40,
+                    child: _buildImageWidget(category.image, fit: BoxFit.cover),
+                  ),
+                )
+              else
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: AppColors.surfaceDark, borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.category_outlined, color: AppColors.textSlate500, size: 20),
+                ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  category.name,
+                  textAlign: TextAlign.start,
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${categoryProducts.length}',
+                  style: const TextStyle(color: AppColors.primaryLight, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                ),
+              ),
+            ],
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12, top: 4),
+              child: Column(
+                children: categoryProducts.map((p) => _buildProductItem(p, isInsideCard: true)).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductItem(ProductModel product, {bool isInsideCard = false}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isInsideCard ? AppColors.surfaceCard : AppColors.surfaceDarkAlt,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderDark),
+      ),
+      child: Row(
+        children: [
+          // Thumbnail
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 60,
+              height: 60,
+              color: AppColors.surfaceCard,
+              child: product.image.isNotEmpty
+                  ? _buildImageWidget(product.image, fit: BoxFit.cover)
+                  : const Icon(Icons.image_outlined, color: AppColors.textSlate500, size: 28),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Product info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(product.name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: product.isAvailable ? Colors.green.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        product.isAvailable ? 'متوفر' : 'غير متوفر',
+                        style: TextStyle(color: product.isAvailable ? Colors.green : Colors.red, fontSize: 10, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${product.price.toStringAsFixed(0)} د.ج',
+                        style: const TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(product.categoryId, style: const TextStyle(color: AppColors.textSlate500, fontSize: 11, fontFamily: 'Space Grotesk')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Action buttons
+          Column(
+            children: [
+              _buildSmallButton(
+                icon: Icons.edit_outlined,
+                color: AppColors.primary,
+                onTap: () => _showEditProductDialog(product),
+              ),
+              const SizedBox(height: 8),
+              _buildSmallButton(
+                icon: Icons.delete_outline,
+                color: Colors.red,
+                onTap: () => _showDeleteProductConfirmation(product),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── ADD PRODUCT ────────────────────────────────────────────────
+
+  void _showAddProductDialog() {
+    final nameController = TextEditingController();
+    final imageUrlController = TextEditingController();
+    final priceController = TextEditingController();
+    final descController = TextEditingController();
+    String? selectedCategoryId;
+    bool isAvailable = true;
+    bool isSaving = false;
+    bool useUrl = false;
+    bool isUploading = false;
+    String? uploadedUrl;
+    String? uploadedFileName;
+
+    final categories = _currentCategories;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: AppColors.textSlate500, borderRadius: BorderRadius.circular(2))),
+                    const Text('إضافة منتج جديد', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    _buildTextField(controller: nameController, label: 'اسم المنتج', hint: 'مثال: كابل USB-C', icon: Icons.inventory_2_outlined),
+                    const SizedBox(height: 16),
+                    _buildImagePicker(
+                      useUrl: useUrl,
+                      onToggle: (val) => setSheetState(() => useUrl = val),
+                      urlController: imageUrlController,
+                      uploadedUrl: uploadedUrl,
+                      uploadedFileName: uploadedFileName,
+                      isUploading: isUploading,
+                      onUploaded: (url, name) => setSheetState(() { uploadedUrl = url; uploadedFileName = name; }),
+                      setUploading: (val) => setSheetState(() => isUploading = val),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: priceController, label: 'السعر (د.ج)', hint: '350', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: descController, label: 'الوصف', hint: 'وصف المنتج...', icon: Icons.description_outlined),
+                    const SizedBox(height: 16),
+                    // Category dropdown
+                    Align(alignment: Alignment.centerRight, child: const Text('الفئة', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceDarkAlt,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.borderDark),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedCategoryId,
+                          isExpanded: true,
+                          dropdownColor: AppColors.surfaceDarkAlt,
+                          hint: const Text('اختر الفئة', style: TextStyle(color: AppColors.textSlate500, fontSize: 14)),
+                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                          items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, style: const TextStyle(color: AppColors.textPrimary)))).toList(),
+                          onChanged: (val) => setSheetState(() => selectedCategoryId = val),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Availability toggle
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(color: AppColors.surfaceDarkAlt, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.borderDark)),
+                      child: Row(
+                        children: [
+                          Switch(value: isAvailable, onChanged: (v) => setSheetState(() => isAvailable = v), activeColor: AppColors.primary),
+                          const SizedBox(width: 12),
+                          const Expanded(child: Text('متوفر للبيع', style: TextStyle(color: AppColors.textSlate300, fontSize: 14))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Save button
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary, boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4))]),
+                        child: ElevatedButton(
+                          onPressed: (isSaving || isUploading) ? null : () async {
+                            if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
+                            if (selectedCategoryId == null) { _showErrorSnackBar('الرجاء اختيار الفئة'); return; }
+                            final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? '');
+                            setSheetState(() => isSaving = true);
+                            try {
+                              await _productService.addProduct(
+                                shoppingType: _currentType,
+                                categoryId: selectedCategoryId!,
+                                name: nameController.text.trim(),
+                                image: imageUrl,
+                                price: double.tryParse(priceController.text.trim()) ?? 0,
+                                description: descController.text.trim(),
+                                isAvailable: isAvailable,
+                              );
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                              _showSuccessSnackBar('تمت إضافة المنتج بنجاح');
+                              _loadData();
+                            } catch (e) {
+                              setSheetState(() => isSaving = false);
+                              _showErrorSnackBar('حدث خطأ أثناء إضافة المنتج');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                          child: isSaving
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add, color: Colors.white, size: 20), SizedBox(width: 8), Text('إضافة', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── EDIT PRODUCT ───────────────────────────────────────────────
+
+  void _showEditProductDialog(ProductModel product) {
+    final nameController = TextEditingController(text: product.name);
+    final imageUrlController = TextEditingController(text: product.image);
+    final priceController = TextEditingController(text: product.price.toStringAsFixed(0));
+    final descController = TextEditingController(text: product.description);
+    bool isAvailable = product.isAvailable;
+    bool isSaving = false;
+    bool useUrl = product.image.isNotEmpty;
+    bool isUploading = false;
+    String? uploadedUrl;
+    String? uploadedFileName;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: AppColors.textSlate500, borderRadius: BorderRadius.circular(2))),
+                    const Text('تعديل المنتج', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                      child: Text(product.id, style: const TextStyle(color: AppColors.primaryLight, fontSize: 12, fontFamily: 'Space Grotesk', fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildTextField(controller: nameController, label: 'اسم المنتج', hint: 'مثال: كابل USB-C', icon: Icons.inventory_2_outlined),
+                    const SizedBox(height: 16),
+                    _buildImagePicker(
+                      useUrl: useUrl,
+                      onToggle: (val) => setSheetState(() => useUrl = val),
+                      urlController: imageUrlController,
+                      uploadedUrl: uploadedUrl,
+                      uploadedFileName: uploadedFileName,
+                      isUploading: isUploading,
+                      onUploaded: (url, name) => setSheetState(() { uploadedUrl = url; uploadedFileName = name; }),
+                      setUploading: (val) => setSheetState(() => isUploading = val),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: priceController, label: 'السعر (د.ج)', hint: '350', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: descController, label: 'الوصف', hint: 'وصف المنتج...', icon: Icons.description_outlined),
+                    const SizedBox(height: 16),
+                    // Category (read-only display)
+                    Align(alignment: Alignment.centerRight, child: const Text('الفئة', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(color: AppColors.surfaceDarkAlt, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.borderDark)),
+                      child: Text(product.categoryId, style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontFamily: 'Space Grotesk')),
+                    ),
+                    const SizedBox(height: 16),
+                    // Availability toggle
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(color: AppColors.surfaceDarkAlt, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.borderDark)),
+                      child: Row(
+                        children: [
+                          Switch(value: isAvailable, onChanged: (v) => setSheetState(() => isAvailable = v), activeColor: AppColors.primary),
+                          const SizedBox(width: 12),
+                          const Expanded(child: Text('متوفر للبيع', style: TextStyle(color: AppColors.textSlate300, fontSize: 14))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Save button
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary, boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4))]),
+                        child: ElevatedButton(
+                          onPressed: (isSaving || isUploading) ? null : () async {
+                            if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
+                            final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? product.image);
+                            setSheetState(() => isSaving = true);
+                            try {
+                              await _productService.updateProduct(
+                                shoppingType: _currentType,
+                                categoryId: product.categoryId,
+                                productId: product.id,
+                                name: nameController.text.trim(),
+                                image: imageUrl,
+                                price: double.tryParse(priceController.text.trim()) ?? 0,
+                                description: descController.text.trim(),
+                                isAvailable: isAvailable,
+                              );
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                              _showSuccessSnackBar('تم تعديل المنتج بنجاح');
+                              _loadData();
+                            } catch (e) {
+                              setSheetState(() => isSaving = false);
+                              _showErrorSnackBar('حدث خطأ أثناء تعديل المنتج');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                          child: isSaving
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.save_outlined, color: Colors.white, size: 20), SizedBox(width: 8), Text('حفظ التعديلات', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── DELETE PRODUCT ─────────────────────────────────────────────
+
+  void _showDeleteProductConfirmation(ProductModel product) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceDark,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Expanded(child: Text('تأكيد الحذف', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: const TextStyle(color: AppColors.textSlate300, fontSize: 15, height: 1.6),
+                      children: [
+                        const TextSpan(text: 'هل أنت متأكد من حذف المنتج\n'),
+                        TextSpan(text: '«${product.name}»', style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                        const TextSpan(text: '؟'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('لا يمكن التراجع عن هذا الإجراء', style: TextStyle(color: AppColors.textSlate500, fontSize: 12), textAlign: TextAlign.center),
+                ],
+              ),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.borderDark))),
+                  child: const Text('إلغاء', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: isDeleting ? null : () async {
+                    setDialogState(() => isDeleting = true);
+                    try {
+                      await _productService.deleteProduct(shoppingType: _currentType, categoryId: product.categoryId, productId: product.id);
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      _showSuccessSnackBar('تم حذف المنتج بنجاح');
+                      _loadData();
+                    } catch (e) {
+                      setDialogState(() => isDeleting = false);
+                      _showErrorSnackBar('حدث خطأ أثناء حذف المنتج');
+                    }
+                  },
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), backgroundColor: Colors.red.withValues(alpha: 0.15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  child: isDeleting
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red))
+                      : const Text('حذف', style: TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── SIDEBAR UTILITY WIDGETS ──────────────────────────────────
+
+  Widget _buildSidebarSection({required String title, required IconData icon, required int sectionIndex}) {
+    final isSelected = _sectionIndex == sectionIndex;
+    return InkWell(
+      onTap: () => setState(() => _sectionIndex = sectionIndex),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+          border: Border(
+            right: BorderSide(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              width: 3,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: isSelected ? AppColors.primary : AppColors.textSlate400),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? AppColors.primaryDark : AppColors.textSlate300,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebarSubItems() {
+    return Column(
+      children: [
+        _buildSidebarSubItem(title: 'بالجملة', typeIndex: 0),
+        _buildSidebarSubItem(title: 'بالتجزئة', typeIndex: 1),
+      ],
+    );
+  }
+
+  Widget _buildSidebarSubItem({required String title, required int typeIndex}) {
+    final isSelected = _typeIndex == typeIndex;
+    return InkWell(
+      onTap: () => setState(() => _typeIndex = typeIndex),
+      child: Container(
+        padding: const EdgeInsets.only(right: 48, left: 16, top: 10, bottom: 10),
+        color: isSelected ? AppColors.surfaceDark : Colors.transparent,
+        child: Row(
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? AppColors.primary : AppColors.textSlate500,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? AppColors.primaryLight : AppColors.textSlate400,
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

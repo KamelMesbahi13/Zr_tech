@@ -47,13 +47,25 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result.success) {
-      // Check if admin email → redirect to admin panel
       final email = _emailController.text.trim().toLowerCase();
+      
+      // Block admin from logging in via the user panel
       if (email == _adminEmail) {
-        Navigator.pushReplacementNamed(context, '/admin');
-      } else {
-        Navigator.pushReplacementNamed(context, '/categories', arguments: 'gros');
+        await AuthService().logout(); // Sign them out immediately
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('يرجى تسجيل الدخول من صفحة الإدارة المخصصة', textAlign: TextAlign.center),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+        return;
       }
+
+      // Normal user logic
+      Navigator.pushReplacementNamed(context, '/categories', arguments: 'gros');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

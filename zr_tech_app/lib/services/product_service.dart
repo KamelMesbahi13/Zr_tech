@@ -28,6 +28,129 @@ class ProductService {
     return products;
   }
 
+  /// Fetch ALL products across all categories for a shopping type.
+  Future<List<ProductModel>> getAllProducts(String shoppingType) async {
+    final snapshot = await _dbRef
+        .child('products')
+        .child(shoppingType)
+        .get();
+
+    if (!snapshot.exists || snapshot.value == null) {
+      return [];
+    }
+
+    final categoriesData = Map<String, dynamic>.from(snapshot.value as Map);
+    final products = <ProductModel>[];
+
+    categoriesData.forEach((categoryId, categoryProducts) {
+      if (categoryProducts is Map) {
+        final productsMap = Map<String, dynamic>.from(categoryProducts);
+        productsMap.forEach((productId, productData) {
+          if (productData is Map) {
+            products.add(
+              ProductModel.fromMap(
+                productId,
+                categoryId,
+                Map<String, dynamic>.from(productData),
+              ),
+            );
+          }
+        });
+      }
+    });
+
+    return products;
+  }
+
+  /// Generate the next product ID (prod_XXX format) for a category.
+  Future<String> _getNextProductId(String shoppingType, String categoryId) async {
+    final snapshot = await _dbRef
+        .child('products')
+        .child(shoppingType)
+        .child(categoryId)
+        .get();
+
+    int maxNum = 0;
+
+    if (snapshot.exists && snapshot.value != null) {
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      for (final key in data.keys) {
+        final match = RegExp(r'prod_(\d+)').firstMatch(key);
+        if (match != null) {
+          final num = int.tryParse(match.group(1)!) ?? 0;
+          if (num > maxNum) maxNum = num;
+        }
+      }
+    }
+
+    final nextNum = maxNum + 1;
+    return 'prod_${nextNum.toString().padLeft(3, '0')}';
+  }
+
+  /// Add a new product under a specific shopping type and category.
+  Future<void> addProduct({
+    required String shoppingType,
+    required String categoryId,
+    required String name,
+    required String image,
+    required double price,
+    required String description,
+    required bool isAvailable,
+  }) async {
+    final prodId = await _getNextProductId(shoppingType, categoryId);
+    await _dbRef
+        .child('products')
+        .child(shoppingType)
+        .child(categoryId)
+        .child(prodId)
+        .set({
+      'name': name,
+      'image': image,
+      'price': price,
+      'description': description,
+      'isAvailable': isAvailable,
+    });
+  }
+
+  /// Update an existing product.
+  Future<void> updateProduct({
+    required String shoppingType,
+    required String categoryId,
+    required String productId,
+    required String name,
+    required String image,
+    required double price,
+    required String description,
+    required bool isAvailable,
+  }) async {
+    await _dbRef
+        .child('products')
+        .child(shoppingType)
+        .child(categoryId)
+        .child(productId)
+        .update({
+      'name': name,
+      'image': image,
+      'price': price,
+      'description': description,
+      'isAvailable': isAvailable,
+    });
+  }
+
+  /// Delete a product.
+  Future<void> deleteProduct({
+    required String shoppingType,
+    required String categoryId,
+    required String productId,
+  }) async {
+    await _dbRef
+        .child('products')
+        .child(shoppingType)
+        .child(categoryId)
+        .child(productId)
+        .remove();
+  }
+
   /// Seed sample products for demo purposes.
   /// Call once to populate the database with sample data.
   Future<void> seedProducts() async {

@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       // Normal user logic
-      Navigator.pushReplacementNamed(context, '/categories', arguments: 'gros');
+      Navigator.pushReplacementNamed(context, '/categories-gros');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

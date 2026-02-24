@@ -3,20 +3,25 @@ import '../theme/app_colors.dart';
 import '../services/category_service.dart';
 import '../models/category_model.dart';
 
-class CategoriesScreen extends StatefulWidget {
-  const CategoriesScreen({super.key});
+class CategoriesDetailScreen extends StatefulWidget {
+  const CategoriesDetailScreen({super.key});
   @override
-  State<CategoriesScreen> createState() => _CategoriesScreenState();
+  State<CategoriesDetailScreen> createState() => _CategoriesDetailScreenState();
 }
 
-class _CategoriesScreenState extends State<CategoriesScreen> {
+class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
   final CategoryService _categoryService = CategoryService();
   final TextEditingController _searchController = TextEditingController();
   List<CategoryModel> _categories = [];
   List<CategoryModel> _filteredCategories = [];
   bool _isLoading = true;
   bool _hasSeeded = false;
-  String _shoppingType = 'gros';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
 
   @override
   void dispose() {
@@ -24,29 +29,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Get shopping type from route arguments
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is String) {
-      _shoppingType = args;
-    }
-    if (!_hasSeeded) {
-      _loadCategories();
-    }
-  }
-
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
 
-    var categories = await _categoryService.getCategories(_shoppingType);
+    var categories = await _categoryService.getCategories('detail');
 
     // If no categories exist, seed them first
     if (categories.isEmpty && !_hasSeeded) {
       _hasSeeded = true;
       await _categoryService.seedCategories();
-      categories = await _categoryService.getCategories(_shoppingType);
+      categories = await _categoryService.getCategories('detail');
     }
 
     if (!mounted) return;
@@ -85,10 +77,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     onPressed: () {},
                     icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 28),
                   ),
-                  Expanded(
+                  const Expanded(
                     child: Text(
-                      _shoppingType == 'gros' ? 'الفئات - بالجملة' : 'الفئات - بالتجزئة',
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
+                      'الفئات - بالتجزئة',
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -158,7 +150,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   context,
                                   '/products',
                                   arguments: {
-                                    'shoppingType': _shoppingType,
+                                    'shoppingType': 'detail',
                                     'categoryId': cat.id,
                                     'categoryName': cat.name,
                                   },

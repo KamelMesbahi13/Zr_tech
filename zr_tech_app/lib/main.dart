@@ -6,7 +6,8 @@ import 'screens/login_screen.dart';
 import 'screens/admin_login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/shopping_type_screen.dart';
-import 'screens/categories_screen.dart';
+import 'screens/categories_gros_screen.dart';
+import 'screens/categories_detail_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/admin_panel_screen.dart';
 import 'screens/products_screen.dart';
@@ -56,11 +57,13 @@ class ZRTechApp extends StatelessWidget {
       },
       initialRoute: '/shopping-type',
       routes: {
+        '/': (context) => const ShoppingTypeScreen(),
         '/login': (context) => const LoginScreen(),
         '/admin-login': (context) => const AdminLoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/shopping-type': (context) => const ShoppingTypeScreen(),
-        '/categories': (context) => const CategoriesScreen(),
+        '/categories-gros': (context) => const CategoriesGrosScreen(),
+        '/categories-detail': (context) => const CategoriesDetailScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/admin': (context) => const AdminPanelScreen(),
         '/products': (context) => const ProductsScreen(),

@@ -32,7 +32,7 @@ class ShoppingTypeScreen extends StatelessWidget {
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       _card('بالجملة', 'للشركات والتجار', Icons.inventory_2_outlined, () => Navigator.pushNamed(context, '/login')),
                       const SizedBox(height: 24),
-                      _card('بالتجزئة', 'للاستخدام الشخصي', Icons.shopping_bag_outlined, () => Navigator.pushNamed(context, '/categories', arguments: 'detail')),
+                      _card('بالتجزئة', 'للاستخدام الشخصي', Icons.shopping_bag_outlined, () => Navigator.pushNamed(context, '/categories-detail')),
                     ]),
                   ),
                   const SizedBox(height: 16),

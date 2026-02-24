@@ -303,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.pushReplacementNamed(context, '/shopping-type');
             break;
           case 1:
-            Navigator.pushReplacementNamed(context, '/categories');
+            Navigator.pushReplacementNamed(context, '/categories-gros');
             break;
           case 2:
             // Cart — coming soon

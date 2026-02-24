@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       
       // Block admin from logging in via the user panel
       if (email == _adminEmail) {
-        await AuthService().logout(); // Sign them out immediately
+        await AuthService().logout();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -64,7 +64,61 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Normal user logic
+      // Fetch user data and check approval status
+      final userData = await AuthService().getCurrentUserData();
+      if (!mounted) return;
+
+      if (userData == null) {
+        await AuthService().logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('لم يتم العثور على بيانات المستخدم', textAlign: TextAlign.center),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+        return;
+      }
+
+      if (userData.status == 'pending') {
+        await AuthService().logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'حسابك قيد المراجعة. يرجى انتظار اتصال من فريقنا لتفعيل الحساب',
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.orange.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        return;
+      }
+
+      if (userData.status == 'rejected') {
+        await AuthService().logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'تم رفض حسابك. يرجى التواصل مع الدعم لمزيد من المعلومات',
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        return;
+      }
+
+      // Approved user — proceed normally
       Navigator.pushReplacementNamed(context, '/categories-gros');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

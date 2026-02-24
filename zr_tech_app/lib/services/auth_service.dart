@@ -78,6 +78,7 @@ class AuthService {
         wilaya: wilaya.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        status: 'pending',
       );
 
       await _dbRef
@@ -88,7 +89,7 @@ class AuthService {
       // Sign out after registration so user goes to login screen
       await _auth.signOut();
 
-      return AuthResult(success: true, message: 'تم إنشاء الحساب بنجاح');
+      return AuthResult(success: true, message: 'تم إنشاء الحساب بنجاح. يرجى انتظار اتصال من فريقنا لتفعيل الحساب');
     } on FirebaseAuthException catch (e) {
       return AuthResult(success: false, message: _mapErrorToArabic(e.code));
     } catch (e) {
@@ -122,6 +123,39 @@ class AuthService {
       return AuthResult(
           success: false, message: 'حدث خطأ غير متوقع. حاول مرة أخرى.');
     }
+  }
+
+  /// Update a user's status in the Realtime Database.
+  Future<void> updateUserStatus(String uid, String status) async {
+    await _dbRef.child('users').child(uid).update({'status': status});
+  }
+
+  /// Fetch all registered users from the Realtime Database.
+  Future<List<Map<String, dynamic>>> fetchAllUsers() async {
+    final snapshot = await _dbRef.child('users').get();
+    if (!snapshot.exists || snapshot.value == null) return [];
+    final rawData = snapshot.value;
+    if (rawData is! Map) return [];
+    final List<Map<String, dynamic>> users = [];
+    for (final entry in rawData.entries) {
+      if (entry.value is Map) {
+        final userMap = <String, dynamic>{};
+        (entry.value as Map).forEach((key, value) {
+          userMap[key.toString()] = value;
+        });
+        users.add(userMap);
+      }
+    }
+    return users;
+  }
+
+  /// Delete a user's Auth account and database record.
+  Future<void> deleteUserAccount(String uid) async {
+    // Remove from Realtime Database
+    await _dbRef.child('users').child(uid).remove();
+    // Note: Deleting the Firebase Auth account from client-side
+    // is only possible for the currently signed-in user.
+    // For full auth deletion, use Firebase Admin SDK via Cloud Functions.
   }
 
   /// Sign out the current user.

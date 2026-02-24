@@ -19,7 +19,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
 
-  int _sectionIndex = 0; // 0 = categories, 1 = products
+  int _sectionIndex = 0; // 0 = categories, 1 = products, 2 = accounts
   int _typeIndex = 0; // 0 = gros, 1 = detail
 
   List<CategoryModel> _grosCategories = [];
@@ -27,6 +27,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   List<ProductModel> _grosProducts = [];
   List<ProductModel> _detailProducts = [];
   bool _isLoading = true;
+
+  // Account management state
+  List<Map<String, dynamic>> _allUsers = [];
+  String _userFilter = 'all'; // 'all', 'pending', 'approved', 'rejected'
+  bool _isLoadingUsers = false;
 
   @override
   void initState() {
@@ -59,6 +64,27 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       setState(() => _isLoading = false);
       _showErrorSnackBar('حدث خطأ أثناء تحميل البيانات');
     }
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() => _isLoadingUsers = true);
+    try {
+      final users = await AuthService().fetchAllUsers();
+      if (!mounted) return;
+      setState(() {
+        _allUsers = users;
+        _isLoadingUsers = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingUsers = false);
+      _showErrorSnackBar('حدث خطأ أثناء تحميل المستخدمين');
+    }
+  }
+
+  List<Map<String, dynamic>> get _filteredUsers {
+    if (_userFilter == 'all') return _allUsers;
+    return _allUsers.where((u) => u['status'] == _userFilter).toList();
   }
 
   void _showErrorSnackBar(String message) {
@@ -1179,7 +1205,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'إدارة الفئات والمنتجات',
+                            'إدارة الفئات والمنتجات والحسابات',
                             style: TextStyle(
                               color: AppColors.textSlate400,
                               fontSize: 13,
@@ -1233,11 +1259,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSidebarSection(
-                                title: 'الفئات',
-                                icon: Icons.category,
+                                title: 'إدارة الحسابات',
+                                icon: Icons.people,
                                 sectionIndex: 0,
                               ),
-                              if (_sectionIndex == 0) _buildSidebarSubItems(),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Divider(color: AppColors.borderDark, height: 1),
+                              ),
+                              _buildSidebarSection(
+                                title: 'الفئات',
+                                icon: Icons.category,
+                                sectionIndex: 1,
+                              ),
+                              if (_sectionIndex == 1) _buildSidebarSubItems(),
                               const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Divider(color: AppColors.borderDark, height: 1),
@@ -1245,9 +1280,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               _buildSidebarSection(
                                 title: 'المنتجات',
                                 icon: Icons.inventory_2,
-                                sectionIndex: 1,
+                                sectionIndex: 2,
                               ),
-                              if (_sectionIndex == 1) _buildSidebarSubItems(),
+                              if (_sectionIndex == 2) _buildSidebarSubItems(),
                             ],
                           ),
                         ),
@@ -1257,39 +1292,43 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       Expanded(
                         child: Column(
                           children: [
-                            // ── ITEM COUNT ──
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(8),
+                            if (_sectionIndex == 0)
+                              Expanded(child: _buildAccountManagerView())
+                            else ...[
+                              // ── ITEM COUNT ──
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${_sectionIndex == 1 ? _currentCategories.length : _currentProducts.length}',
+                                        style: const TextStyle(color: AppColors.primaryLight, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                                      ),
                                     ),
-                                    child: Text(
-                                      '${_sectionIndex == 0 ? _currentCategories.length : _currentProducts.length}',
-                                      style: const TextStyle(color: AppColors.primaryLight, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                                    const Spacer(),
+                                    Text(
+                                      '${_sectionIndex == 0 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
+                                      style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontWeight: FontWeight.w600),
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    '${_sectionIndex == 0 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
-                                    style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontWeight: FontWeight.w600),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
 
-                            // ── LIST ──
-                            Expanded(
-                              child: _isLoading
-                                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                                  : _sectionIndex == 0
-                                      ? _buildCategoryList(_currentCategories)
-                                      : _buildProductList(_currentProducts),
-                            ),
+                              // ── LIST ──
+                              Expanded(
+                                child: _isLoading
+                                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                                    : _sectionIndex == 0
+                                        ? _buildCategoryList(_currentCategories)
+                                        : _buildProductList(_currentProducts),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -1302,7 +1341,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ],
       ),
       // ── FAB ──
-      floatingActionButton: Container(
+      floatingActionButton: _sectionIndex != 2 ? Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: AppColors.primary,
@@ -1328,7 +1367,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
           ),
         ),
-      ),
+      ) : null,
     );
   }
 
@@ -1997,7 +2036,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Widget _buildSidebarSection({required String title, required IconData icon, required int sectionIndex}) {
     final isSelected = _sectionIndex == sectionIndex;
     return InkWell(
-      onTap: () => setState(() => _sectionIndex = sectionIndex),
+      onTap: () {
+        setState(() => _sectionIndex = sectionIndex);
+        if (sectionIndex == 2 && _allUsers.isEmpty) {
+          _loadUsers();
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -2113,6 +2157,578 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ),
         child: Icon(icon, color: color, size: 20),
       ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ─── ACCOUNT MANAGER VIEW ─────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+
+  Widget _buildAccountManagerView() {
+    return Column(
+      children: [
+        // ── Filter chips ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          child: Row(
+            children: [
+              _buildFilterChip('الكل', 'all'),
+              const SizedBox(width: 8),
+              _buildFilterChip('قيد المراجعة', 'pending'),
+              const SizedBox(width: 8),
+              _buildFilterChip('مفعّل', 'approved'),
+              const SizedBox(width: 8),
+              _buildFilterChip('مرفوض', 'rejected'),
+              const Spacer(),
+              // Refresh button
+              InkWell(
+                onTap: _loadUsers,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.refresh, color: AppColors.primary, size: 20),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // User count badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_filteredUsers.length}',
+                  style: const TextStyle(
+                    color: AppColors.primaryLight,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Space Grotesk',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── User list ──
+        Expanded(
+          child: _isLoadingUsers
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : _filteredUsers.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.people_outline, color: AppColors.textSlate500, size: 56),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'لا يوجد مستخدمون',
+                            style: TextStyle(
+                              color: AppColors.textSlate400,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadUsers,
+                      color: AppColors.primary,
+                      backgroundColor: AppColors.surfaceDark,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        itemCount: _filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = _filteredUsers[index];
+                          return _buildUserCard(user);
+                        },
+                      ),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip(String label, String filterValue) {
+    final isSelected = _userFilter == filterValue;
+    return GestureDetector(
+      onTap: () => setState(() => _userFilter = filterValue),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserCard(Map<String, dynamic> user) {
+    final status = user['status'] ?? 'pending';
+    final statusColor = status == 'approved'
+        ? AppColors.success
+        : status == 'rejected'
+            ? AppColors.error
+            : AppColors.warning;
+    final statusLabel = status == 'approved'
+        ? 'مفعّل'
+        : status == 'rejected'
+            ? 'مرفوض'
+            : 'قيد المراجعة';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            // Top colored accent bar
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 4,
+              child: Container(color: statusColor.withValues(alpha: 0.8)),
+            ),
+            
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── HEADER: Avatar, Name, Email, Status ──
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Large premium avatar
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary.withValues(alpha: 0.15),
+                              AppColors.cyan.withValues(alpha: 0.05)
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            (user['name'] ?? '?')[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: AppColors.primaryDark,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Name & Email
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user['name'] ?? 'مستخدم بدون اسم',
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              user['email'] ?? '',
+                              style: const TextStyle(
+                                color: AppColors.textSlate500,
+                                fontSize: 14,
+                                fontFamily: 'Space Grotesk',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Status floating pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: statusColor,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              statusLabel,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Divider(color: AppColors.surfaceAlt, height: 1),
+                  ),
+
+                  // ── INFO CHIPS ──
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      if ((user['phone'] ?? '').toString().isNotEmpty)
+                        _buildPremiumInfoChip(Icons.phone_outlined, user['phone'], isEnglish: true),
+                      if ((user['storeName'] ?? '').toString().isNotEmpty)
+                        _buildPremiumInfoChip(Icons.storefront_outlined, user['storeName']),
+                      if ((user['wilaya'] ?? '').toString().isNotEmpty)
+                        _buildPremiumInfoChip(Icons.location_on_outlined, user['wilaya']),
+                    ],
+                  ),
+
+                  // ── ACTION BUTTONS ──
+                  if (status != 'approved' || status != 'rejected') ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        if (status != 'approved')
+                          Expanded(
+                            child: _buildPremiumActionButton(
+                              label: 'تفعيل الحساب',
+                              icon: Icons.check_circle_outline,
+                              color: AppColors.success,
+                              isPrimary: true,
+                              onTap: () => _updateUserStatus(user['uid'], 'approved'),
+                            ),
+                          ),
+                        if (status != 'approved' && status != 'rejected') const SizedBox(width: 12),
+                        if (status != 'rejected')
+                          Expanded(
+                            child: _buildPremiumActionButton(
+                              label: 'رفض',
+                              icon: Icons.block,
+                              color: AppColors.textSlate500,
+                              isPrimary: false,
+                              onTap: () => _updateUserStatus(user['uid'], 'rejected'),
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        _buildPremiumActionButton(
+                          label: '',
+                          icon: Icons.delete_outline,
+                          color: AppColors.error,
+                          isPrimary: false,
+                          isIconOnly: true,
+                          onTap: () => _showDeleteUserConfirmation(user),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                         _buildPremiumActionButton(
+                          label: 'حذف',
+                          icon: Icons.delete_outline,
+                          color: AppColors.error,
+                          isPrimary: false,
+                          isIconOnly: false,
+                          onTap: () => _showDeleteUserConfirmation(user),
+                        ),
+                      ],
+                    )
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumInfoChip(IconData icon, String text, {bool isEnglish = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderDark.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.primaryLight),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            textDirection: isEnglish ? TextDirection.ltr : TextDirection.rtl,
+            style: TextStyle(
+              color: AppColors.textSlate400,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              fontFamily: isEnglish ? 'Space Grotesk' : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumActionButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool isPrimary = false,
+    bool isIconOnly = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: 14, 
+            horizontal: isIconOnly ? 14 : 20
+          ),
+          decoration: BoxDecoration(
+            color: isPrimary ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: isPrimary ? null : Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                size: 20, 
+                color: isPrimary ? Colors.white : color
+              ),
+              if (!isIconOnly) ...[
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isPrimary ? Colors.white : color,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateUserStatus(String uid, String newStatus) async {
+    try {
+      await AuthService().updateUserStatus(uid, newStatus);
+      _showSuccessSnackBar(
+        newStatus == 'approved' ? 'تم تفعيل الحساب بنجاح' : 'تم رفض الحساب',
+      );
+      _loadUsers();
+    } catch (e) {
+      _showErrorSnackBar('حدث خطأ أثناء تحديث حالة المستخدم');
+    }
+  }
+
+  void _showDeleteUserConfirmation(Map<String, dynamic> user) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceDark,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'تأكيد حذف المستخدم',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Icon(Icons.warning_amber_rounded,
+                      color: Colors.orange, size: 28),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: const TextStyle(
+                        color: AppColors.textSlate300,
+                        fontSize: 15,
+                        height: 1.6,
+                      ),
+                      children: [
+                        const TextSpan(
+                            text: 'هل أنت متأكد من حذف حساب\n'),
+                        TextSpan(
+                          text: '«${user['name'] ?? user['email']}»',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const TextSpan(text: '؟'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'سيتم حذف بيانات المستخدم نهائياً',
+                    style: TextStyle(
+                      color: AppColors.textSlate500,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: const BorderSide(color: AppColors.borderDark),
+                    ),
+                  ),
+                  child: const Text(
+                    'إلغاء',
+                    style: TextStyle(
+                      color: AppColors.textSlate300,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          try {
+                            await AuthService()
+                                .deleteUserAccount(user['uid']);
+                            if (!mounted) return;
+                            Navigator.pop(context);
+                            _showSuccessSnackBar('تم حذف المستخدم بنجاح');
+                            _loadUsers();
+                          } catch (e) {
+                            setDialogState(() => isDeleting = false);
+                            _showErrorSnackBar(
+                                'حدث خطأ أثناء حذف المستخدم');
+                          }
+                        },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    backgroundColor: Colors.red.withValues(alpha: 0.15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isDeleting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.red,
+                          ),
+                        )
+                      : const Text(
+                          'حذف',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -19,7 +19,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
 
-  int _sectionIndex = 0; // 0 = categories, 1 = products, 2 = accounts
+  int _sectionIndex = 0; // 0 = accounts, 1 = categories, 2 = products
   int _typeIndex = 0; // 0 = gros, 1 = detail
 
   List<CategoryModel> _grosCategories = [];
@@ -36,7 +36,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadData();   // initial load of products/categories
+    _loadUsers();  // initial load of users (since it's the default tab)
   }
 
   @override
@@ -2038,7 +2039,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return InkWell(
       onTap: () {
         setState(() => _sectionIndex = sectionIndex);
-        if (sectionIndex == 2 && _allUsers.isEmpty) {
+        if (sectionIndex == 0 && _allUsers.isEmpty) {
           _loadUsers();
         }
       },
@@ -2427,73 +2428,73 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     child: Divider(color: AppColors.surfaceAlt, height: 1),
                   ),
 
-                  // ── INFO CHIPS ──
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      if ((user['phone'] ?? '').toString().isNotEmpty)
-                        _buildPremiumInfoChip(Icons.phone_outlined, user['phone'], isEnglish: true),
-                      if ((user['storeName'] ?? '').toString().isNotEmpty)
-                        _buildPremiumInfoChip(Icons.storefront_outlined, user['storeName']),
-                      if ((user['wilaya'] ?? '').toString().isNotEmpty)
-                        _buildPremiumInfoChip(Icons.location_on_outlined, user['wilaya']),
-                    ],
+                  // ── INFO SECTION ──
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceAlt.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                    ),
+                    child: Column(
+                      children: [
+                        if ((user['storeName'] ?? '').toString().isNotEmpty)
+                          _buildDetailRow(Icons.storefront_outlined, 'اسم المتجر', user['storeName']),
+                        if ((user['phone'] ?? '').toString().isNotEmpty) ...[
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Divider(height: 1, color: AppColors.borderDark),
+                          ),
+                          _buildDetailRow(Icons.phone_outlined, 'رقم الهاتف', user['phone'], isEnglish: true),
+                        ],
+                        if ((user['wilaya'] ?? '').toString().isNotEmpty) ...[
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Divider(height: 1, color: AppColors.borderDark),
+                          ),
+                          _buildDetailRow(Icons.location_on_outlined, 'الولاية', user['wilaya']),
+                        ],
+                      ],
+                    ),
                   ),
 
                   // ── ACTION BUTTONS ──
-                  if (status != 'approved' || status != 'rejected') ...[
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        if (status != 'approved')
-                          Expanded(
-                            child: _buildPremiumActionButton(
-                              label: 'تفعيل الحساب',
-                              icon: Icons.check_circle_outline,
-                              color: AppColors.success,
-                              isPrimary: true,
-                              onTap: () => _updateUserStatus(user['uid'], 'approved'),
-                            ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      if (status != 'approved')
+                        Expanded(
+                          child: _buildPremiumActionButton(
+                            label: 'تفعيل',
+                            icon: Icons.check_circle_outline,
+                            color: AppColors.success,
+                            isPrimary: true,
+                            onTap: () => _updateUserStatus(user['uid'], 'approved'),
                           ),
-                        if (status != 'approved' && status != 'rejected') const SizedBox(width: 12),
-                        if (status != 'rejected')
-                          Expanded(
-                            child: _buildPremiumActionButton(
-                              label: 'رفض',
-                              icon: Icons.block,
-                              color: AppColors.textSlate500,
-                              isPrimary: false,
-                              onTap: () => _updateUserStatus(user['uid'], 'rejected'),
-                            ),
-                          ),
-                        const SizedBox(width: 12),
-                        _buildPremiumActionButton(
-                          label: '',
-                          icon: Icons.delete_outline,
-                          color: AppColors.error,
-                          isPrimary: false,
-                          isIconOnly: true,
-                          onTap: () => _showDeleteUserConfirmation(user),
                         ),
-                      ],
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                         _buildPremiumActionButton(
+                      if (status != 'approved' && status != 'rejected') const SizedBox(width: 12),
+                      if (status != 'rejected')
+                        Expanded(
+                          child: _buildPremiumActionButton(
+                            label: 'رفض',
+                            icon: Icons.block,
+                            color: AppColors.warning,
+                            isPrimary: false,
+                            onTap: () => _updateUserStatus(user['uid'], 'rejected'),
+                          ),
+                        ),
+                      if (status != 'approved' || status != 'rejected') const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildPremiumActionButton(
                           label: 'حذف',
                           icon: Icons.delete_outline,
                           color: AppColors.error,
                           isPrimary: false,
-                          isIconOnly: false,
                           onTap: () => _showDeleteUserConfirmation(user),
                         ),
-                      ],
-                    )
-                  ],
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -2503,31 +2504,42 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
-  Widget _buildPremiumInfoChip(IconData icon, String text, {bool isEnglish = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderDark.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.primaryLight),
-          const SizedBox(width: 8),
-          Text(
-            text,
+  Widget _buildDetailRow(IconData icon, String label, String value, {bool isEnglish = false}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.borderDark.withValues(alpha: 0.2)),
+          ),
+          child: Icon(icon, size: 16, color: AppColors.primary),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textSlate500,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
             textDirection: isEnglish ? TextDirection.ltr : TextDirection.rtl,
             style: TextStyle(
-              color: AppColors.textSlate400,
+              color: AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               fontFamily: isEnglish ? 'Space Grotesk' : null,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -11,6 +11,8 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
+  final _storeNameController = TextEditingController();
+  String? _selectedWilaya;
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -18,9 +20,31 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _agreeTerms = false;
   bool _isLoading = false;
 
+  static const List<String> _wilayas = [
+    '01 - أدرار', '02 - الشلف', '03 - الأغواط', '04 - أم البواقي',
+    '05 - باتنة', '06 - بجاية', '07 - بسكرة', '08 - بشار',
+    '09 - البليدة', '10 - البويرة', '11 - تمنراست', '12 - تبسة',
+    '13 - تلمسان', '14 - تيارت', '15 - تيزي وزو', '16 - الجزائر',
+    '17 - الجلفة', '18 - جيجل', '19 - سطيف', '20 - سعيدة',
+    '21 - سكيكدة', '22 - سيدي بلعباس', '23 - عنابة', '24 - قالمة',
+    '25 - قسنطينة', '26 - المدية', '27 - مستغانم', '28 - المسيلة',
+    '29 - معسكر', '30 - ورقلة', '31 - وهران', '32 - البيض',
+    '33 - إليزي', '34 - برج بوعريريج', '35 - بومرداس', '36 - الطارف',
+    '37 - تندوف', '38 - تيسمسيلت', '39 - الوادي', '40 - خنشلة',
+    '41 - سوق أهراس', '42 - تيبازة', '43 - ميلة', '44 - عين الدفلى',
+    '45 - النعامة', '46 - عين تيموشنت', '47 - غرداية', '48 - غليزان',
+    '49 - تيميمون', '50 - برج باجي مختار', '51 - أولاد جلال',
+    '52 - بني عباس', '53 - عين صالح', '54 - عين قزام',
+    '55 - تقرت', '56 - جانت', '57 - المغير', '58 - المنيعة',
+    '59 - آفلو', '60 - بريكة', '61 - القنطرة', '62 - بئر العاتر',
+    '63 - العريشة', '64 - قصر الشلالة', '65 - عين وسارة', '66 - مسعد',
+    '67 - قصر البخاري', '68 - بوسعادة', '69 - الأبيض سيدي الشيخ',
+  ];
+
   @override
   void dispose() {
     _nameController.dispose();
+    _storeNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -46,6 +70,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
     final result = await AuthService().signUp(
       name: _nameController.text,
+      storeName: _storeNameController.text,
+      wilaya: _selectedWilaya ?? '',
       email: _emailController.text,
       phone: _phoneController.text,
       password: _passwordController.text,
@@ -220,15 +246,50 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Email
-                  _buildLabel('البريد الإلكتروني'),
+                  // Store Name
+                  _buildLabel('اسم المتجر'),
                   const SizedBox(height: 8),
                   _buildTextField(
-                    controller: _emailController,
-                    hint: 'example@domain.com',
-                    icon: Icons.mail_outline,
-                    keyboardType: TextInputType.emailAddress,
-                    fontFamily: 'Space Grotesk',
+                    controller: _storeNameController,
+                    hint: 'اسم المحل أو الشركة',
+                    icon: Icons.store_outlined,
+                    textDirection: TextDirection.rtl,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Wilaya
+                  _buildLabel('الولاية'),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.borderDark),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedWilaya,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        prefixIcon: const Padding(
+                          padding: EdgeInsetsDirectional.only(start: 12, end: 8),
+                          child: Icon(Icons.location_on_outlined, color: AppColors.textSlate500, size: 20),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                      hint: const Text(
+                        'اختر الولاية',
+                        style: TextStyle(color: AppColors.textSlate500, fontSize: 14),
+                      ),
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                      dropdownColor: AppColors.surfaceCard,
+                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSlate400),
+                      items: _wilayas.map((w) => DropdownMenuItem(
+                        value: w,
+                        child: Text(w, textDirection: TextDirection.rtl),
+                      )).toList(),
+                      onChanged: (val) => setState(() => _selectedWilaya = val),
+                    ),
                   ),
                   const SizedBox(height: 20),
 
@@ -240,6 +301,18 @@ class _SignupScreenState extends State<SignupScreen> {
                     hint: '05XXXXXXXX',
                     icon: Icons.smartphone,
                     keyboardType: TextInputType.phone,
+                    fontFamily: 'Space Grotesk',
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Email
+                  _buildLabel('البريد الإلكتروني'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _emailController,
+                    hint: 'example@domain.com',
+                    icon: Icons.mail_outline,
+                    keyboardType: TextInputType.emailAddress,
                     fontFamily: 'Space Grotesk',
                   ),
                   const SizedBox(height: 20),

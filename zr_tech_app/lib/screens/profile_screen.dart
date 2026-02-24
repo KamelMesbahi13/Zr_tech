@@ -158,6 +158,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 12),
                         _infoCard(
+                          icon: Icons.store_outlined,
+                          label: 'اسم المتجر',
+                          value: _user?.storeName.isNotEmpty == true ? _user!.storeName : '—',
+                        ),
+                        const SizedBox(height: 12),
+                        _infoCard(
+                          icon: Icons.location_on_outlined,
+                          label: 'الولاية',
+                          value: _user?.wilaya.isNotEmpty == true ? _user!.wilaya : '—',
+                        ),
+                        const SizedBox(height: 12),
+                        _infoCard(
                           icon: Icons.mail_outline,
                           label: 'البريد الإلكتروني',
                           value: _user?.email ?? '—',

@@ -40,6 +40,8 @@ class AuthService {
   /// Register a new user with Firebase Auth and save profile to Realtime Database.
   Future<AuthResult> signUp({
     required String name,
+    required String storeName,
+    required String wilaya,
     required String email,
     required String phone,
     required String password,
@@ -72,6 +74,8 @@ class AuthService {
       final userModel = UserModel(
         uid: credential.user!.uid,
         name: name.trim(),
+        storeName: storeName.trim(),
+        wilaya: wilaya.trim(),
         email: email.trim(),
         phone: phone.trim(),
       );

@@ -38,13 +38,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      var products = await _productService.getProducts(_shoppingType, _categoryId);
+      var products = await _productService.getProducts(_shoppingType, _categoryId).timeout(const Duration(seconds: 10));
 
       // If no products exist, seed sample data first
       if (products.isEmpty && !_hasSeeded) {
         _hasSeeded = true;
         await _productService.seedProducts();
-        products = await _productService.getProducts(_shoppingType, _categoryId);
+        products = await _productService.getProducts(_shoppingType, _categoryId).timeout(const Duration(seconds: 10));
       }
 
       if (!mounted) return;
@@ -59,6 +59,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
         _products = [];
         _isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('حدث خطأ أثناء تحميل المنتجات، تأكد من اتصالك بالأنترنت.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 

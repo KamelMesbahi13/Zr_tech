@@ -32,21 +32,41 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
 
-    var categories = await _categoryService.getCategories('detail');
+    try {
+      var categories = await _categoryService
+          .getCategories('detail')
+          .timeout(const Duration(seconds: 10));
 
-    // If no categories exist, seed them first
-    if (categories.isEmpty && !_hasSeeded) {
-      _hasSeeded = true;
-      await _categoryService.seedCategories();
-      categories = await _categoryService.getCategories('detail');
+      // If no categories exist, seed them first
+      if (categories.isEmpty && !_hasSeeded) {
+        _hasSeeded = true;
+        await _categoryService.seedCategories();
+        categories = await _categoryService
+            .getCategories('detail')
+            .timeout(const Duration(seconds: 10));
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _filteredCategories = categories;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'حدث خطأ أثناء تحميل الفئات، تأكد من اتصالك بالأنترنت.',
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
-
-    if (!mounted) return;
-    setState(() {
-      _categories = categories;
-      _filteredCategories = categories;
-      _isLoading = false;
-    });
   }
 
   void _filterCategories(String query) {
@@ -55,7 +75,9 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
         _filteredCategories = _categories;
       } else {
         _filteredCategories = _categories
-            .where((cat) => cat.name.toLowerCase().contains(query.toLowerCase()))
+            .where(
+              (cat) => cat.name.toLowerCase().contains(query.toLowerCase()),
+            )
             .toList();
       }
     });
@@ -75,18 +97,33 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                 children: [
                   IconButton(
                     onPressed: () {},
-                    icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 28),
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.textPrimary,
+                      size: 28,
+                    ),
                   ),
                   const Expanded(
                     child: Text(
                       'الفئات - بالتجزئة',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/shopping-type'),
-                    icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 24),
+                    onPressed: () => Navigator.pushReplacementNamed(
+                      context,
+                      '/shopping-type',
+                    ),
+                    icon: const Icon(
+                      Icons.arrow_forward,
+                      color: AppColors.textPrimary,
+                      size: 24,
+                    ),
                   ),
                 ],
               ),
@@ -98,14 +135,24 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                 controller: _searchController,
                 onChanged: _filterCategories,
                 textDirection: TextDirection.rtl,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
                 decoration: InputDecoration(
                   hintText: 'بحث عن فئات...',
                   hintStyle: const TextStyle(color: AppColors.textSlate400),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppColors.textMuted,
+                  ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppColors.textMuted, size: 20),
+                          icon: const Icon(
+                            Icons.clear,
+                            color: AppColors.textMuted,
+                            size: 20,
+                          ),
                           onPressed: () {
                             _searchController.clear();
                             _filterCategories('');
@@ -114,10 +161,22 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                       : null,
                   filled: true,
                   fillColor: AppColors.surfaceDark,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.borderSubtle)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.borderSubtle)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppColors.borderSubtle),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppColors.borderSubtle),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
                 ),
               ),
             ),
@@ -125,22 +184,41 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
             // Categories Grid
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
                   : _filteredCategories.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'لا توجد نتائج مطابقة',
-                            style: TextStyle(color: AppColors.textSlate400, fontSize: 16),
+                  ? const Center(
+                      child: Text(
+                        'لا توجد نتائج مطابقة',
+                        style: TextStyle(
+                          color: AppColors.textSlate400,
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        final crossAxisCount = width > 800
+                            ? 5
+                            : width > 500
+                            ? 4
+                            : 3;
+                        return GridView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
                           ),
-                        )
-                      : GridView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.75,
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 0.8,
+                              ),
                           itemCount: _filteredCategories.length,
                           itemBuilder: (context, index) {
                             final cat = _filteredCategories[index];
@@ -163,7 +241,18 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(16),
                                         color: AppColors.surfaceDark,
-                                        border: Border.all(color: AppColors.borderSubtle),
+                                        border: Border.all(
+                                          color: AppColors.borderSubtle,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.04,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
                                       ),
                                       clipBehavior: Clip.antiAlias,
                                       child: Image.network(
@@ -172,24 +261,34 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                                         width: double.infinity,
                                         errorBuilder: (c, e, s) => Container(
                                           color: AppColors.surfaceDark,
-                                          child: const Icon(Icons.image, color: AppColors.textSlate500, size: 28),
+                                          child: const Icon(
+                                            Icons.image,
+                                            color: AppColors.textSlate500,
+                                            size: 28,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 8),
                                   Text(
                                     cat.name,
-                                    style: const TextStyle(color: AppColors.textSlate300, fontSize: 11, fontWeight: FontWeight.w500),
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                     textAlign: TextAlign.center,
-                                    maxLines: 1,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             );
                           },
-                        ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -218,7 +317,13 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
     );
   }
 
-  Widget _navItem(IconData icon, String label, int index, {bool isActive = false, int? badge}) {
+  Widget _navItem(
+    IconData icon,
+    String label,
+    int index, {
+    bool isActive = false,
+    int? badge,
+  }) {
     final color = isActive ? AppColors.primary : AppColors.textSlate400;
     return GestureDetector(
       onTap: () {
@@ -233,10 +338,15 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
             // Cart — coming soon
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('السلة قريباً!', textAlign: TextAlign.center),
+                content: const Text(
+                  'السلة قريباً!',
+                  textAlign: TextAlign.center,
+                ),
                 backgroundColor: AppColors.surfaceDarkAlt,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 duration: const Duration(seconds: 1),
               ),
             );
@@ -255,21 +365,42 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
               Icon(icon, color: color, size: 24),
               if (badge != null)
                 Positioned(
-                  top: -4, right: -6,
+                  top: -4,
+                  right: -6,
                   child: Container(
-                    width: 14, height: 14,
+                    width: 14,
+                    height: 14,
                     decoration: BoxDecoration(
                       color: Colors.red,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.surfaceDark, width: 1.5),
+                      border: Border.all(
+                        color: AppColors.surfaceDark,
+                        width: 1.5,
+                      ),
                     ),
-                    child: Center(child: Text('$badge', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold))),
+                    child: Center(
+                      child: Text(
+                        '$badge',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

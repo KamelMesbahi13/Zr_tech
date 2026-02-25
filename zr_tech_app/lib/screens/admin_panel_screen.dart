@@ -48,10 +48,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      final gros = await _categoryService.getCategories('gros');
-      final detail = await _categoryService.getCategories('detail');
-      final grosProd = await _productService.getAllProducts('gros');
-      final detailProd = await _productService.getAllProducts('detail');
+      final gros = await _categoryService.getCategories('gros').timeout(const Duration(seconds: 10));
+      final detail = await _categoryService.getCategories('detail').timeout(const Duration(seconds: 10));
+      final grosProd = await _productService.getAllProducts('gros').timeout(const Duration(seconds: 10));
+      final detailProd = await _productService.getAllProducts('detail').timeout(const Duration(seconds: 10));
       if (!mounted) return;
       setState(() {
         _grosCategories = gros;
@@ -70,7 +70,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   Future<void> _loadUsers() async {
     setState(() => _isLoadingUsers = true);
     try {
-      final users = await AuthService().fetchAllUsers();
+      final users = await AuthService().fetchAllUsers().timeout(const Duration(seconds: 10));
       if (!mounted) return;
       setState(() {
         _allUsers = users;
@@ -2483,8 +2483,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             onTap: () => _updateUserStatus(user['uid'], 'rejected'),
                           ),
                         ),
-                      if (status != 'approved' || status != 'rejected') const SizedBox(width: 12),
-                      Expanded(
+                      const SizedBox(width: 12),                      Expanded(
                         child: _buildPremiumActionButton(
                           label: 'حذف',
                           icon: Icons.delete_outline,

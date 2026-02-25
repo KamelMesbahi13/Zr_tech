@@ -245,7 +245,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Widget _buildProductCard(ProductModel product) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          '/product-detail',
+          arguments: product,
+        );
+      },
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -394,6 +402,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

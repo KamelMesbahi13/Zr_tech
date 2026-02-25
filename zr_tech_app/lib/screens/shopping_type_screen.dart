@@ -36,11 +36,51 @@ class ShoppingTypeScreen extends StatelessWidget {
                       SizedBox(height: Responsive.sp(12)),
                       Text('يرجى تحديد طريقة الشراء للمتابعة لتخصيص تجربتك', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14))),
                       Expanded(
-                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          _card(context, 'بالجملة', 'للشركات والتجار', Icons.inventory_2_outlined, () => Navigator.pushNamed(context, '/login')),
-                          SizedBox(height: Responsive.sp(24)),
-                          _card(context, 'بالتجزئة', 'للاستخدام الشخصي', Icons.shopping_bag_outlined, () => Navigator.pushNamed(context, '/categories-detail')),
-                        ]),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [
+                            // ── Decorative Graphic to fill vertical space ──
+                            Container(
+                              width: Responsive.sp(140),
+                              height: Responsive.sp(140),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary.withValues(alpha: 0.15),
+                                    AppColors.cyan.withValues(alpha: 0.05),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    blurRadius: 30,
+                                    spreadRadius: 10,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.store_mall_directory_rounded,
+                                  size: Responsive.sp(64),
+                                  color: AppColors.primaryLight,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.sp(48)),
+
+                            // ── Choices ──
+                            _card(context, 'بالجملة', 'للشركات والتجار', Icons.inventory_2_outlined, () => Navigator.pushNamed(context, '/login')),
+                            SizedBox(height: Responsive.sp(24)),
+                            _card(context, 'بالتجزئة', 'للاستخدام الشخصي', Icons.shopping_bag_outlined, () => Navigator.pushNamed(context, '/categories-detail')),
+                          ],
+                        ),
                       ),
                       SizedBox(height: Responsive.sp(16)),
                     ],

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
-import '../models/user_model.dart';
+import '../theme/responsive_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  UserModel? _user;
+  Map<String, dynamic>? _userData;
   bool _isLoading = true;
+  String? _userEmail;
 
   @override
   void initState() {
@@ -21,209 +21,198 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final userData = await AuthService().getCurrentUserData();
+    final authService = AuthService();
+    final user = authService.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+
+    _userEmail = user.email;
+    final userData = await authService.getCurrentUserData();
+
     if (!mounted) return;
+
     setState(() {
-      _user = userData;
+      if (userData != null) {
+        _userData = {
+          'name': userData.name,
+          'storeName': userData.storeName,
+          'wilaya': userData.wilaya,
+          'phone': userData.phone,
+          'status': userData.status,
+        };
+      }
       _isLoading = false;
     });
   }
 
-  void _handleLogout() async {
-    await AuthService().logout();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/shopping-type', (r) => false);
-  }
-
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final hPad = Responsive.horizontalPadding;
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background decorations
           Positioned(
-            top: -100,
+            top: -80,
             right: -80,
             child: Container(
-              width: 280,
-              height: 280,
+              width: Responsive.sp(256),
+              height: Responsive.sp(256),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryDark.withValues(alpha: 0.15),
+                color: AppColors.cyan.withValues(alpha: 0.05),
               ),
             ),
           ),
           Positioned(
-            bottom: -60,
-            left: -60,
+            bottom: -80,
+            left: -80,
             child: Container(
-              width: 220,
-              height: 220,
+              width: Responsive.sp(256),
+              height: Responsive.sp(256),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.cyan.withValues(alpha: 0.06),
+                color: AppColors.primaryDark.withValues(alpha: 0.1),
               ),
             ),
           ),
-          // Main content
           SafeArea(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    child: Column(
-                      children: [
-                        // Header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    : SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(16)),
+                        child: Column(
                           children: [
-                            IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: 22),
+                            // Header
+                            Row(
+                              children: [
+                                Container(
+                                  width: Responsive.sp(40),
+                                  height: Responsive.sp(40),
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.surfaceDarkAlt,
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    icon: Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: Responsive.sp(20)),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  'الملف الشخصي',
+                                  style: TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: Responsive.fp(22),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const Text(
-                              'حسابي',
+                            SizedBox(height: Responsive.sp(32)),
+
+                            // Avatar
+                            Container(
+                              width: Responsive.sp(80),
+                              height: Responsive.sp(80),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.primaryDark, AppColors.cyan],
+                                  begin: Alignment.bottomLeft,
+                                  end: Alignment.topRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(Icons.person, color: Colors.white, size: Responsive.sp(40)),
+                            ),
+                            SizedBox(height: Responsive.sp(16)),
+
+                            // Name
+                            Text(
+                              _userData?['name'] ?? 'مستخدم',
                               style: TextStyle(
                                 color: AppColors.textPrimary,
-                                fontSize: 22,
+                                fontSize: Responsive.fp(22),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 40), // balance
+                            SizedBox(height: Responsive.sp(4)),
+                            Text(
+                              _userEmail ?? '',
+                              style: TextStyle(
+                                color: AppColors.textSlate400,
+                                fontSize: Responsive.fp(14),
+                                fontFamily: 'Space Grotesk',
+                              ),
+                            ),
+                            SizedBox(height: Responsive.sp(32)),
+
+                            // Info cards
+                            _buildInfoCard(Icons.store_outlined, 'اسم المتجر', _userData?['storeName'] ?? '-'),
+                            SizedBox(height: Responsive.sp(12)),
+                            _buildInfoCard(Icons.location_on_outlined, 'الولاية', _userData?['wilaya'] ?? '-'),
+                            SizedBox(height: Responsive.sp(12)),
+                            _buildInfoCard(Icons.phone_outlined, 'رقم الهاتف', _userData?['phone'] ?? '-'),
+                            SizedBox(height: Responsive.sp(12)),
+                            _buildInfoCard(
+                              _userData?['status'] == 'approved' ? Icons.check_circle_outline : Icons.access_time,
+                              'حالة الحساب',
+                              _userData?['status'] == 'approved' ? 'مفعّل' : _userData?['status'] == 'pending' ? 'قيد المراجعة' : (_userData?['status'] ?? '-'),
+                              valueColor: _userData?['status'] == 'approved' ? Colors.green : Colors.orange,
+                            ),
+                            SizedBox(height: Responsive.sp(32)),
+
+                            // Logout
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  await AuthService().logout();
+                                  if (!mounted) return;
+                                  Navigator.pushReplacementNamed(context, '/login');
+                                },
+                                icon: Icon(Icons.logout, color: Colors.red, size: Responsive.sp(20)),
+                                label: Text(
+                                  'تسجيل الخروج',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: Responsive.fp(14),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.red, width: 1.5),
+                                  padding: EdgeInsets.symmetric(vertical: Responsive.sp(14)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.sp(24)),
                           ],
                         ),
-                        const SizedBox(height: 32),
-
-                        // Avatar
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [AppColors.primaryDark, AppColors.primaryLight],
-                              begin: Alignment.bottomLeft,
-                              end: Alignment.topRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 24,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              _user?.name.isNotEmpty == true
-                                  ? _user!.name[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // User name
-                        Text(
-                          _user?.name ?? 'مستخدم',
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _user?.email ?? '',
-                          style: const TextStyle(
-                            color: AppColors.textSlate400,
-                            fontSize: 14,
-                            fontFamily: 'Space Grotesk',
-                          ),
-                        ),
-                        const SizedBox(height: 36),
-
-                        // Info cards
-                        _infoCard(
-                          icon: Icons.person_outline,
-                          label: 'الاسم الكامل',
-                          value: _user?.name ?? '—',
-                        ),
-                        const SizedBox(height: 12),
-                        _infoCard(
-                          icon: Icons.store_outlined,
-                          label: 'اسم المتجر',
-                          value: _user?.storeName.isNotEmpty == true ? _user!.storeName : '—',
-                        ),
-                        const SizedBox(height: 12),
-                        _infoCard(
-                          icon: Icons.location_on_outlined,
-                          label: 'الولاية',
-                          value: _user?.wilaya.isNotEmpty == true ? _user!.wilaya : '—',
-                        ),
-                        const SizedBox(height: 12),
-                        _infoCard(
-                          icon: Icons.mail_outline,
-                          label: 'البريد الإلكتروني',
-                          value: _user?.email ?? '—',
-                          isLTR: true,
-                        ),
-                        const SizedBox(height: 12),
-                        _infoCard(
-                          icon: Icons.smartphone,
-                          label: 'رقم الهاتف',
-                          value: _user?.phone ?? '—',
-                          isLTR: true,
-                        ),
-                        const SizedBox(height: 36),
-
-                        // Logout button
-                        SizedBox(
-                          width: double.infinity,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: Colors.red.withValues(alpha: 0.4),
-                              ),
-                            ),
-                            child: ElevatedButton.icon(
-                              onPressed: _handleLogout,
-                              icon: const Icon(Icons.logout, color: Colors.red, size: 20),
-                              label: const Text(
-                                'تسجيل الخروج',
-                                style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red.withValues(alpha: 0.08),
-                                shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
+                      ),
+              ),
+            ),
           ),
         ],
       ),
-      // Bottom Navigation Bar
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceDark.withValues(alpha: 0.95),
@@ -231,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(8)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -247,14 +236,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _infoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    bool isLTR = false,
-  }) {
+  Widget _buildInfoCard(IconData icon, String label, String value, {Color? valueColor}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(Responsive.sp(16)),
       decoration: BoxDecoration(
         color: AppColors.surfaceDarkAlt,
         borderRadius: BorderRadius.circular(14),
@@ -262,51 +246,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Row(
         children: [
-          // Info
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textSlate500,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
+                Text(label, style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(12))),
+                SizedBox(height: Responsive.sp(4)),
                 Text(
                   value,
                   style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
+                    color: valueColor ?? AppColors.textPrimary,
+                    fontSize: Responsive.fp(15),
                     fontWeight: FontWeight.w600,
-                    fontFamily: isLTR ? 'Space Grotesk' : null,
                   ),
-                  textDirection: isLTR ? TextDirection.ltr : TextDirection.rtl,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          // Icon
+          SizedBox(width: Responsive.sp(14)),
           Container(
-            width: 44,
-            height: 44,
+            width: Responsive.sp(44),
+            height: Responsive.sp(44),
             decoration: BoxDecoration(
+              shape: BoxShape.circle,
               color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 22),
+            child: Icon(icon, color: AppColors.primaryLight, size: Responsive.sp(22)),
           ),
         ],
       ),
     );
   }
 
-  Widget _navItem(IconData icon, String label, int index,
-      {bool isActive = false}) {
+  Widget _navItem(IconData icon, String label, int index, {bool isActive = false}) {
     final color = isActive ? AppColors.primary : AppColors.textSlate400;
     return GestureDetector(
       onTap: () {
@@ -318,7 +290,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.pushReplacementNamed(context, '/categories-gros');
             break;
           case 2:
-            // Cart — coming soon
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('السلة قريباً!', textAlign: TextAlign.center),
@@ -330,23 +301,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
             break;
           case 3:
-            // Already on profile
             break;
         }
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            ),
-          ),
+          Icon(icon, color: color, size: Responsive.sp(24)),
+          SizedBox(height: Responsive.sp(4)),
+          Text(label, style: TextStyle(color: color, fontSize: Responsive.fp(10), fontWeight: isActive ? FontWeight.bold : FontWeight.w500)),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../theme/app_colors.dart';
+import '../theme/responsive_wrapper.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/product_service.dart';
@@ -1144,9 +1145,76 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   // ─── BUILD ────────────────────────────────────────────────────
 
+  // Build sidebar content (reused in both inline sidebar and drawer)
+  Widget _buildSidebarContent({bool isDrawer = false}) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(top: 24, bottom: 24, right: isDrawer ? 0 : 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSidebarSection(
+            title: 'إدارة الحسابات',
+            icon: Icons.people,
+            sectionIndex: 0,
+            closeDrawer: isDrawer,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
+            title: 'الفئات',
+            icon: Icons.category,
+            sectionIndex: 1,
+            closeDrawer: isDrawer,
+          ),
+          if (_sectionIndex == 1) _buildSidebarSubItems(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
+            title: 'المنتجات',
+            icon: Icons.inventory_2,
+            sectionIndex: 2,
+            closeDrawer: isDrawer,
+          ),
+          if (_sectionIndex == 2) _buildSidebarSubItems(),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final isWide = Responsive.screenWidth >= Breakpoints.tablet;
+
     return Scaffold(
+      // Drawer for narrow screens
+      endDrawer: isWide ? null : Drawer(
+        backgroundColor: AppColors.surfaceAlt,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.close, color: AppColors.textSlate400, size: Responsive.sp(22)),
+                    ),
+                    const Spacer(),
+                    Text('القائمة', style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(18), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              Expanded(child: _buildSidebarContent(isDrawer: true)),
+            ],
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           // Background decorations
@@ -1154,8 +1222,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             top: -100,
             left: -100,
             child: Container(
-              width: 300,
-              height: 300,
+              width: Responsive.sp(300),
+              height: Responsive.sp(300),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primaryDark.withValues(alpha: 0.12),
@@ -1166,8 +1234,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             bottom: -80,
             right: -80,
             child: Container(
-              width: 250,
-              height: 250,
+              width: Responsive.sp(250),
+              height: Responsive.sp(250),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.cyan.withValues(alpha: 0.06),
@@ -1181,7 +1249,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 // ── HEADER ──
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(16)),
                   child: Row(
                     children: [
                       // Logout button
@@ -1191,34 +1259,46 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         bgColor: Colors.red.withValues(alpha: 0.1),
                         onTap: _handleLogout,
                       ),
+                      // Hamburger menu on narrow screens
+                      if (!isWide) ...[
+                        const SizedBox(width: 8),
+                        Builder(
+                          builder: (ctx) => _buildIconButton(
+                            icon: Icons.menu,
+                            color: AppColors.textPrimary,
+                            bgColor: AppColors.surfaceAlt,
+                            onTap: () => Scaffold.of(ctx).openEndDrawer(),
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       // Title
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text(
+                          Text(
                             'لوحة التحكم',
                             style: TextStyle(
                               color: AppColors.textPrimary,
-                              fontSize: 24,
+                              fontSize: Responsive.fp(24),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: Responsive.sp(2)),
                           Text(
                             'إدارة الفئات والمنتجات والحسابات',
                             style: TextStyle(
                               color: AppColors.textSlate400,
-                              fontSize: 13,
+                              fontSize: Responsive.fp(13),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: Responsive.sp(12)),
                       // Admin avatar
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: Responsive.sp(44),
+                        height: Responsive.sp(44),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: const LinearGradient(
@@ -1234,8 +1314,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.admin_panel_settings,
-                            color: Colors.white, size: 22),
+                        child: Icon(Icons.admin_panel_settings,
+                            color: Colors.white, size: Responsive.sp(22)),
                       ),
                     ],
                   ),
@@ -1245,51 +1325,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── SIDEBAR (Right side in RTL) ──
-                      Container(
-                        width: 240,
-                        decoration: const BoxDecoration(
-                          color: AppColors.surfaceAlt,
-                          border: Border(
-                            left: BorderSide(color: AppColors.borderDark),
+                      // ── SIDEBAR (only on wide screens) ──
+                      if (isWide)
+                        Container(
+                          width: 240,
+                          decoration: const BoxDecoration(
+                            color: AppColors.surfaceAlt,
+                            border: Border(
+                              left: BorderSide(color: AppColors.borderDark),
+                            ),
                           ),
+                          child: _buildSidebarContent(),
                         ),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.only(top: 24, bottom: 24, right: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSidebarSection(
-                                title: 'إدارة الحسابات',
-                                icon: Icons.people,
-                                sectionIndex: 0,
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                child: Divider(color: AppColors.borderDark, height: 1),
-                              ),
-                              _buildSidebarSection(
-                                title: 'الفئات',
-                                icon: Icons.category,
-                                sectionIndex: 1,
-                              ),
-                              if (_sectionIndex == 1) _buildSidebarSubItems(),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                child: Divider(color: AppColors.borderDark, height: 1),
-                              ),
-                              _buildSidebarSection(
-                                title: 'المنتجات',
-                                icon: Icons.inventory_2,
-                                sectionIndex: 2,
-                              ),
-                              if (_sectionIndex == 2) _buildSidebarSubItems(),
-                            ],
-                          ),
-                        ),
-                      ),
                       
-                      // ── MAIN CONTENT (Left side in RTL) ──
+                      // ── MAIN CONTENT ──
                       Expanded(
                         child: Column(
                           children: [
@@ -1298,24 +1347,24 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             else ...[
                               // ── ITEM COUNT ──
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      padding: EdgeInsets.symmetric(horizontal: Responsive.sp(10), vertical: Responsive.sp(5)),
                                       decoration: BoxDecoration(
                                         color: AppColors.primary.withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         '${_sectionIndex == 1 ? _currentCategories.length : _currentProducts.length}',
-                                        style: const TextStyle(color: AppColors.primaryLight, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                                        style: TextStyle(color: AppColors.primaryLight, fontSize: Responsive.fp(13), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
                                       ),
                                     ),
                                     const Spacer(),
                                     Text(
-                                      '${_sectionIndex == 0 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
-                                      style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontWeight: FontWeight.w600),
+                                      '${_sectionIndex == 1 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
+                                      style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14), fontWeight: FontWeight.w600),
                                     ),
                                   ],
                                 ),
@@ -1325,7 +1374,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               Expanded(
                                 child: _isLoading
                                     ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                                    : _sectionIndex == 0
+                                    : _sectionIndex == 1
                                         ? _buildCategoryList(_currentCategories)
                                         : _buildProductList(_currentProducts),
                               ),
@@ -1342,7 +1391,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ],
       ),
       // ── FAB ──
-      floatingActionButton: _sectionIndex != 2 ? Container(
+      floatingActionButton: _sectionIndex != 0 ? Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: AppColors.primary,
@@ -1355,16 +1404,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ],
         ),
         child: FloatingActionButton.extended(
-          onPressed: _sectionIndex == 0 ? _showAddCategoryDialog : _showAddProductDialog,
+          onPressed: _sectionIndex == 1 ? _showAddCategoryDialog : _showAddProductDialog,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          icon: const Icon(Icons.add, color: Colors.white),
+          icon: Icon(Icons.add, color: Colors.white, size: Responsive.sp(20)),
           label: Text(
-            _sectionIndex == 0 ? 'إضافة فئة' : 'إضافة منتج',
-            style: const TextStyle(
+            _sectionIndex == 1 ? 'إضافة فئة' : 'إضافة منتج',
+            style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: Responsive.fp(14),
             ),
           ),
         ),
@@ -2034,13 +2083,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   // ─── SIDEBAR UTILITY WIDGETS ──────────────────────────────────
 
-  Widget _buildSidebarSection({required String title, required IconData icon, required int sectionIndex}) {
+  Widget _buildSidebarSection({required String title, required IconData icon, required int sectionIndex, bool closeDrawer = false}) {
     final isSelected = _sectionIndex == sectionIndex;
     return InkWell(
       onTap: () {
         setState(() => _sectionIndex = sectionIndex);
         if (sectionIndex == 0 && _allUsers.isEmpty) {
           _loadUsers();
+        }
+        if (closeDrawer && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
         }
       },
       child: Container(

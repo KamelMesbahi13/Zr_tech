@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
+import '../theme/responsive_wrapper.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -73,6 +74,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final hPad = Responsive.horizontalPadding;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -81,8 +85,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             top: -80,
             left: -80,
             child: Container(
-              width: 300,
-              height: 300,
+              width: Responsive.sp(300),
+              height: Responsive.sp(300),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primary.withValues(alpha: 0.1),
@@ -93,8 +97,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             bottom: -80,
             right: -80,
             child: Container(
-              width: 300,
-              height: 300,
+              width: Responsive.sp(300),
+              height: Responsive.sp(300),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primaryDark.withValues(alpha: 0.1),
@@ -105,123 +109,125 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo
-                    Image.asset(
-                      'assets/images/logo.png',
-                      width: 120,
-                      height: 120,
-                    ),
-                    const SizedBox(height: 16),
-                    // Title
-                    const Text(
-                      'تسجيل دخول الإدارة',
-                      style: TextStyle(
-                        fontFamily: 'Space Grotesk',
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(32)),
+                child: ResponsiveWrapper(
+                  maxWidth: 480,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: Responsive.sp(120),
+                        height: Responsive.sp(120),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'الرجاء إدخال بيانات الدخول الخاصة بالإدارة',
-                      style: TextStyle(
-                        color: AppColors.textSlate400,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Email Field
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'البريد الإلكتروني',
-                      hint: 'admin@zrtech.com',
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      isLTR: true,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Password Field
-                    _buildTextField(
-                      controller: _passwordController,
-                      label: 'كلمة المرور',
-                      hint: '••••••••',
-                      icon: Icons.lock_outline,
-                      isPassword: true,
-                      isLTR: true,
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Login Button (No Sign up tab needed)
-                    SizedBox(
-                      width: double.infinity,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          color: AppColors.primary,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.25),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                      SizedBox(height: Responsive.sp(16)),
+                      // Title
+                      Text(
+                        'تسجيل دخول الإدارة',
+                        style: TextStyle(
+                          fontFamily: 'Space Grotesk',
+                          fontSize: Responsive.fp(28),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                         ),
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
+                      ),
+                      SizedBox(height: Responsive.sp(4)),
+                      Text(
+                        'الرجاء إدخال بيانات الدخول الخاصة بالإدارة',
+                        style: TextStyle(
+                          color: AppColors.textSlate400,
+                          fontSize: Responsive.fp(14),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(40)),
+
+                      // Email Field
+                      _buildTextField(
+                        controller: _emailController,
+                        label: 'البريد الإلكتروني',
+                        hint: 'admin@zrtech.com',
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        isLTR: true,
+                      ),
+                      SizedBox(height: Responsive.sp(20)),
+
+                      // Password Field
+                      _buildTextField(
+                        controller: _passwordController,
+                        label: 'كلمة المرور',
+                        hint: '••••••••',
+                        icon: Icons.lock_outline,
+                        isPassword: true,
+                        isLTR: true,
+                      ),
+
+                      SizedBox(height: Responsive.sp(32)),
+
+                      // Login Button (No Sign up tab needed)
+                      SizedBox(
+                        width: double.infinity,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: AppColors.primary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.25),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'دخول الإدارة',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: EdgeInsets.symmetric(vertical: Responsive.sp(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: _isLoading
+                                ? SizedBox(
+                                    width: Responsive.sp(24),
+                                    height: Responsive.sp(24),
+                                    child: const CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
                                     ),
-                                  ],
-                                ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.admin_panel_settings, color: Colors.white, size: Responsive.sp(20)),
+                                      SizedBox(width: Responsive.sp(8)),
+                                      Text(
+                                        'دخول الإدارة',
+                                        style: TextStyle(
+                                          fontSize: Responsive.fp(16),
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Back to User Panel (Optional helpful link)
-                    TextButton(
-                      onPressed: () {
-                        // Go back to the user login using Navigator.pushReplacementNamed
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
-                      child: const Text('العودة لتسجيل دخول المستخدمين', style: TextStyle(color: AppColors.primaryDark, fontSize: 13)),
-                    )
-                  ],
+                      SizedBox(height: Responsive.sp(16)),
+                      // Back to User Panel (Optional helpful link)
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/login');
+                        },
+                        child: Text('العودة لتسجيل دخول المستخدمين', style: TextStyle(color: AppColors.primaryDark, fontSize: Responsive.fp(13))),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -247,14 +253,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           alignment: Alignment.centerRight,
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textSlate300,
-              fontSize: 14,
+              fontSize: Responsive.fp(14),
               fontWeight: FontWeight.w500,
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: Responsive.sp(8)),
         TextField(
           controller: controller,
           obscureText: isPassword && _obscurePassword,
@@ -264,24 +270,25 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           style: TextStyle(
             color: AppColors.textPrimary,
             fontFamily: isLTR ? 'Space Grotesk' : null,
-            fontSize: 14,
+            fontSize: Responsive.fp(14),
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
               fontFamily: isLTR ? 'Space Grotesk' : null,
               color: AppColors.textSlate500,
+              fontSize: Responsive.fp(14),
             ),
             prefixIcon: Padding(
-              padding: const EdgeInsets.only(left: 12, right: 8),
-              child: Icon(icon, color: AppColors.textSlate400, size: 22),
+              padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+              child: Icon(icon, color: AppColors.textSlate400, size: Responsive.sp(22)),
             ),
             suffixIcon: isPassword
                 ? IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,
                       color: AppColors.textSlate400,
-                      size: 20,
+                      size: Responsive.sp(20),
                     ),
                     onPressed: () {
                       setState(() {

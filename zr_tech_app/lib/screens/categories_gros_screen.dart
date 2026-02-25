@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/category_service.dart';
 import '../models/category_model.dart';
+import '../theme/responsive_wrapper.dart';
 
 class CategoriesGrosScreen extends StatefulWidget {
   const CategoriesGrosScreen({super.key});
@@ -39,7 +40,6 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
             .getCategories('gros')
             .timeout(const Duration(seconds: 15));
 
-        // If no categories exist, seed them first
         if (categories.isEmpty && !_hasSeeded) {
           _hasSeeded = true;
           await _categoryService.seedCategories();
@@ -54,10 +54,9 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
           _filteredCategories = categories;
           _isLoading = false;
         });
-        return; // Success, exit the retry loop
+        return;
       } catch (e) {
         if (attempt < maxRetries) {
-          // Wait briefly before retrying
           await Future.delayed(const Duration(seconds: 1));
           continue;
         }
@@ -94,224 +93,236 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final hPad = Responsive.horizontalPadding;
+
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.notifications_outlined,
-                      color: AppColors.textPrimary,
-                      size: 28,
-                    ),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'الفئات - بالجملة',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pushReplacementNamed(
-                      context,
-                      '/shopping-type',
-                    ),
-                    icon: const Icon(
-                      Icons.arrow_forward,
-                      color: AppColors.textPrimary,
-                      size: 24,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _filterCategories,
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'بحث عن فئات...',
-                  hintStyle: const TextStyle(color: AppColors.textSlate400),
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: AppColors.textMuted,
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(
-                            Icons.clear,
-                            color: AppColors.textMuted,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                            _filterCategories('');
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: AppColors.surfaceDark,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.borderSubtle),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.borderSubtle),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Categories Grid
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    )
-                  : _filteredCategories.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'لا توجد نتائج مطابقة',
-                        style: TextStyle(
-                          color: AppColors.textSlate400,
-                          fontSize: 16,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: EdgeInsets.fromLTRB(hPad, Responsive.sp(24), hPad, Responsive.sp(16)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.textPrimary,
+                          size: Responsive.sp(28),
                         ),
                       ),
-                    )
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        final width = constraints.maxWidth;
-                        // Adaptive sizing based on screen width
-                        final double maxExtent;
-                        final double spacing;
-                        final double hPadding;
-                        if (width < 400) {
-                          maxExtent = 100;
-                          spacing = 12;
-                          hPadding = 12;
-                        } else if (width < 600) {
-                          maxExtent = 120;
-                          spacing = 14;
-                          hPadding = 16;
-                        } else {
-                          maxExtent = 140;
-                          spacing = 16;
-                          hPadding = 20;
-                        }
-                        return GridView.builder(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: hPadding,
-                            vertical: 16,
+                      Expanded(
+                        child: Text(
+                          'الفئات - بالجملة',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: Responsive.fp(22),
+                            fontWeight: FontWeight.bold,
                           ),
-                          gridDelegate:
-                              SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: maxExtent,
-                                crossAxisSpacing: spacing,
-                                mainAxisSpacing: spacing,
-                                childAspectRatio: 0.75,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pushReplacementNamed(
+                          context,
+                          '/shopping-type',
+                        ),
+                        icon: Icon(
+                          Icons.arrow_forward,
+                          color: AppColors.textPrimary,
+                          size: Responsive.sp(24),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Search bar
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPad),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _filterCategories,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: Responsive.fp(14),
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'بحث عن فئات...',
+                      hintStyle: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14)),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: AppColors.textMuted,
+                        size: Responsive.sp(22),
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear,
+                                color: AppColors.textMuted,
+                                size: Responsive.sp(20),
                               ),
-                          itemCount: _filteredCategories.length,
-                          itemBuilder: (context, index) {
-                            final cat = _filteredCategories[index];
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/products',
-                                  arguments: {
-                                    'shoppingType': 'gros',
-                                    'categoryId': cat.id,
-                                    'categoryName': cat.name,
+                              onPressed: () {
+                                _searchController.clear();
+                                _filterCategories('');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: AppColors.surfaceDark,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: Responsive.sp(16),
+                        vertical: Responsive.sp(14),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: AppColors.borderSubtle),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: AppColors.borderSubtle),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: Responsive.sp(16)),
+                // Categories Grid
+                Expanded(
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
+                        )
+                      : _filteredCategories.isEmpty
+                      ? Center(
+                          child: Text(
+                            'لا توجد نتائج مطابقة',
+                            style: TextStyle(
+                              color: AppColors.textSlate400,
+                              fontSize: Responsive.fp(16),
+                            ),
+                          ),
+                        )
+                      : LayoutBuilder(
+                          builder: (context, constraints) {
+                            final width = constraints.maxWidth;
+                            final double maxExtent;
+                            final double spacing;
+                            final double gridHPad;
+                            if (width < 400) {
+                              maxExtent = 100;
+                              spacing = 12;
+                              gridHPad = 12;
+                            } else if (width < 600) {
+                              maxExtent = 120;
+                              spacing = 14;
+                              gridHPad = 16;
+                            } else if (width < 800) {
+                              maxExtent = 140;
+                              spacing = 16;
+                              gridHPad = 20;
+                            } else {
+                              maxExtent = 160;
+                              spacing = 18;
+                              gridHPad = 24;
+                            }
+                            return GridView.builder(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: gridHPad,
+                                vertical: Responsive.sp(16),
+                              ),
+                              gridDelegate:
+                                  SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: maxExtent,
+                                    crossAxisSpacing: spacing,
+                                    mainAxisSpacing: spacing,
+                                    childAspectRatio: 0.75,
+                                  ),
+                              itemCount: _filteredCategories.length,
+                              itemBuilder: (context, index) {
+                                final cat = _filteredCategories[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/products',
+                                      arguments: {
+                                        'shoppingType': 'gros',
+                                        'categoryId': cat.id,
+                                        'categoryName': cat.name,
+                                      },
+                                    );
                                   },
+                                  child: Column(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(16),
+                                            color: AppColors.surfaceDark,
+                                            border: Border.all(
+                                              color: AppColors.borderSubtle,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.04,
+                                                ),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          clipBehavior: Clip.antiAlias,
+                                          child: Image.network(
+                                            cat.image,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            errorBuilder: (c, e, s) => Container(
+                                              color: AppColors.surfaceDark,
+                                              child: Icon(
+                                                Icons.image,
+                                                color: AppColors.textSlate500,
+                                                size: Responsive.sp(28),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: Responsive.sp(6)),
+                                      Text(
+                                        cat.name,
+                                        style: TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: Responsive.fp(11),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 );
                               },
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        color: AppColors.surfaceDark,
-                                        border: Border.all(
-                                          color: AppColors.borderSubtle,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.04,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: Image.network(
-                                        cat.image,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        errorBuilder: (c, e, s) => Container(
-                                          color: AppColors.surfaceDark,
-                                          child: const Icon(
-                                            Icons.image,
-                                            color: AppColors.textSlate500,
-                                            size: 28,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    cat.name,
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
                             );
                           },
-                        );
-                      },
-                    ),
+                        ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       // Bottom Navigation Bar
@@ -322,7 +333,7 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(8)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -353,21 +364,14 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
             Navigator.pushReplacementNamed(context, '/shopping-type');
             break;
           case 1:
-            // Already on categories
             break;
           case 2:
-            // Cart — coming soon
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text(
-                  'السلة قريباً!',
-                  textAlign: TextAlign.center,
-                ),
+                content: const Text('السلة قريباً!', textAlign: TextAlign.center),
                 backgroundColor: AppColors.surfaceDarkAlt,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 duration: const Duration(seconds: 1),
               ),
             );
@@ -383,28 +387,25 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Icon(icon, color: color, size: 24),
+              Icon(icon, color: color, size: Responsive.sp(24)),
               if (badge != null)
                 Positioned(
                   top: -4,
                   right: -6,
                   child: Container(
-                    width: 14,
-                    height: 14,
+                    width: Responsive.sp(14),
+                    height: Responsive.sp(14),
                     decoration: BoxDecoration(
                       color: Colors.red,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.surfaceDark,
-                        width: 1.5,
-                      ),
+                      border: Border.all(color: AppColors.surfaceDark, width: 1.5),
                     ),
                     child: Center(
                       child: Text(
                         '$badge',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 8,
+                          fontSize: Responsive.fp(8),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -413,12 +414,12 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: Responsive.sp(4)),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontSize: 10,
+              fontSize: Responsive.fp(10),
               fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             ),
           ),

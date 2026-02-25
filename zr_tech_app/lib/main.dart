@@ -49,10 +49,7 @@ class ZRTechApp extends StatelessWidget {
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: child!,
-          ),
+          child: child!,
         );
       },
       initialRoute: '/shopping-type',

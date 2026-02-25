@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/product_service.dart';
 import '../models/product_model.dart';
+import '../theme/responsive_wrapper.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -87,14 +88,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _imagePlaceholder() {
     return Container(
       color: const Color(0xFFF0F0F0),
-      child: const Center(
-        child: Icon(Icons.image_outlined, color: Color(0xFFBBBBBB), size: 40),
+      child: Center(
+        child: Icon(Icons.image_outlined, color: const Color(0xFFBBBBBB), size: Responsive.sp(40)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final hPad = Responsive.horizontalPadding;
+
     return Scaffold(
         body: Stack(
           children: [
@@ -103,8 +107,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               top: -80,
               left: -80,
               child: Container(
-                width: 260,
-                height: 260,
+                width: Responsive.sp(260),
+                height: Responsive.sp(260),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.primary.withValues(alpha: 0.06),
@@ -115,8 +119,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               bottom: -60,
               right: -60,
               child: Container(
-                width: 200,
-                height: 200,
+                width: Responsive.sp(200),
+                height: Responsive.sp(200),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.cyan.withValues(alpha: 0.04),
@@ -124,109 +128,115 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ),
             ),
             SafeArea(
-              child: Column(
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Row(
-                      children: [
-                        // Title (RTL: starts from right)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: Column(
+                    children: [
+                      // Header
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, Responsive.sp(16), hPad, Responsive.sp(8)),
+                        child: Row(
                           children: [
-                            Text(
-                              _categoryName,
-                              style: const TextStyle(
-                                color: Color(0xFF1A1A2E),
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                            // Title (RTL: starts from right)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _categoryName,
+                                    style: TextStyle(
+                                      color: const Color(0xFF1A1A2E),
+                                      fontSize: Responsive.fp(22),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: Responsive.sp(2)),
+                                  Text(
+                                    '${_products.length} منتج',
+                                    style: TextStyle(
+                                      color: const Color(0xFF888899),
+                                      fontSize: Responsive.fp(13),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${_products.length} منتج',
-                              style: const TextStyle(
-                                color: Color(0xFF888899),
-                                fontSize: 13,
+                            // Back button
+                            Container(
+                              width: Responsive.sp(40),
+                              height: Responsive.sp(40),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFF0F2F5),
+                              ),
+                              child: IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: Icon(Icons.arrow_back, color: const Color(0xFF1A1A2E), size: Responsive.sp(20)),
+                                padding: EdgeInsets.zero,
                               ),
                             ),
                           ],
                         ),
-                        const Spacer(),
-                        // Back button
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFF0F2F5),
-                          ),
-                          child: IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A2E), size: 20),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Products Grid
-                  Expanded(
-                    child: _isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(color: AppColors.primary),
-                          )
-                        : _products.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.inventory_2_outlined,
-                                        color: const Color(0xFFBBBBCC), size: 56),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      'لا توجد منتجات في هذه الفئة',
-                                      style: TextStyle(
-                                        color: Color(0xFF666677),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      'ستتم إضافة المنتجات قريباً',
-                                      style: TextStyle(
-                                        color: Color(0xFF999AAA),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                      ),
+                      SizedBox(height: Responsive.sp(8)),
+                      // Products Grid
+                      Expanded(
+                        child: _isLoading
+                            ? const Center(
+                                child: CircularProgressIndicator(color: AppColors.primary),
                               )
-                            : LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final width = constraints.maxWidth;
-                                  final crossAxisCount = width > 900 ? 4 : width > 600 ? 3 : 2;
-                                  return GridView.builder(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: crossAxisCount,
-                                      crossAxisSpacing: 14,
-                                      mainAxisSpacing: 14,
-                                      childAspectRatio: 0.65,
+                            : _products.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.inventory_2_outlined,
+                                            color: const Color(0xFFBBBBCC), size: Responsive.sp(56)),
+                                        SizedBox(height: Responsive.sp(16)),
+                                        Text(
+                                          'لا توجد منتجات في هذه الفئة',
+                                          style: TextStyle(
+                                            color: const Color(0xFF666677),
+                                            fontSize: Responsive.fp(16),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        SizedBox(height: Responsive.sp(8)),
+                                        Text(
+                                          'ستتم إضافة المنتجات قريباً',
+                                          style: TextStyle(
+                                            color: const Color(0xFF999AAA),
+                                            fontSize: Responsive.fp(13),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    itemCount: _products.length,
-                                    itemBuilder: (context, index) {
-                                      final product = _products[index];
-                                      return _buildProductCard(product);
+                                  )
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final width = constraints.maxWidth;
+                                      final crossAxisCount = width > 900 ? 5 : width > 700 ? 4 : width > 500 ? 3 : 2;
+                                      return GridView.builder(
+                                        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(8)),
+                                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: crossAxisCount,
+                                          crossAxisSpacing: Responsive.sp(14),
+                                          mainAxisSpacing: Responsive.sp(14),
+                                          childAspectRatio: 0.65,
+                                        ),
+                                        itemCount: _products.length,
+                                        itemBuilder: (context, index) {
+                                          final product = _products[index];
+                                          return _buildProductCard(product);
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                              ),
+                                  ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -265,10 +275,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 ),
                 // Stock badge
                 Positioned(
-                  top: 8,
-                  left: 8,
+                  top: Responsive.sp(8),
+                  left: Responsive.sp(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: Responsive.sp(8), vertical: Responsive.sp(4)),
                     decoration: BoxDecoration(
                       color: product.isAvailable
                           ? Colors.green.withValues(alpha: 0.9)
@@ -290,14 +300,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ? Icons.check_circle_outline
                               : Icons.cancel_outlined,
                           color: Colors.white,
-                          size: 12,
+                          size: Responsive.sp(12),
                         ),
-                        const SizedBox(width: 3),
+                        SizedBox(width: Responsive.sp(3)),
                         Text(
                           product.isAvailable ? 'متوفر' : 'غير متوفر',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: Responsive.fp(10),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -310,16 +320,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
           // Product info
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+            padding: EdgeInsets.fromLTRB(Responsive.sp(10), Responsive.sp(8), Responsive.sp(10), Responsive.sp(10)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   product.name,
-                  style: const TextStyle(
-                    color: Color(0xFF1A1A2E),
-                    fontSize: 12,
+                  style: TextStyle(
+                    color: const Color(0xFF1A1A2E),
+                    fontSize: Responsive.fp(12),
                     fontWeight: FontWeight.w600,
                     height: 1.2,
                   ),
@@ -327,24 +337,24 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: Responsive.sp(6)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: Responsive.sp(6), vertical: Responsive.sp(3)),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     '${product.price.toStringAsFixed(0)} DA',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.primary,
-                      fontSize: 13,
+                      fontSize: Responsive.fp(13),
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Space Grotesk',
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: Responsive.sp(8)),
                 SizedBox(
                   width: double.infinity,
                   child: Container(
@@ -363,17 +373,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.symmetric(vertical: Responsive.sp(8)),
                         minimumSize: Size.zero,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'عرض المنتج',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: Responsive.fp(11),
                           fontWeight: FontWeight.bold,
                         ),
                       ),

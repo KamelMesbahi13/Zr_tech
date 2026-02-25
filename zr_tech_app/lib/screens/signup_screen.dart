@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
+import '../theme/responsive_wrapper.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -100,6 +101,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
+    final hPad = Responsive.horizontalPadding;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -126,8 +130,8 @@ class _SignupScreenState extends State<SignupScreen> {
             top: -80,
             right: -80,
             child: Container(
-              width: 256,
-              height: 256,
+              width: Responsive.sp(256),
+              height: Responsive.sp(256),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.cyan.withValues(alpha: 0.05),
@@ -138,8 +142,8 @@ class _SignupScreenState extends State<SignupScreen> {
             bottom: -80,
             left: -80,
             child: Container(
-              width: 256,
-              height: 256,
+              width: Responsive.sp(256),
+              height: Responsive.sp(256),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primaryDark.withValues(alpha: 0.1),
@@ -148,311 +152,316 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
           // Main content
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Column(
-                children: [
-                  // Logo
-                  Image.asset(
-                    'assets/images/logo.png',
-                    width: 120,
-                    height: 120,
-                  ),
-                  const SizedBox(height: 8),
-                  // Title
-                  const Text(
-                    'ZR Technologie',
-                    style: TextStyle(
-                      fontFamily: 'Space Grotesk',
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'وجهتك الأولى للإكسسوارات التقنية',
-                    style: TextStyle(
-                      color: AppColors.textSlate400,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Tab Switcher with underline
-                  Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: AppColors.borderDark, width: 1),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(32)),
+                child: ResponsiveWrapper(
+                  maxWidth: 480,
+                  child: Column(
+                    children: [
+                      // Logo
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: Responsive.sp(120),
+                        height: Responsive.sp(120),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacementNamed(context, '/login');
+                      SizedBox(height: Responsive.sp(8)),
+                      // Title
+                      Text(
+                        'ZR Technologie',
+                        style: TextStyle(
+                          fontFamily: 'Space Grotesk',
+                          fontSize: Responsive.fp(32),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(8)),
+                      Text(
+                        'وجهتك الأولى للإكسسوارات التقنية',
+                        style: TextStyle(
+                          color: AppColors.textSlate400,
+                          fontSize: Responsive.fp(14),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(32)),
+
+                      // Tab Switcher with underline
+                      Container(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: AppColors.borderDark, width: 1),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pushReplacementNamed(context, '/login');
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.only(bottom: Responsive.sp(16)),
+                                  child: Text(
+                                    'تسجيل الدخول',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: AppColors.textSlate400,
+                                      fontSize: Responsive.fp(14),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.only(bottom: Responsive.sp(16)),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      width: 3,
+                                      color: AppColors.cyan,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  'إنشاء حساب',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: AppColors.cyan,
+                                    fontSize: Responsive.fp(14),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(28)),
+
+                      // Full Name
+                      _buildLabel('الاسم الكامل'),
+                      SizedBox(height: Responsive.sp(8)),
+                      _buildTextField(
+                        controller: _nameController,
+                        hint: 'محمد علي',
+                        icon: Icons.person_outline,
+                        textDirection: TextDirection.rtl,
+                      ),
+                      SizedBox(height: Responsive.sp(20)),
+
+                      // Store Name
+                      _buildLabel('اسم المتجر'),
+                      SizedBox(height: Responsive.sp(8)),
+                      _buildTextField(
+                        controller: _storeNameController,
+                        hint: 'اسم المحل أو الشركة',
+                        icon: Icons.store_outlined,
+                        textDirection: TextDirection.rtl,
+                      ),
+                      SizedBox(height: Responsive.sp(20)),
+
+                      // Wilaya
+                      _buildLabel('الولاية'),
+                      SizedBox(height: Responsive.sp(8)),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceCard,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.borderDark),
+                        ),
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedWilaya,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+                              child: Icon(Icons.location_on_outlined, color: AppColors.textSlate500, size: Responsive.sp(20)),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: Responsive.sp(12), vertical: Responsive.sp(14)),
+                          ),
+                          hint: Text(
+                            'اختر الولاية',
+                            style: TextStyle(color: AppColors.textSlate500, fontSize: Responsive.fp(14)),
+                          ),
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(14)),
+                          dropdownColor: AppColors.surfaceCard,
+                          icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textSlate400, size: Responsive.sp(24)),
+                          items: _wilayas.map((w) => DropdownMenuItem(
+                            value: w,
+                            child: Text(w, textDirection: TextDirection.rtl),
+                          )).toList(),
+                          onChanged: (val) => setState(() => _selectedWilaya = val),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(20)),
+
+                      // Phone
+                      _buildLabel('رقم الهاتف'),
+                      SizedBox(height: Responsive.sp(8)),
+                      _buildTextField(
+                        controller: _phoneController,
+                        hint: '05XXXXXXXX',
+                        icon: Icons.smartphone,
+                        keyboardType: TextInputType.phone,
+                        fontFamily: 'Space Grotesk',
+                      ),
+                      SizedBox(height: Responsive.sp(20)),
+
+                      // Email
+                      _buildLabel('البريد الإلكتروني'),
+                      SizedBox(height: Responsive.sp(8)),
+                      _buildTextField(
+                        controller: _emailController,
+                        hint: 'example@domain.com',
+                        icon: Icons.mail_outline,
+                        keyboardType: TextInputType.emailAddress,
+                        fontFamily: 'Space Grotesk',
+                      ),
+                      SizedBox(height: Responsive.sp(20)),
+
+                      // Password
+                      _buildLabel('كلمة المرور'),
+                      SizedBox(height: Responsive.sp(8)),
+                      TextField(
+                        controller: _passwordController,
+                        textDirection: TextDirection.ltr,
+                        obscureText: _obscurePassword,
+                        style: TextStyle(color: AppColors.textPrimary, fontFamily: 'Space Grotesk', fontSize: Responsive.fp(14)),
+                        decoration: InputDecoration(
+                          hintText: '••••••••',
+                          hintStyle: TextStyle(fontFamily: 'Space Grotesk', color: AppColors.textSlate500, fontSize: Responsive.fp(14)),
+                          prefixIcon: Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+                            child: Icon(Icons.lock_outline, color: AppColors.textSlate500, size: Responsive.sp(20)),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              color: AppColors.textSlate500,
+                              size: Responsive.sp(20),
+                            ),
+                            onPressed: () {
+                              setState(() => _obscurePassword = !_obscurePassword);
                             },
-                            child: Container(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: const Text(
-                                'تسجيل الدخول',
-                                textAlign: TextAlign.center,
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surfaceCard,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.borderDark),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.borderDark),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppColors.cyan),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(16)),
+
+                      // Terms Checkbox
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: Responsive.sp(20),
+                            height: Responsive.sp(20),
+                            child: Checkbox(
+                              value: _agreeTerms,
+                              onChanged: (v) => setState(() => _agreeTerms = v!),
+                              activeColor: AppColors.cyan,
+                              side: const BorderSide(color: AppColors.textSlate500),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            ),
+                          ),
+                          SizedBox(width: Responsive.sp(12)),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
                                 style: TextStyle(
                                   color: AppColors.textSlate400,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: Responsive.fp(14),
+                                  fontFamily: 'IBM Plex Sans Arabic',
                                 ),
+                                children: [
+                                  const TextSpan(text: 'أوافق على '),
+                                  TextSpan(
+                                    text: 'الشروط والأحكام',
+                                    style: TextStyle(color: AppColors.cyan),
+                                  ),
+                                  const TextSpan(text: ' و '),
+                                  TextSpan(
+                                    text: 'سياسة الخصوصية',
+                                    style: TextStyle(color: AppColors.cyan),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  width: 3,
-                                  color: AppColors.cyan,
-                                ),
-                              ),
+                        ],
+                      ),
+                      SizedBox(height: Responsive.sp(24)),
+
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _handleSignUp,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: EdgeInsets.symmetric(vertical: Responsive.sp(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Text(
-                              'إنشاء حساب',
-                              textAlign: TextAlign.center,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'إنشاء حساب',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.fp(14),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(32)),
+
+                      // Login Link
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'هل لديك حساب بالفعل؟ ',
+                            style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14)),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            },
+                            child: Text(
+                              'تسجيل الدخول',
                               style: TextStyle(
                                 color: AppColors.cyan,
-                                fontSize: 14,
+                                fontSize: Responsive.fp(14),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Full Name
-                  _buildLabel('الاسم الكامل'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _nameController,
-                    hint: 'محمد علي',
-                    icon: Icons.person_outline,
-                    textDirection: TextDirection.rtl,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Store Name
-                  _buildLabel('اسم المتجر'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _storeNameController,
-                    hint: 'اسم المحل أو الشركة',
-                    icon: Icons.store_outlined,
-                    textDirection: TextDirection.rtl,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Wilaya
-                  _buildLabel('الولاية'),
-                  const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceCard,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.borderDark),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedWilaya,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        prefixIcon: const Padding(
-                          padding: EdgeInsetsDirectional.only(start: 12, end: 8),
-                          child: Icon(Icons.location_on_outlined, color: AppColors.textSlate500, size: 20),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        ],
                       ),
-                      hint: const Text(
-                        'اختر الولاية',
-                        style: TextStyle(color: AppColors.textSlate500, fontSize: 14),
-                      ),
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-                      dropdownColor: AppColors.surfaceCard,
-                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSlate400),
-                      items: _wilayas.map((w) => DropdownMenuItem(
-                        value: w,
-                        child: Text(w, textDirection: TextDirection.rtl),
-                      )).toList(),
-                      onChanged: (val) => setState(() => _selectedWilaya = val),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Phone
-                  _buildLabel('رقم الهاتف'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _phoneController,
-                    hint: '05XXXXXXXX',
-                    icon: Icons.smartphone,
-                    keyboardType: TextInputType.phone,
-                    fontFamily: 'Space Grotesk',
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Email
-                  _buildLabel('البريد الإلكتروني'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _emailController,
-                    hint: 'example@domain.com',
-                    icon: Icons.mail_outline,
-                    keyboardType: TextInputType.emailAddress,
-                    fontFamily: 'Space Grotesk',
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Password
-                  _buildLabel('كلمة المرور'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _passwordController,
-                    textDirection: TextDirection.ltr,
-                    obscureText: _obscurePassword,
-                    style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Space Grotesk', fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: '••••••••',
-                      hintStyle: const TextStyle(fontFamily: 'Space Grotesk', color: AppColors.textSlate500),
-                      prefixIcon: const Padding(
-                        padding: EdgeInsetsDirectional.only(start: 12, end: 8),
-                        child: Icon(Icons.lock_outline, color: AppColors.textSlate500, size: 20),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          color: AppColors.textSlate500,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                      ),
-                      filled: true,
-                      fillColor: AppColors.surfaceCard,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.borderDark),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.borderDark),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.cyan),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Terms Checkbox
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Checkbox(
-                          value: _agreeTerms,
-                          onChanged: (v) => setState(() => _agreeTerms = v!),
-                          activeColor: AppColors.cyan,
-                          side: const BorderSide(color: AppColors.textSlate500),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: RichText(
-                          text: TextSpan(
-                            style: const TextStyle(
-                              color: AppColors.textSlate400,
-                              fontSize: 14,
-                              fontFamily: 'IBM Plex Sans Arabic',
-                            ),
-                            children: [
-                              const TextSpan(text: 'أوافق على '),
-                              TextSpan(
-                                text: 'الشروط والأحكام',
-                                style: TextStyle(color: AppColors.cyan),
-                              ),
-                              const TextSpan(text: ' و '),
-                              TextSpan(
-                                text: 'سياسة الخصوصية',
-                                style: TextStyle(color: AppColors.cyan),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      SizedBox(height: Responsive.sp(24)),
                     ],
                   ),
-                  const SizedBox(height: 24),
-
-                  // Submit Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleSignUp,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'إنشاء حساب',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Login Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'هل لديك حساب بالفعل؟ ',
-                        style: TextStyle(color: AppColors.textSlate400, fontSize: 14),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacementNamed(context, '/login');
-                        },
-                        child: const Text(
-                          'تسجيل الدخول',
-                          style: TextStyle(
-                            color: AppColors.cyan,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                ),
               ),
             ),
           ),
@@ -466,9 +475,9 @@ class _SignupScreenState extends State<SignupScreen> {
       alignment: Alignment.centerRight,
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.textSlate300,
-          fontSize: 14,
+          fontSize: Responsive.fp(14),
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -491,17 +500,18 @@ class _SignupScreenState extends State<SignupScreen> {
       style: TextStyle(
         color: AppColors.textPrimary,
         fontFamily: fontFamily ?? 'IBM Plex Sans Arabic',
-        fontSize: 14,
+        fontSize: Responsive.fp(14),
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
           fontFamily: fontFamily ?? 'IBM Plex Sans Arabic',
           color: AppColors.textSlate500,
+          fontSize: Responsive.fp(14),
         ),
         prefixIcon: Padding(
           padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-          child: Icon(icon, color: AppColors.textSlate500, size: 20),
+          child: Icon(icon, color: AppColors.textSlate500, size: Responsive.sp(20)),
         ),
         filled: true,
         fillColor: AppColors.surfaceCard,

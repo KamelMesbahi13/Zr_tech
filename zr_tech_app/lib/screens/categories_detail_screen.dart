@@ -32,40 +32,49 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
 
-    try {
-      var categories = await _categoryService
-          .getCategories('detail')
-          .timeout(const Duration(seconds: 10));
-
-      // If no categories exist, seed them first
-      if (categories.isEmpty && !_hasSeeded) {
-        _hasSeeded = true;
-        await _categoryService.seedCategories();
-        categories = await _categoryService
+    const maxRetries = 2;
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        var categories = await _categoryService
             .getCategories('detail')
-            .timeout(const Duration(seconds: 10));
-      }
+            .timeout(const Duration(seconds: 15));
 
-      if (!mounted) return;
-      setState(() {
-        _categories = categories;
-        _filteredCategories = categories;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'حدث خطأ أثناء تحميل الفئات، تأكد من اتصالك بالأنترنت.',
+        // If no categories exist, seed them first
+        if (categories.isEmpty && !_hasSeeded) {
+          _hasSeeded = true;
+          await _categoryService.seedCategories();
+          categories = await _categoryService
+              .getCategories('detail')
+              .timeout(const Duration(seconds: 15));
+        }
+
+        if (!mounted) return;
+        setState(() {
+          _categories = categories;
+          _filteredCategories = categories;
+          _isLoading = false;
+        });
+        return; // Success, exit the retry loop
+      } catch (e) {
+        if (attempt < maxRetries) {
+          // Wait briefly before retrying
+          await Future.delayed(const Duration(seconds: 1));
+          continue;
+        }
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'حدث خطأ أثناء تحميل الفئات، تأكد من اتصالك بالأنترنت.',
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -202,22 +211,34 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                   : LayoutBuilder(
                       builder: (context, constraints) {
                         final width = constraints.maxWidth;
-                        final crossAxisCount = width > 800
-                            ? 5
-                            : width > 500
-                            ? 4
-                            : 3;
+                        // Adaptive sizing based on screen width
+                        final double maxExtent;
+                        final double spacing;
+                        final double hPadding;
+                        if (width < 400) {
+                          maxExtent = 100;
+                          spacing = 12;
+                          hPadding = 12;
+                        } else if (width < 600) {
+                          maxExtent = 120;
+                          spacing = 14;
+                          hPadding = 16;
+                        } else {
+                          maxExtent = 140;
+                          spacing = 16;
+                          hPadding = 20;
+                        }
                         return GridView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: hPadding,
                             vertical: 16,
                           ),
                           gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                                childAspectRatio: 0.8,
+                              SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: maxExtent,
+                                crossAxisSpacing: spacing,
+                                mainAxisSpacing: spacing,
+                                childAspectRatio: 0.75,
                               ),
                           itemCount: _filteredCategories.length,
                           itemBuilder: (context, index) {
@@ -270,12 +291,12 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
                                   Text(
                                     cat.name,
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
                                     textAlign: TextAlign.center,

@@ -115,6 +115,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Back button
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          width: Responsive.sp(40),
+                          height: Responsive.sp(40),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.surfaceDarkAlt,
+                          ),
+                          child: IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: Icon(Icons.arrow_forward, color: AppColors.textPrimary, size: Responsive.sp(20)),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(8)),
                       // Logo
                       Image.asset(
                         'assets/images/logo.png',

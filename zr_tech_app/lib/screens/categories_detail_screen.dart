@@ -340,7 +340,6 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _navItem(Icons.person_outline, 'حسابي', 3),
                 _navItem(Icons.shopping_cart_outlined, 'السلة', 2, badge: 3),
                 _navItem(Icons.category, 'الفئات', 1, isActive: true),
                 _navItem(Icons.home_outlined, 'الرئيسية', 0),
@@ -385,9 +384,6 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                 duration: const Duration(seconds: 1),
               ),
             );
-            break;
-          case 3:
-            Navigator.pushNamed(context, '/profile');
             break;
         }
       },

@@ -172,7 +172,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ),
                               child: IconButton(
                                 onPressed: () => Navigator.pop(context),
-                                icon: Icon(Icons.arrow_back, color: const Color(0xFF1A1A2E), size: Responsive.sp(20)),
+                                icon: Icon(Icons.arrow_forward, color: const Color(0xFF1A1A2E), size: Responsive.sp(20)),
                                 padding: EdgeInsets.zero,
                               ),
                             ),

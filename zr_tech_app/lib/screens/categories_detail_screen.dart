@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/category_service.dart';
+import '../services/product_service.dart';
 import '../models/category_model.dart';
 import '../theme/responsive_wrapper.dart';
 
@@ -12,9 +13,11 @@ class CategoriesDetailScreen extends StatefulWidget {
 
 class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
   final CategoryService _categoryService = CategoryService();
+  final ProductService _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
   List<CategoryModel> _categories = [];
   List<CategoryModel> _filteredCategories = [];
+  Set<String> _categoriesWithNewProducts = {};
   bool _isLoading = true;
   bool _hasSeeded = false;
 
@@ -55,6 +58,7 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
           _filteredCategories = categories;
           _isLoading = false;
         });
+        _checkForNewProducts();
         return; // Success, exit the retry loop
       } catch (e) {
         if (attempt < maxRetries) {
@@ -91,6 +95,25 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
             .toList();
       }
     });
+  }
+
+  Future<void> _checkForNewProducts() async {
+    try {
+      final allProducts = await _productService.getAllProducts('detail').timeout(const Duration(seconds: 10));
+      final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7)).millisecondsSinceEpoch;
+      final newCatIds = <String>{};
+      for (final product in allProducts) {
+        if (product.createdAt > sevenDaysAgo) {
+          newCatIds.add(product.categoryId);
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _categoriesWithNewProducts = newCatIds;
+      });
+    } catch (_) {
+      // Silently fail — badge is a nice-to-have
+    }
   }
 
   @override
@@ -288,18 +311,66 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                                             ],
                                           ),
                                           clipBehavior: Clip.antiAlias,
-                                          child: Image.network(
-                                            cat.image,
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            errorBuilder: (c, e, s) => Container(
-                                              color: AppColors.surfaceDark,
-                                              child: Icon(
-                                                Icons.image,
-                                                color: AppColors.textSlate500,
-                                                size: Responsive.sp(28),
+                                          child: Stack(
+                                            children: [
+                                              Positioned.fill(
+                                                child: Image.network(
+                                                  cat.image,
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  errorBuilder: (c, e, s) => Container(
+                                                    color: AppColors.surfaceDark,
+                                                    child: Icon(
+                                                      Icons.image,
+                                                      color: AppColors.textSlate500,
+                                                      size: Responsive.sp(28),
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+                                              if (_categoriesWithNewProducts.contains(cat.id))
+                                                Positioned(
+                                                  top: Responsive.sp(6),
+                                                  right: Responsive.sp(6),
+                                                  child: Container(
+                                                    padding: EdgeInsets.symmetric(horizontal: Responsive.sp(6), vertical: Responsive.sp(3)),
+                                                    decoration: BoxDecoration(
+                                                      gradient: const LinearGradient(
+                                                        colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
+                                                        begin: Alignment.topLeft,
+                                                        end: Alignment.bottomRight,
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
+                                                          blurRadius: 4,
+                                                          offset: const Offset(0, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.auto_awesome,
+                                                          color: Colors.white,
+                                                          size: Responsive.sp(9),
+                                                        ),
+                                                        SizedBox(width: Responsive.sp(2)),
+                                                        Text(
+                                                          'جديد',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: Responsive.fp(8),
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                       ),

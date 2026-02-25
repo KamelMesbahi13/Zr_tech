@@ -20,6 +20,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   String _shoppingType = 'gros';
   String _categoryId = '';
   String _categoryName = '';
+  String _selectedFilter = 'all'; // 'all' or 'new'
 
   @override
   void didChangeDependencies() {
@@ -70,6 +71,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
   }
 
+  bool _isNewProduct(ProductModel product) {
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7)).millisecondsSinceEpoch;
+    return product.createdAt > sevenDaysAgo;
+  }
+
+  List<ProductModel> get _filteredProducts {
+    if (_selectedFilter == 'new') {
+      // Sort all products newest → oldest
+      final sorted = List<ProductModel>.from(_products);
+      sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return sorted;
+    }
+    return _products;
+  }
+
   Widget _buildImageWidget(String imageStr, {BoxFit fit = BoxFit.cover}) {
     if (imageStr.startsWith('data:')) {
       try {
@@ -94,10 +110,54 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _selectedFilter == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedFilter = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: Responsive.sp(16), vertical: Responsive.sp(10)),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : const Color(0xFFE0E0EE),
+            width: 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : [],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: Responsive.sp(16), color: isSelected ? Colors.white : const Color(0xFF888899)),
+            SizedBox(width: Responsive.sp(6)),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF444455),
+                fontSize: Responsive.fp(13),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Responsive.init(context);
     final hPad = Responsive.horizontalPadding;
+    final displayProducts = _filteredProducts;
 
     return Scaffold(
         body: Stack(
@@ -153,7 +213,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   ),
                                   SizedBox(height: Responsive.sp(2)),
                                   Text(
-                                    '${_products.length} منتج',
+                                    '${displayProducts.length} منتج',
                                     style: TextStyle(
                                       color: const Color(0xFF888899),
                                       fontSize: Responsive.fp(13),
@@ -179,14 +239,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: Responsive.sp(8)),
+                      // Filter chips row
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: Responsive.sp(8)),
+                        child: Row(
+                          children: [
+                            _buildFilterChip('الكل', 'all', Icons.apps_rounded),
+                            SizedBox(width: Responsive.sp(10)),
+                            _buildFilterChip('جديد', 'new', Icons.fiber_new_rounded),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: Responsive.sp(4)),
                       // Products Grid
                       Expanded(
                         child: _isLoading
                             ? const Center(
                                 child: CircularProgressIndicator(color: AppColors.primary),
                               )
-                            : _products.isEmpty
+                            : displayProducts.isEmpty
                                 ? Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
@@ -225,9 +296,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                           mainAxisSpacing: Responsive.sp(14),
                                           childAspectRatio: 0.65,
                                         ),
-                                        itemCount: _products.length,
+                                        itemCount: displayProducts.length,
                                         itemBuilder: (context, index) {
-                                          final product = _products[index];
+                                          final product = displayProducts[index];
                                           return _buildProductCard(product);
                                         },
                                       );
@@ -323,6 +394,49 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ),
                   ),
                 ),
+                // "New" badge
+                if (_isNewProduct(product))
+                  Positioned(
+                    top: Responsive.sp(8),
+                    right: Responsive.sp(8),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: Responsive.sp(8), vertical: Responsive.sp(4)),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            color: Colors.white,
+                            size: Responsive.sp(11),
+                          ),
+                          SizedBox(width: Responsive.sp(3)),
+                          Text(
+                            'جديد',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.fp(10),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

@@ -109,6 +109,7 @@ class ProductService {
       'price': price,
       'description': description,
       'isAvailable': isAvailable,
+      'createdAt': DateTime.now().millisecondsSinceEpoch,
     });
   }
 
@@ -178,12 +179,14 @@ class ProductService {
         final products = entry.value;
         for (int i = 0; i < products.length; i++) {
           final prodId = 'prod_${(i + 1).toString().padLeft(3, '0')}';
+          final productData = Map<String, dynamic>.from(products[i]);
+          productData['createdAt'] = DateTime.now().millisecondsSinceEpoch;
           await _dbRef
               .child('products')
               .child(type)
               .child(catId)
               .child(prodId)
-              .set(products[i]);
+              .set(productData);
         }
       }
     }

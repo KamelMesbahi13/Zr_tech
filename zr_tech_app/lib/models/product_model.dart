@@ -6,6 +6,7 @@ class ProductModel {
   final bool isAvailable;
   final String categoryId;
   final String description;
+  final int createdAt;
 
   ProductModel({
     required this.id,
@@ -15,6 +16,7 @@ class ProductModel {
     required this.isAvailable,
     required this.categoryId,
     required this.description,
+    this.createdAt = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -24,6 +26,7 @@ class ProductModel {
       'price': price,
       'isAvailable': isAvailable,
       'description': description,
+      'createdAt': createdAt,
     };
   }
 
@@ -36,6 +39,7 @@ class ProductModel {
       price: (map['price'] ?? 0).toDouble(),
       isAvailable: map['isAvailable'] ?? true,
       description: map['description'] ?? '',
+      createdAt: (map['createdAt'] ?? 0) is int ? (map['createdAt'] ?? 0) : 0,
     );
   }
 }

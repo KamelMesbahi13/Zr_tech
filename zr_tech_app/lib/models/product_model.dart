@@ -3,17 +3,20 @@ class ProductModel {
   final String name;
   final String image;
   final double price;
-  final bool isAvailable;
+  final int quantity;
   final String categoryId;
   final String description;
   final int createdAt;
+
+  /// Computed from quantity: available if quantity > 0
+  bool get isAvailable => quantity > 0;
 
   ProductModel({
     required this.id,
     required this.name,
     required this.image,
     required this.price,
-    required this.isAvailable,
+    this.quantity = 0,
     required this.categoryId,
     required this.description,
     this.createdAt = 0,
@@ -24,7 +27,7 @@ class ProductModel {
       'name': name,
       'image': image,
       'price': price,
-      'isAvailable': isAvailable,
+      'quantity': quantity,
       'description': description,
       'createdAt': createdAt,
     };
@@ -37,7 +40,7 @@ class ProductModel {
       name: map['name'] ?? '',
       image: map['image'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
-      isAvailable: map['isAvailable'] ?? true,
+      quantity: (map['quantity'] ?? 0) is int ? (map['quantity'] ?? 0) : 0,
       description: map['description'] ?? '',
       createdAt: (map['createdAt'] ?? 0) is int ? (map['createdAt'] ?? 0) : 0,
     );

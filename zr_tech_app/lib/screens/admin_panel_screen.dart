@@ -1705,6 +1705,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
+                        color: AppColors.cyan.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'الكمية: ${product.quantity}',
+                        style: const TextStyle(color: AppColors.primaryLight, fontSize: 10, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -1749,8 +1761,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final imageUrlController = TextEditingController();
     final priceController = TextEditingController();
     final descController = TextEditingController();
+    final quantityController = TextEditingController(text: '0');
     String? selectedCategoryId;
-    bool isAvailable = true;
     bool isSaving = false;
     bool useUrl = false;
     bool isUploading = false;
@@ -1820,18 +1832,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Availability toggle
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(color: AppColors.surfaceDarkAlt, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.borderDark)),
-                      child: Row(
-                        children: [
-                          Switch(value: isAvailable, onChanged: (v) => setSheetState(() => isAvailable = v), activeColor: AppColors.primary),
-                          const SizedBox(width: 12),
-                          const Expanded(child: Text('متوفر للبيع', style: TextStyle(color: AppColors.textSlate300, fontSize: 14))),
-                        ],
-                      ),
-                    ),
+                    // Quantity input
+                    _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
                     const SizedBox(height: 24),
                     // Save button
                     SizedBox(
@@ -1852,7 +1854,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 image: imageUrl,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
                                 description: descController.text.trim(),
-                                isAvailable: isAvailable,
+                                quantity: int.tryParse(quantityController.text.trim()) ?? 0,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);
@@ -1888,7 +1890,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final imageUrlController = TextEditingController(text: product.image);
     final priceController = TextEditingController(text: product.price.toStringAsFixed(0));
     final descController = TextEditingController(text: product.description);
-    bool isAvailable = product.isAvailable;
+    final quantityController = TextEditingController(text: product.quantity.toString());
     bool isSaving = false;
     bool useUrl = product.image.isNotEmpty;
     bool isUploading = false;
@@ -1949,18 +1951,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       child: Text(product.categoryId, style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontFamily: 'Space Grotesk')),
                     ),
                     const SizedBox(height: 16),
-                    // Availability toggle
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(color: AppColors.surfaceDarkAlt, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.borderDark)),
-                      child: Row(
-                        children: [
-                          Switch(value: isAvailable, onChanged: (v) => setSheetState(() => isAvailable = v), activeColor: AppColors.primary),
-                          const SizedBox(width: 12),
-                          const Expanded(child: Text('متوفر للبيع', style: TextStyle(color: AppColors.textSlate300, fontSize: 14))),
-                        ],
-                      ),
-                    ),
+                    // Quantity input
+                    _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
                     const SizedBox(height: 24),
                     // Save button
                     SizedBox(
@@ -1981,7 +1973,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 image: imageUrl,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
                                 description: descController.text.trim(),
-                                isAvailable: isAvailable,
+                                quantity: int.tryParse(quantityController.text.trim()) ?? 0,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);

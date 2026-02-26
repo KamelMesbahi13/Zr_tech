@@ -42,9 +42,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   // Orders management state
   List<OrderModel> _allOrders = [];
-  String _orderFilter = 'all'; // 'all', 'pending', 'confirmed', 'delivered', 'cancelled'
+  String _orderFilter = 'all';
   bool _isLoadingOrders = false;
   String? _expandedOrderId;
+  final TextEditingController _orderSearchController = TextEditingController();
+  String _orderSearchQuery = '';
 
   // Delivery settings state
   List<WilayaModel> _allWilayas = [];
@@ -59,6 +61,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   @override
   void dispose() {
+    _orderSearchController.dispose();
     super.dispose();
   }
 
@@ -106,8 +109,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   List<OrderModel> get _filteredOrders {
-    if (_orderFilter == 'all') return _allOrders;
-    return _allOrders.where((o) => o.status == _orderFilter).toList();
+    var list = _allOrders;
+    if (_orderFilter != 'all') {
+      list = list.where((o) => o.status == _orderFilter).toList();
+    }
+    if (_orderSearchQuery.isNotEmpty) {
+      final q = _orderSearchQuery.toLowerCase();
+      list = list.where((o) =>
+        o.customerFullName.toLowerCase().contains(q) ||
+        o.orderId.toLowerCase().contains(q)
+      ).toList();
+    }
+    return list;
   }
 
   Future<void> _loadOrders() async {
@@ -2162,9 +2175,42 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       textDirection: TextDirection.rtl,
       child: Column(
         children: [
-          // Filter tabs
+          // Search bar
           Padding(
             padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: TextField(
+                controller: _orderSearchController,
+                onChanged: (val) => setState(() => _orderSearchQuery = val),
+                textDirection: TextDirection.rtl,
+                style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(14)),
+                decoration: InputDecoration(
+                  hintText: 'بحث باسم العميل أو رقم الطلب...',
+                  hintStyle: TextStyle(color: AppColors.textSlate500, fontSize: Responsive.fp(13)),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textSlate400),
+                  suffixIcon: _orderSearchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, color: AppColors.textSlate400, size: 18),
+                          onPressed: () {
+                            _orderSearchController.clear();
+                            setState(() => _orderSearchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: Responsive.sp(16), vertical: Responsive.sp(12)),
+                ),
+              ),
+            ),
+          ),
+          // Filter tabs
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(4)),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -2176,6 +2222,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   _buildOrderFilterChip('مؤكد', 'confirmed'),
                   SizedBox(width: Responsive.sp(8)),
                   _buildOrderFilterChip('تم التوصيل', 'delivered'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('مرتجع', 'returned'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('مرفوض', 'rejected'),
                   SizedBox(width: Responsive.sp(8)),
                   _buildOrderFilterChip('ملغي', 'cancelled'),
                 ],
@@ -2268,28 +2318,40 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
     switch (status) {
       case 'pending':
-        bgColor = AppColors.warning.withValues(alpha: 0.15);
+        bgColor = AppColors.warning.withValues(alpha: 0.1);
         textColor = AppColors.warning;
         label = 'قيد الانتظار';
         icon = Icons.schedule;
         break;
       case 'confirmed':
-        bgColor = AppColors.success.withValues(alpha: 0.15);
+        bgColor = AppColors.success.withValues(alpha: 0.1);
         textColor = AppColors.success;
         label = 'مؤكد';
         icon = Icons.check_circle_outline;
         break;
       case 'delivered':
-        bgColor = AppColors.primary.withValues(alpha: 0.15);
+        bgColor = AppColors.primary.withValues(alpha: 0.1);
         textColor = AppColors.primary;
         label = 'تم التوصيل';
         icon = Icons.local_shipping;
         break;
       case 'cancelled':
-        bgColor = AppColors.error.withValues(alpha: 0.15);
+        bgColor = AppColors.error.withValues(alpha: 0.1);
         textColor = AppColors.error;
         label = 'ملغي';
         icon = Icons.cancel_outlined;
+        break;
+      case 'returned':
+        bgColor = Colors.orange.withValues(alpha: 0.1);
+        textColor = Colors.orange.shade700;
+        label = 'مرتجع';
+        icon = Icons.assignment_return;
+        break;
+      case 'rejected':
+        bgColor = Colors.deepPurple.withValues(alpha: 0.1);
+        textColor = Colors.deepPurple;
+        label = 'مرفوض';
+        icon = Icons.block;
         break;
       default:
         bgColor = AppColors.surfaceAlt;
@@ -2299,17 +2361,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: Responsive.sp(10), vertical: Responsive.sp(5)),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: textColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: textColor, size: 14),
-          SizedBox(width: Responsive.sp(4)),
-          Text(label, style: TextStyle(color: textColor, fontSize: Responsive.fp(12), fontWeight: FontWeight.bold)),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -2320,111 +2383,164 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final date = DateTime.fromMillisecondsSinceEpoch(order.createdAt);
     final dateStr = '${date.day}/${date.month}/${date.year}';
 
-    return Container(
-      margin: EdgeInsets.only(bottom: Responsive.sp(10)),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isExpanded ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border,
+          width: isExpanded ? 1.5 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Order header (tappable)
-          InkWell(
-            onTap: () {
-              setState(() {
-                _expandedOrderId = isExpanded ? null : order.orderId;
-              });
-            },
-            borderRadius: BorderRadius.circular(14),
-            child: Padding(
-              padding: EdgeInsets.all(Responsive.sp(14)),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      // Customer name (right in RTL)
-                      Flexible(
-                        child: Text(
-                          order.customerFullName,
-                          style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(14), fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
+          // Header
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _expandedOrderId = isExpanded ? null : order.orderId;
+                });
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Order Icon
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceAlt,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    // Customer & Product Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.customerFullName,
+                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${order.quantity}× ${order.productName}',
+                            style: const TextStyle(color: AppColors.textSlate400, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            dateStr,
+                            style: const TextStyle(color: AppColors.textSlate300, fontSize: 12, fontFamily: 'Space Grotesk'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Price & Status
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${order.totalPrice.toStringAsFixed(0)} DA',
+                          style: const TextStyle(color: AppColors.primaryDark, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                          textDirection: TextDirection.ltr,
                         ),
+                        const SizedBox(height: 8),
+                        _buildStatusBadge(order.status),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    // Expand/Collapse Icon
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Icon(
+                        isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                        color: AppColors.textSlate300,
                       ),
-                      const Spacer(),
-                      Text(
-                        dateStr,
-                        style: TextStyle(color: AppColors.textSlate500, fontSize: Responsive.fp(11), fontFamily: 'Space Grotesk'),
-                      ),
-                      SizedBox(width: Responsive.sp(8)),
-                      _buildStatusBadge(order.status),
-                    ],
-                  ),
-                  SizedBox(height: Responsive.sp(8)),
-                  Row(
-                    children: [
-                      Icon(isExpanded ? Icons.expand_less : Icons.expand_more, color: AppColors.textSlate400, size: 20),
-                      SizedBox(width: Responsive.sp(4)),
-                      Flexible(
-                        child: Text(
-                          order.productName,
-                          style: TextStyle(color: AppColors.textSlate300, fontSize: Responsive.fp(13)),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text('×${order.quantity}', style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(12), fontFamily: 'Space Grotesk')),
-                      SizedBox(width: Responsive.sp(8)),
-                      Text(
-                        '${order.totalPrice.toStringAsFixed(0)} DA',
-                        style: TextStyle(color: AppColors.primaryLight, fontSize: Responsive.fp(14), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
-          // Expanded detail
+          // Expanded Details
           if (isExpanded) ...[
-            Divider(color: AppColors.border, height: 1),
+            const Divider(height: 1, color: AppColors.border),
             Padding(
-              padding: EdgeInsets.all(Responsive.sp(14)),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _buildOrderDetailRow('رقم الطلب', order.orderId),
-                  _buildOrderDetailRow('الهاتف', order.phone),
-                  _buildOrderDetailRow('الولاية', order.wilaya),
-                  _buildOrderDetailRow('العنوان', order.address),
-                  _buildOrderDetailRow('نوع التوصيل', order.shippingType == 'home' ? 'إلى المنزل' : 'إلى المكتب'),
-                  _buildOrderDetailRow('سعر المنتج', '${order.productPrice.toStringAsFixed(0)} DA'),
-                  _buildOrderDetailRow('الكمية', '${order.quantity}'),
-                  _buildOrderDetailRow('سعر التوصيل', '${order.deliveryPrice.toStringAsFixed(0)} DA'),
-                  _buildOrderDetailRow('الإجمالي', '${order.totalPrice.toStringAsFixed(0)} DA', isBold: true),
-                  SizedBox(height: Responsive.sp(16)),
-                  // Action buttons — same style as user management buttons
+                  // Gray details container
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceAlt.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isWide = constraints.maxWidth > 400;
+                        final crossAxisCount = isWide ? 2 : 1;
+                        final details = [
+                          _buildOrderDetailRow(Icons.tag, 'رقم الطلب', order.orderId),
+                          _buildOrderDetailRow(Icons.phone, 'الهاتف', order.phone),
+                          _buildOrderDetailRow(Icons.location_city, 'الولاية', order.wilaya),
+                          _buildOrderDetailRow(Icons.home, 'العنوان', order.address),
+                          _buildOrderDetailRow(Icons.local_shipping, 'نوع التوصيل', order.shippingType == 'home' ? 'إلى المنزل' : 'إلى المكتب'),
+                          _buildOrderDetailRow(Icons.inventory_2, 'سعر المنتج', '${order.productPrice.toStringAsFixed(0)} DA'),
+                          _buildOrderDetailRow(Icons.layers, 'الكمية', '${order.quantity}'),
+                          _buildOrderDetailRow(Icons.payments, 'سعر التوصيل', '${order.deliveryPrice.toStringAsFixed(0)} DA'),
+                        ];
+
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: details.map((d) => SizedBox(
+                            width: isWide ? (constraints.maxWidth - 16) / 2 : constraints.maxWidth,
+                            child: d,
+                          )).toList(),
+                        );
+                      }
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Action buttons
                   Wrap(
-                    spacing: Responsive.sp(8),
-                    runSpacing: Responsive.sp(8),
+                    spacing: 12,
+                    runSpacing: 12,
                     alignment: WrapAlignment.center,
                     children: [
+                      // Pending → Confirm
                       if (order.status == 'pending')
                         _buildPremiumActionButton(
-                          label: 'تأكيد',
+                          label: 'تأكيد الطلب',
                           icon: Icons.check_circle,
                           color: AppColors.success,
                           onTap: () => _updateOrderStatus(order.orderId, 'confirmed'),
                           isPrimary: true,
                         ),
-                      if (order.status == 'confirmed')
+                      // Confirmed → Delivered / Returned / Rejected
+                      if (order.status == 'confirmed') ...[
                         _buildPremiumActionButton(
                           label: 'تم التوصيل',
                           icon: Icons.local_shipping,
@@ -2432,13 +2548,28 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           onTap: () => _updateOrderStatus(order.orderId, 'delivered'),
                           isPrimary: true,
                         ),
-                      if (order.status != 'cancelled' && order.status != 'delivered')
+                        _buildPremiumActionButton(
+                          label: 'مرتجع',
+                          icon: Icons.assignment_return,
+                          color: Colors.orange.shade700,
+                          onTap: () => _updateOrderStatus(order.orderId, 'returned'),
+                        ),
+                        _buildPremiumActionButton(
+                          label: 'مرفوض',
+                          icon: Icons.block,
+                          color: Colors.deepPurple,
+                          onTap: () => _updateOrderStatus(order.orderId, 'rejected'),
+                        ),
+                      ],
+                      // Cancel (available while pending or confirmed)
+                      if (order.status == 'pending' || order.status == 'confirmed')
                         _buildPremiumActionButton(
                           label: 'إلغاء',
                           icon: Icons.cancel,
                           color: AppColors.error,
                           onTap: () => _updateOrderStatus(order.orderId, 'cancelled'),
                         ),
+                      // Delete always available
                       _buildPremiumActionButton(
                         label: 'حذف',
                         icon: Icons.delete_outline,
@@ -2456,31 +2587,31 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
-  Widget _buildOrderDetailRow(String label, String value, {bool isBold = false}) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: Responsive.sp(4)),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(13)),
-          ),
-          SizedBox(width: Responsive.sp(12)),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: isBold ? AppColors.primaryDark : AppColors.textPrimary,
-                fontSize: Responsive.fp(13),
-                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                fontFamily: 'Space Grotesk',
-              ),
-              textDirection: TextDirection.ltr,
-              textAlign: TextAlign.left,
+  Widget _buildOrderDetailRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSlate400),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.textSlate400, fontSize: 13),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Space Grotesk',
             ),
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.left,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

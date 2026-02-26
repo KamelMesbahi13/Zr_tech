@@ -6,8 +6,12 @@ import '../theme/responsive_wrapper.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/product_service.dart';
+import '../services/order_service.dart';
+import '../services/wilaya_service.dart';
 import '../models/category_model.dart';
 import '../models/product_model.dart';
+import '../models/order_model.dart';
+import '../models/wilaya_model.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -19,8 +23,10 @@ class AdminPanelScreen extends StatefulWidget {
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
+  final OrderService _orderService = OrderService();
+  final WilayaService _wilayaService = WilayaService();
 
-  int _sectionIndex = 0; // 0 = accounts, 1 = categories, 2 = products
+  int _sectionIndex = 0; // 0 = accounts, 1 = categories, 2 = products, 3 = orders, 4 = delivery settings
   int _typeIndex = 0; // 0 = gros, 1 = detail
 
   List<CategoryModel> _grosCategories = [];
@@ -33,6 +39,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   List<Map<String, dynamic>> _allUsers = [];
   String _userFilter = 'all'; // 'all', 'pending', 'approved', 'rejected'
   bool _isLoadingUsers = false;
+
+  // Orders management state
+  List<OrderModel> _allOrders = [];
+  String _orderFilter = 'all'; // 'all', 'pending', 'confirmed', 'delivered', 'cancelled'
+  bool _isLoadingOrders = false;
+  String? _expandedOrderId;
+
+  // Delivery settings state
+  List<WilayaModel> _allWilayas = [];
+  bool _isLoadingWilayas = false;
 
   @override
   void initState() {
@@ -87,6 +103,44 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   List<Map<String, dynamic>> get _filteredUsers {
     if (_userFilter == 'all') return _allUsers;
     return _allUsers.where((u) => u['status'] == _userFilter).toList();
+  }
+
+  List<OrderModel> get _filteredOrders {
+    if (_orderFilter == 'all') return _allOrders;
+    return _allOrders.where((o) => o.status == _orderFilter).toList();
+  }
+
+  Future<void> _loadOrders() async {
+    setState(() => _isLoadingOrders = true);
+    try {
+      final orders = await _orderService.getAllOrders().timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      setState(() {
+        _allOrders = orders;
+        _isLoadingOrders = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingOrders = false);
+      _showErrorSnackBar('حدث خطأ أثناء تحميل الطلبات');
+    }
+  }
+
+  Future<void> _loadWilayas() async {
+    setState(() => _isLoadingWilayas = true);
+    try {
+      await _wilayaService.seedWilayas(); // Seed if empty
+      final wilayas = await _wilayaService.getAllWilayas().timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      setState(() {
+        _allWilayas = wilayas;
+        _isLoadingWilayas = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingWilayas = false);
+      _showErrorSnackBar('حدث خطأ أثناء تحميل الولايات');
+    }
   }
 
   void _showErrorSnackBar(String message) {
@@ -1180,6 +1234,26 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             closeDrawer: isDrawer,
           ),
           if (_sectionIndex == 2) _buildSidebarSubItems(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
+            title: 'إدارة الطلبات',
+            icon: Icons.receipt_long,
+            sectionIndex: 3,
+            closeDrawer: isDrawer,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
+            title: 'إعدادات التوصيل',
+            icon: Icons.local_shipping,
+            sectionIndex: 4,
+            closeDrawer: isDrawer,
+          ),
         ],
       ),
     );
@@ -1344,6 +1418,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           children: [
                             if (_sectionIndex == 0)
                               Expanded(child: _buildAccountManagerView())
+                            else if (_sectionIndex == 3)
+                              Expanded(child: _buildOrdersManagerView())
+                            else if (_sectionIndex == 4)
+                              Expanded(child: _buildDeliverySettingsView())
                             else ...[
                               // ── ITEM COUNT ──
                               Padding(
@@ -1391,7 +1469,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ],
       ),
       // ── FAB ──
-      floatingActionButton: _sectionIndex != 0 ? Container(
+      floatingActionButton: (_sectionIndex == 1 || _sectionIndex == 2 || _sectionIndex == 4) ? Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: AppColors.primary,
@@ -1404,12 +1482,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ],
         ),
         child: FloatingActionButton.extended(
-          onPressed: _sectionIndex == 1 ? _showAddCategoryDialog : _showAddProductDialog,
+          onPressed: _sectionIndex == 1
+              ? _showAddCategoryDialog
+              : _sectionIndex == 4
+                  ? _showAddWilayaDialog
+                  : _showAddProductDialog,
           backgroundColor: Colors.transparent,
           elevation: 0,
           icon: Icon(Icons.add, color: Colors.white, size: Responsive.sp(20)),
           label: Text(
-            _sectionIndex == 1 ? 'إضافة فئة' : 'إضافة منتج',
+            _sectionIndex == 1 ? 'إضافة فئة' : _sectionIndex == 4 ? 'إضافة ولاية' : 'إضافة منتج',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -1485,7 +1567,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             child: Container(
               width: 60,
               height: 60,
-              color: AppColors.surfaceCard,
+              color: AppColors.surface,
               child: category.image.isNotEmpty
                   ? _buildImageWidget(category.image, fit: BoxFit.cover)
                   : const Icon(Icons.image_outlined, color: AppColors.textSlate500, size: 28),
@@ -1661,7 +1743,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isInsideCard ? AppColors.surfaceCard : AppColors.surfaceDarkAlt,
+        color: isInsideCard ? AppColors.surface : AppColors.surfaceDarkAlt,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderDark),
       ),
@@ -1673,7 +1755,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             child: Container(
               width: 60,
               height: 60,
-              color: AppColors.surfaceCard,
+              color: AppColors.surface,
               child: product.image.isNotEmpty
                   ? _buildImageWidget(product.image, fit: BoxFit.cover)
                   : const Icon(Icons.image_outlined, color: AppColors.textSlate500, size: 28),
@@ -2073,6 +2155,776 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
+  // ─── ORDERS MANAGEMENT VIEW ────────────────────────────────────
+
+  Widget _buildOrdersManagerView() {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Column(
+        children: [
+          // Filter tabs
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildOrderFilterChip('الكل', 'all'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('قيد الانتظار', 'pending'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('مؤكد', 'confirmed'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('تم التوصيل', 'delivered'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('ملغي', 'cancelled'),
+                ],
+              ),
+            ),
+          ),
+          // Refresh button + count
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(4)),
+            child: Row(
+              children: [
+                Text(
+                  'إدارة الطلبات',
+                  style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14), fontWeight: FontWeight.w600),
+                ),
+                const Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: Responsive.sp(10), vertical: Responsive.sp(5)),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${_filteredOrders.length}',
+                    style: TextStyle(color: AppColors.primaryLight, fontSize: Responsive.fp(13), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                  ),
+                ),
+                SizedBox(width: Responsive.sp(8)),
+                IconButton(
+                  onPressed: _loadOrders,
+                  icon: Icon(Icons.refresh, color: AppColors.primary, size: Responsive.sp(20)),
+                ),
+              ],
+            ),
+          ),
+          // Orders list
+          Expanded(
+            child: _isLoadingOrders
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : _filteredOrders.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.receipt_long_outlined, color: AppColors.textSlate500, size: Responsive.sp(48)),
+                            SizedBox(height: Responsive.sp(12)),
+                            Text('لا توجد طلبات', style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(16))),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
+                        itemCount: _filteredOrders.length,
+                        itemBuilder: (ctx, i) => _buildOrderCard(_filteredOrders[i]),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderFilterChip(String label, String value) {
+    final isSelected = _orderFilter == value;
+    return GestureDetector(
+      onTap: () => setState(() => _orderFilter = value),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: Responsive.sp(14), vertical: Responsive.sp(8)),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textSlate400,
+            fontSize: Responsive.fp(13),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color bgColor;
+    Color textColor;
+    String label;
+    IconData icon;
+
+    switch (status) {
+      case 'pending':
+        bgColor = AppColors.warning.withValues(alpha: 0.15);
+        textColor = AppColors.warning;
+        label = 'قيد الانتظار';
+        icon = Icons.schedule;
+        break;
+      case 'confirmed':
+        bgColor = AppColors.success.withValues(alpha: 0.15);
+        textColor = AppColors.success;
+        label = 'مؤكد';
+        icon = Icons.check_circle_outline;
+        break;
+      case 'delivered':
+        bgColor = AppColors.primary.withValues(alpha: 0.15);
+        textColor = AppColors.primary;
+        label = 'تم التوصيل';
+        icon = Icons.local_shipping;
+        break;
+      case 'cancelled':
+        bgColor = AppColors.error.withValues(alpha: 0.15);
+        textColor = AppColors.error;
+        label = 'ملغي';
+        icon = Icons.cancel_outlined;
+        break;
+      default:
+        bgColor = AppColors.surfaceAlt;
+        textColor = AppColors.textSlate400;
+        label = status;
+        icon = Icons.info_outline;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: Responsive.sp(10), vertical: Responsive.sp(5)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: textColor, size: 14),
+          SizedBox(width: Responsive.sp(4)),
+          Text(label, style: TextStyle(color: textColor, fontSize: Responsive.fp(12), fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderCard(OrderModel order) {
+    final isExpanded = _expandedOrderId == order.orderId;
+    final date = DateTime.fromMillisecondsSinceEpoch(order.createdAt);
+    final dateStr = '${date.day}/${date.month}/${date.year}';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: Responsive.sp(10)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Order header (tappable)
+          InkWell(
+            onTap: () {
+              setState(() {
+                _expandedOrderId = isExpanded ? null : order.orderId;
+              });
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: EdgeInsets.all(Responsive.sp(14)),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      // Customer name (right in RTL)
+                      Flexible(
+                        child: Text(
+                          order.customerFullName,
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(14), fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        dateStr,
+                        style: TextStyle(color: AppColors.textSlate500, fontSize: Responsive.fp(11), fontFamily: 'Space Grotesk'),
+                      ),
+                      SizedBox(width: Responsive.sp(8)),
+                      _buildStatusBadge(order.status),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.sp(8)),
+                  Row(
+                    children: [
+                      Icon(isExpanded ? Icons.expand_less : Icons.expand_more, color: AppColors.textSlate400, size: 20),
+                      SizedBox(width: Responsive.sp(4)),
+                      Flexible(
+                        child: Text(
+                          order.productName,
+                          style: TextStyle(color: AppColors.textSlate300, fontSize: Responsive.fp(13)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text('×${order.quantity}', style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(12), fontFamily: 'Space Grotesk')),
+                      SizedBox(width: Responsive.sp(8)),
+                      Text(
+                        '${order.totalPrice.toStringAsFixed(0)} DA',
+                        style: TextStyle(color: AppColors.primaryLight, fontSize: Responsive.fp(14), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Expanded detail
+          if (isExpanded) ...[
+            Divider(color: AppColors.border, height: 1),
+            Padding(
+              padding: EdgeInsets.all(Responsive.sp(14)),
+              child: Column(
+                children: [
+                  _buildOrderDetailRow('رقم الطلب', order.orderId),
+                  _buildOrderDetailRow('الهاتف', order.phone),
+                  _buildOrderDetailRow('الولاية', order.wilaya),
+                  _buildOrderDetailRow('العنوان', order.address),
+                  _buildOrderDetailRow('نوع التوصيل', order.shippingType == 'home' ? 'إلى المنزل' : 'إلى المكتب'),
+                  _buildOrderDetailRow('سعر المنتج', '${order.productPrice.toStringAsFixed(0)} DA'),
+                  _buildOrderDetailRow('الكمية', '${order.quantity}'),
+                  _buildOrderDetailRow('سعر التوصيل', '${order.deliveryPrice.toStringAsFixed(0)} DA'),
+                  _buildOrderDetailRow('الإجمالي', '${order.totalPrice.toStringAsFixed(0)} DA', isBold: true),
+                  SizedBox(height: Responsive.sp(16)),
+                  // Action buttons — same style as user management buttons
+                  Wrap(
+                    spacing: Responsive.sp(8),
+                    runSpacing: Responsive.sp(8),
+                    alignment: WrapAlignment.center,
+                    children: [
+                      if (order.status == 'pending')
+                        _buildPremiumActionButton(
+                          label: 'تأكيد',
+                          icon: Icons.check_circle,
+                          color: AppColors.success,
+                          onTap: () => _updateOrderStatus(order.orderId, 'confirmed'),
+                          isPrimary: true,
+                        ),
+                      if (order.status == 'confirmed')
+                        _buildPremiumActionButton(
+                          label: 'تم التوصيل',
+                          icon: Icons.local_shipping,
+                          color: AppColors.primary,
+                          onTap: () => _updateOrderStatus(order.orderId, 'delivered'),
+                          isPrimary: true,
+                        ),
+                      if (order.status != 'cancelled' && order.status != 'delivered')
+                        _buildPremiumActionButton(
+                          label: 'إلغاء',
+                          icon: Icons.cancel,
+                          color: AppColors.error,
+                          onTap: () => _updateOrderStatus(order.orderId, 'cancelled'),
+                        ),
+                      _buildPremiumActionButton(
+                        label: 'حذف',
+                        icon: Icons.delete_outline,
+                        color: Colors.red.shade700,
+                        onTap: () => _deleteOrder(order.orderId),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderDetailRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Responsive.sp(4)),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(13)),
+          ),
+          SizedBox(width: Responsive.sp(12)),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: isBold ? AppColors.primaryDark : AppColors.textPrimary,
+                fontSize: Responsive.fp(13),
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontFamily: 'Space Grotesk',
+              ),
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.left,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateOrderStatus(String orderId, String newStatus) async {
+    try {
+      await _orderService.updateOrderStatus(orderId, newStatus);
+      _showSuccessSnackBar('تم تحديث حالة الطلب');
+      _loadOrders();
+    } catch (e) {
+      _showErrorSnackBar('حدث خطأ أثناء تحديث حالة الطلب');
+    }
+  }
+
+  Future<void> _deleteOrder(String orderId) async {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceDark,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Expanded(
+                    child: Text('تأكيد حذف الطلب', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                  ),
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+                ],
+              ),
+              content: const Text('هل أنت متأكد من حذف هذا الطلب نهائياً؟', style: TextStyle(color: AppColors.textSlate300, fontSize: 15), textAlign: TextAlign.center),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.borderDark))),
+                  child: const Text('إلغاء', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          try {
+                            await _orderService.deleteOrder(orderId);
+                            if (!mounted) return;
+                            Navigator.pop(context);
+                            _showSuccessSnackBar('تم حذف الطلب');
+                            _loadOrders();
+                          } catch (e) {
+                            setDialogState(() => isDeleting = false);
+                            _showErrorSnackBar('حدث خطأ أثناء حذف الطلب');
+                          }
+                        },
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), backgroundColor: Colors.red.withValues(alpha: 0.15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  child: isDeleting
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red))
+                      : const Text('حذف', style: TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── DELIVERY SETTINGS VIEW ────────────────────────────────────
+
+  Widget _buildDeliverySettingsView() {
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: _loadWilayas,
+                icon: Icon(Icons.refresh, color: AppColors.primary, size: Responsive.sp(20)),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: Responsive.sp(10), vertical: Responsive.sp(5)),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_allWilayas.length}',
+                  style: TextStyle(color: AppColors.primaryLight, fontSize: Responsive.fp(13), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'إعدادات التوصيل - الولايات',
+                style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14), fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        // Wilayas list
+        Expanded(
+          child: _isLoadingWilayas
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : _allWilayas.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.location_off_outlined, color: AppColors.textSlate500, size: Responsive.sp(48)),
+                          SizedBox(height: Responsive.sp(12)),
+                          Text('لا توجد ولايات', style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(16))),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
+                      itemCount: _allWilayas.length,
+                      itemBuilder: (ctx, i) => _buildWilayaCard(_allWilayas[i]),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWilayaCard(WilayaModel wilaya) {
+    return Container(
+      margin: EdgeInsets.only(bottom: Responsive.sp(8)),
+      padding: EdgeInsets.all(Responsive.sp(14)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: wilaya.isActive ? AppColors.border : AppColors.error.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Toggle active
+              Switch(
+                value: wilaya.isActive,
+                onChanged: (val) async {
+                  try {
+                    await _wilayaService.toggleWilaya(wilaya.id, val);
+                    _loadWilayas();
+                  } catch (e) {
+                    _showErrorSnackBar('حدث خطأ');
+                  }
+                },
+                activeColor: AppColors.primary,
+              ),
+              // Edit
+              IconButton(
+                onPressed: () => _showEditWilayaDialog(wilaya),
+                icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              // Delete
+              IconButton(
+                onPressed: () => _deleteWilaya(wilaya),
+                icon: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+            ],
+          ),
+          const Spacer(),
+          // Prices
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${wilaya.homeDeliveryPrice.toStringAsFixed(0)} DA', style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(12), fontFamily: 'Space Grotesk', fontWeight: FontWeight.w600)),
+                  SizedBox(width: Responsive.sp(4)),
+                  Icon(Icons.home_outlined, color: AppColors.textSlate400, size: 14),
+                ],
+              ),
+              SizedBox(height: Responsive.sp(2)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${wilaya.deskDeliveryPrice.toStringAsFixed(0)} DA', style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(12), fontFamily: 'Space Grotesk', fontWeight: FontWeight.w600)),
+                  SizedBox(width: Responsive.sp(4)),
+                  Icon(Icons.storefront_outlined, color: AppColors.textSlate400, size: 14),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(width: Responsive.sp(12)),
+          // Name + ID
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  wilaya.name,
+                  style: TextStyle(
+                    color: wilaya.isActive ? AppColors.textPrimary : AppColors.textSlate500,
+                    fontSize: Responsive.fp(14),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                Text(
+                  wilaya.id,
+                  style: TextStyle(color: AppColors.textSlate500, fontSize: Responsive.fp(11), fontFamily: 'Space Grotesk'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddWilayaDialog() {
+    final nameController = TextEditingController();
+    final homeController = TextEditingController(text: '600');
+    final deskController = TextEditingController(text: '400');
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: AppColors.textSlate500, borderRadius: BorderRadius.circular(2))),
+                    const Text('إضافة ولاية جديدة', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    _buildTextField(controller: nameController, label: 'اسم الولاية', hint: 'مثال: الجزائر', icon: Icons.location_city),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: homeController, label: 'سعر التوصيل للمنزل', hint: '600', icon: Icons.home_outlined, isLTR: true, keyboardType: TextInputType.number),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: deskController, label: 'سعر التوصيل للمكتب', hint: '400', icon: Icons.storefront_outlined, isLTR: true, keyboardType: TextInputType.number),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary),
+                        child: ElevatedButton(
+                          onPressed: isSaving
+                              ? null
+                              : () async {
+                                  if (nameController.text.trim().isEmpty) {
+                                    _showErrorSnackBar('الرجاء إدخال اسم الولاية');
+                                    return;
+                                  }
+                                  setSheetState(() => isSaving = true);
+                                  try {
+                                    await _wilayaService.addWilaya(
+                                      name: nameController.text.trim(),
+                                      homeDeliveryPrice: double.tryParse(homeController.text) ?? 600,
+                                      deskDeliveryPrice: double.tryParse(deskController.text) ?? 400,
+                                    );
+                                    if (!mounted) return;
+                                    Navigator.pop(context);
+                                    _showSuccessSnackBar('تمت إضافة الولاية بنجاح');
+                                    _loadWilayas();
+                                  } catch (e) {
+                                    setSheetState(() => isSaving = false);
+                                    _showErrorSnackBar('حدث خطأ');
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                          child: isSaving
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add, color: Colors.white, size: 20), SizedBox(width: 8), Text('إضافة', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditWilayaDialog(WilayaModel wilaya) {
+    final nameController = TextEditingController(text: wilaya.name);
+    final homeController = TextEditingController(text: wilaya.homeDeliveryPrice.toStringAsFixed(0));
+    final deskController = TextEditingController(text: wilaya.deskDeliveryPrice.toStringAsFixed(0));
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: AppColors.textSlate500, borderRadius: BorderRadius.circular(2))),
+                    const Text('تعديل الولاية', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                      child: Text(wilaya.id, style: const TextStyle(color: AppColors.primaryLight, fontSize: 12, fontFamily: 'Space Grotesk', fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildTextField(controller: nameController, label: 'اسم الولاية', hint: 'اسم الولاية', icon: Icons.location_city),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: homeController, label: 'سعر التوصيل للمنزل', hint: '600', icon: Icons.home_outlined, isLTR: true, keyboardType: TextInputType.number),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: deskController, label: 'سعر التوصيل للمكتب', hint: '400', icon: Icons.storefront_outlined, isLTR: true, keyboardType: TextInputType.number),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary),
+                        child: ElevatedButton(
+                          onPressed: isSaving
+                              ? null
+                              : () async {
+                                  if (nameController.text.trim().isEmpty) {
+                                    _showErrorSnackBar('الرجاء إدخال اسم الولاية');
+                                    return;
+                                  }
+                                  setSheetState(() => isSaving = true);
+                                  try {
+                                    await _wilayaService.updateWilaya(
+                                      wilayaId: wilaya.id,
+                                      name: nameController.text.trim(),
+                                      homeDeliveryPrice: double.tryParse(homeController.text) ?? 600,
+                                      deskDeliveryPrice: double.tryParse(deskController.text) ?? 400,
+                                    );
+                                    if (!mounted) return;
+                                    Navigator.pop(context);
+                                    _showSuccessSnackBar('تم تعديل الولاية بنجاح');
+                                    _loadWilayas();
+                                  } catch (e) {
+                                    setSheetState(() => isSaving = false);
+                                    _showErrorSnackBar('حدث خطأ');
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                          child: isSaving
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.save, color: Colors.white, size: 20), SizedBox(width: 8), Text('حفظ التعديلات', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _deleteWilaya(WilayaModel wilaya) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceDark,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Expanded(child: Text('تأكيد حذف الولاية', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+                ],
+              ),
+              content: Text('هل أنت متأكد من حذف «${wilaya.name}»؟', style: const TextStyle(color: AppColors.textSlate300, fontSize: 15), textAlign: TextAlign.center),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.borderDark))),
+                  child: const Text('إلغاء', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          try {
+                            await _wilayaService.deleteWilaya(wilaya.id);
+                            if (!mounted) return;
+                            Navigator.pop(context);
+                            _showSuccessSnackBar('تم حذف الولاية');
+                            _loadWilayas();
+                          } catch (e) {
+                            setDialogState(() => isDeleting = false);
+                            _showErrorSnackBar('حدث خطأ أثناء حذف الولاية');
+                          }
+                        },
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), backgroundColor: Colors.red.withValues(alpha: 0.15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  child: isDeleting
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red))
+                      : const Text('حذف', style: TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   // ─── SIDEBAR UTILITY WIDGETS ──────────────────────────────────
 
   Widget _buildSidebarSection({required String title, required IconData icon, required int sectionIndex, bool closeDrawer = false}) {
@@ -2082,6 +2934,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         setState(() => _sectionIndex = sectionIndex);
         if (sectionIndex == 0 && _allUsers.isEmpty) {
           _loadUsers();
+        }
+        if (sectionIndex == 3 && _allOrders.isEmpty) {
+          _loadOrders();
+        }
+        if (sectionIndex == 4 && _allWilayas.isEmpty) {
+          _loadWilayas();
         }
         if (closeDrawer && Navigator.of(context).canPop()) {
           Navigator.of(context).pop();

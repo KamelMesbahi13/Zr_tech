@@ -14,6 +14,7 @@ import 'screens/profile_screen.dart';
 import 'screens/admin_panel_screen.dart';
 import 'screens/products_screen.dart';
 import 'screens/product_detail_screen.dart';
+import 'screens/order_form_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,6 +70,7 @@ class ZRTechApp extends StatelessWidget {
           '/admin': (context) => const AdminPanelScreen(),
           '/products': (context) => const ProductsScreen(),
           '/product-detail': (context) => const ProductDetailScreen(),
+          '/order-form': (context) => const OrderFormScreen(),
         },
       ),
     );

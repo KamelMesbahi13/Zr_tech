@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../models/product_model.dart';
+import '../providers/cart_provider.dart';
+import '../widgets/cart_drawer.dart';
 import '../theme/responsive_wrapper.dart';
 
 class ProductDetailScreen extends StatelessWidget {
@@ -318,7 +321,7 @@ class ProductDetailScreen extends StatelessWidget {
                       ),
                       SizedBox(height: Responsive.sp(32)),
 
-                      // Contact / Order button
+                      // Add to Cart button
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: hPad + 4),
                         child: Container(
@@ -334,20 +337,29 @@ class ProductDetailScreen extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: product.isAvailable
                                 ? () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text(
-                                          'سيتم إضافة خاصية الطلب قريباً!',
-                                          textAlign: TextAlign.center,
+                                    final cart = Provider.of<CartProvider>(context, listen: false);
+                                    final added = cart.addToCart(product);
+
+                                    if (!added) {
+                                      // Stock limit reached
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'الحد الأقصى المتوفر: ${product.quantity}',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          backgroundColor: AppColors.warning,
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          duration: const Duration(seconds: 2),
                                         ),
-                                        backgroundColor: AppColors.surfaceDarkAlt,
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
+                                      );
+                                    }
+
+                                    // Always open the cart drawer
+                                    showCartDrawer(context);
                                   }
                                 : null,
                             style: ElevatedButton.styleFrom(
@@ -363,7 +375,7 @@ class ProductDetailScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  product.isAvailable ? 'اطلب الآن' : 'غير متوفر حالياً',
+                                  product.isAvailable ? 'أضف إلى السلة' : 'غير متوفر حالياً',
                                   style: TextStyle(
                                     color: product.isAvailable
                                         ? Colors.white
@@ -375,7 +387,7 @@ class ProductDetailScreen extends StatelessWidget {
                                 SizedBox(width: Responsive.sp(8)),
                                 Icon(
                                   product.isAvailable
-                                      ? Icons.shopping_cart_outlined
+                                      ? Icons.add_shopping_cart
                                       : Icons.block,
                                   color: product.isAvailable
                                       ? Colors.white

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../services/category_service.dart';
 import '../services/product_service.dart';
 import '../models/category_model.dart';
+import '../providers/cart_provider.dart';
+import '../widgets/cart_drawer.dart';
 import '../theme/responsive_wrapper.dart';
 
 class CategoriesGrosScreen extends StatefulWidget {
@@ -409,7 +412,12 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _navItem(Icons.person_outline, 'حسابي', 3),
-                _navItem(Icons.shopping_cart_outlined, 'السلة', 2, badge: 3),
+                Consumer<CartProvider>(
+                  builder: (context, cart, _) => _navItem(
+                    Icons.shopping_cart_outlined, 'السلة', 2,
+                    badge: cart.totalItems > 0 ? cart.totalItems : null,
+                  ),
+                ),
                 _navItem(Icons.category, 'الفئات', 1, isActive: true),
                 _navItem(Icons.home_outlined, 'الرئيسية', 0),
               ],
@@ -437,15 +445,7 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
           case 1:
             break;
           case 2:
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('السلة قريباً!', textAlign: TextAlign.center),
-                backgroundColor: AppColors.surfaceDarkAlt,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                duration: const Duration(seconds: 1),
-              ),
-            );
+            showCartDrawer(context);
             break;
           case 3:
             Navigator.pushNamed(context, '/profile');

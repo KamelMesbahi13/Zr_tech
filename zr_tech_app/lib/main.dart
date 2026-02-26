@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
+import 'providers/cart_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin_login_screen.dart';
 import 'screens/signup_screen.dart';
@@ -41,31 +43,35 @@ class ZRTechApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ZR Technologie',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      locale: const Locale('ar'),
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child!,
-        );
-      },
-      initialRoute: '/shopping-type',
-      routes: {
-        '/': (context) => const ShoppingTypeScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/admin-login': (context) => const AdminLoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/shopping-type': (context) => const ShoppingTypeScreen(),
-        '/categories-gros': (context) => const CategoriesGrosScreen(),
-        '/categories-detail': (context) => const CategoriesDetailScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/admin': (context) => const AdminPanelScreen(),
-        '/products': (context) => const ProductsScreen(),
-        '/product-detail': (context) => const ProductDetailScreen(),
-      },
+    return ChangeNotifierProvider(
+      create: (_) => CartProvider(),
+      child: MaterialApp(
+        title: 'ZR Technologie',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        locale: const Locale('ar'),
+        builder: (context, child) {
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: child!,
+          );
+        },
+        initialRoute: '/shopping-type',
+        routes: {
+          '/': (context) => const ShoppingTypeScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/admin-login': (context) => const AdminLoginScreen(),
+          '/signup': (context) => const SignupScreen(),
+          '/shopping-type': (context) => const ShoppingTypeScreen(),
+          '/categories-gros': (context) => const CategoriesGrosScreen(),
+          '/categories-detail': (context) => const CategoriesDetailScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/admin': (context) => const AdminPanelScreen(),
+          '/products': (context) => const ProductsScreen(),
+          '/product-detail': (context) => const ProductDetailScreen(),
+        },
+      ),
     );
   }
 }
+

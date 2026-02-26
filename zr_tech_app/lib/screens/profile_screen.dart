@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
+import '../providers/cart_provider.dart';
+import '../widgets/cart_drawer.dart';
 import '../theme/responsive_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -290,15 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.pushReplacementNamed(context, '/categories-gros');
             break;
           case 2:
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('السلة قريباً!', textAlign: TextAlign.center),
-                backgroundColor: AppColors.surfaceDarkAlt,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                duration: const Duration(seconds: 1),
-              ),
-            );
+            showCartDrawer(context);
             break;
           case 3:
             break;

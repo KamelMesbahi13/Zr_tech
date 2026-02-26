@@ -12,6 +12,7 @@ import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../models/order_model.dart';
 import '../models/wilaya_model.dart';
+import '../widgets/admin_statistics_view.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -26,7 +27,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final OrderService _orderService = OrderService();
   final WilayaService _wilayaService = WilayaService();
 
-  int _sectionIndex = 0; // 0 = accounts, 1 = categories, 2 = products, 3 = orders, 4 = delivery settings
+  int _sectionIndex = 0; // 0 = statistics, 1 = accounts, 2 = categories, 3 = products, 4 = orders, 5 = delivery settings
   int _typeIndex = 0; // 0 = gros, 1 = detail
 
   List<CategoryModel> _grosCategories = [];
@@ -56,7 +57,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   void initState() {
     super.initState();
     _loadData();   // initial load of products/categories
-    _loadUsers();  // initial load of users (since it's the default tab)
+    // Statistics is now the default tab — users loaded on demand
   }
 
   @override
@@ -1220,9 +1221,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSidebarSection(
+            title: 'الإحصائيات',
+            icon: Icons.bar_chart,
+            sectionIndex: 0,
+            closeDrawer: isDrawer,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
             title: 'إدارة الحسابات',
             icon: Icons.people,
-            sectionIndex: 0,
+            sectionIndex: 1,
             closeDrawer: isDrawer,
           ),
           const Padding(
@@ -1232,17 +1243,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           _buildSidebarSection(
             title: 'الفئات',
             icon: Icons.category,
-            sectionIndex: 1,
-            closeDrawer: isDrawer,
-          ),
-          if (_sectionIndex == 1) _buildSidebarSubItems(),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Divider(color: AppColors.borderDark, height: 1),
-          ),
-          _buildSidebarSection(
-            title: 'المنتجات',
-            icon: Icons.inventory_2,
             sectionIndex: 2,
             closeDrawer: isDrawer,
           ),
@@ -1252,9 +1252,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             child: Divider(color: AppColors.borderDark, height: 1),
           ),
           _buildSidebarSection(
+            title: 'المنتجات',
+            icon: Icons.inventory_2,
+            sectionIndex: 3,
+            closeDrawer: isDrawer,
+          ),
+          if (_sectionIndex == 3) _buildSidebarSubItems(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
             title: 'إدارة الطلبات',
             icon: Icons.receipt_long,
-            sectionIndex: 3,
+            sectionIndex: 4,
             closeDrawer: isDrawer,
           ),
           const Padding(
@@ -1264,7 +1275,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           _buildSidebarSection(
             title: 'إعدادات التوصيل',
             icon: Icons.local_shipping,
-            sectionIndex: 4,
+            sectionIndex: 5,
             closeDrawer: isDrawer,
           ),
         ],
@@ -1430,10 +1441,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         child: Column(
                           children: [
                             if (_sectionIndex == 0)
+                              const Expanded(child: AdminStatisticsView())
+                            else if (_sectionIndex == 1)
                               Expanded(child: _buildAccountManagerView())
-                            else if (_sectionIndex == 3)
-                              Expanded(child: _buildOrdersManagerView())
                             else if (_sectionIndex == 4)
+                              Expanded(child: _buildOrdersManagerView())
+                            else if (_sectionIndex == 5)
                               Expanded(child: _buildDeliverySettingsView())
                             else ...[
                               // ── ITEM COUNT ──
@@ -1448,13 +1461,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        '${_sectionIndex == 1 ? _currentCategories.length : _currentProducts.length}',
+                                        '${_sectionIndex == 2 ? _currentCategories.length : _currentProducts.length}',
                                         style: TextStyle(color: AppColors.primaryLight, fontSize: Responsive.fp(13), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk'),
                                       ),
                                     ),
                                     const Spacer(),
                                     Text(
-                                      '${_sectionIndex == 1 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
+                                      '${_sectionIndex == 2 ? 'الفئات' : 'المنتجات'} - ${_typeIndex == 0 ? 'بالجملة' : 'بالتجزئة'}',
                                       style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(14), fontWeight: FontWeight.w600),
                                     ),
                                   ],
@@ -1465,7 +1478,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               Expanded(
                                 child: _isLoading
                                     ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                                    : _sectionIndex == 1
+                                    : _sectionIndex == 2
                                         ? _buildCategoryList(_currentCategories)
                                         : _buildProductList(_currentProducts),
                               ),
@@ -1482,7 +1495,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ],
       ),
       // ── FAB ──
-      floatingActionButton: (_sectionIndex == 1 || _sectionIndex == 2 || _sectionIndex == 4) ? Container(
+      floatingActionButton: (_sectionIndex == 2 || _sectionIndex == 3 || _sectionIndex == 5) ? Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: AppColors.primary,
@@ -1495,16 +1508,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ],
         ),
         child: FloatingActionButton.extended(
-          onPressed: _sectionIndex == 1
+          onPressed: _sectionIndex == 2
               ? _showAddCategoryDialog
-              : _sectionIndex == 4
+              : _sectionIndex == 5
                   ? _showAddWilayaDialog
                   : _showAddProductDialog,
           backgroundColor: Colors.transparent,
           elevation: 0,
           icon: Icon(Icons.add, color: Colors.white, size: Responsive.sp(20)),
           label: Text(
-            _sectionIndex == 1 ? 'إضافة فئة' : _sectionIndex == 4 ? 'إضافة ولاية' : 'إضافة منتج',
+            _sectionIndex == 2 ? 'إضافة فئة' : _sectionIndex == 5 ? 'إضافة ولاية' : 'إضافة منتج',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -3063,13 +3076,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return InkWell(
       onTap: () {
         setState(() => _sectionIndex = sectionIndex);
-        if (sectionIndex == 0 && _allUsers.isEmpty) {
+        if (sectionIndex == 1 && _allUsers.isEmpty) {
           _loadUsers();
         }
-        if (sectionIndex == 3 && _allOrders.isEmpty) {
+        if (sectionIndex == 4 && _allOrders.isEmpty) {
           _loadOrders();
         }
-        if (sectionIndex == 4 && _allWilayas.isEmpty) {
+        if (sectionIndex == 5 && _allWilayas.isEmpty) {
           _loadWilayas();
         }
         if (closeDrawer && Navigator.of(context).canPop()) {

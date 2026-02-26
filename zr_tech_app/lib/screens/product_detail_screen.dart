@@ -7,6 +7,7 @@ import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_drawer.dart';
 import '../theme/responsive_wrapper.dart';
+import '../services/auth_service.dart';
 import '../services/order_service.dart';
 import '../services/wilaya_service.dart';
 
@@ -111,6 +112,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   final OrderService _orderService = OrderService();
   final WilayaService _wilayaService = WilayaService();
+  final AuthService _authService = AuthService();
 
   _WilayaData? _selectedWilaya;
   List<_WilayaData> _displayWilayas = List.from(_algerianWilayas);
@@ -118,6 +120,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String _shippingType = 'home';
   bool _isSubmitting = false;
   bool _isLoadingPrices = false;
+  bool _isLoggedIn = false;
+  String _userWilayaName = '';
 
   ProductModel? _product;
 
@@ -152,6 +156,43 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
     if (!mounted) return;
     setState(() => _isLoadingPrices = false);
+  }
+
+  /// Load logged-in user data (for gros users) and auto-fill form fields
+  Future<void> _loadUserData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user == null) return;
+
+      final userData = await _authService.getCurrentUserData();
+      if (!mounted || userData == null) return;
+
+      final nameParts = userData.name.trim().split(' ');
+      final firstName = nameParts.first;
+      final lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+
+      setState(() {
+        _isLoggedIn = true;
+        _firstNameController.text = firstName;
+        _lastNameController.text = lastName;
+        _phoneController.text = userData.phone;
+        _addressController.text = userData.storeName;
+        _userWilayaName = userData.wilaya;
+        _tryPreSelectWilaya();
+      });
+    } catch (_) {}
+  }
+
+  void _tryPreSelectWilaya() {
+    if (_userWilayaName.isEmpty || _displayWilayas.isEmpty) return;
+    try {
+      final match = _displayWilayas.firstWhere(
+        (w) => w.name == _userWilayaName,
+      );
+      _selectedWilaya = match;
+    } catch (_) {}
   }
 
   double get _deliveryPrice {
@@ -634,6 +675,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   onPressed: () {
                                     setState(() => _showOrderForm = true);
                                     _loadWilayasFromFirebase();
+                                    _loadUserData();
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
@@ -694,6 +736,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     label: 'الاسم',
                     hint: 'الاسم',
                     icon: Icons.person_outline,
+                    readOnly: _isLoggedIn,
                     validator: (v) => v == null || v.trim().isEmpty ? 'مطلوب' : null,
                   ),
                 ),
@@ -704,6 +747,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     label: 'اللقب',
                     hint: 'اللقب',
                     icon: Icons.badge_outlined,
+                    readOnly: _isLoggedIn,
                     validator: (v) => v == null || v.trim().isEmpty ? 'مطلوب' : null,
                   ),
                 ),
@@ -719,6 +763,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               isPhoneField: true,
+              readOnly: _isLoggedIn,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'مطلوب';
                 if (v.trim().length < 9) return 'رقم الهاتف غير صحيح';
@@ -742,6 +787,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               hint: 'الحي، الشارع، رقم المنزل...',
               icon: Icons.location_on_outlined,
               maxLines: 2,
+              readOnly: _isLoggedIn,
               validator: (v) => v == null || v.trim().isEmpty ? 'مطلوب' : null,
             ),
             SizedBox(height: Responsive.sp(12)),
@@ -792,6 +838,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     bool isPhoneField = false,
+    bool readOnly = false,
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
@@ -806,7 +853,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           textDirection: isPhoneField ? TextDirection.ltr : TextDirection.rtl,
           textAlign: isPhoneField ? TextAlign.left : TextAlign.right,
           maxLines: maxLines,
-          style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(14), fontFamily: isPhoneField ? 'Space Grotesk' : null),
+          readOnly: readOnly,
+          style: TextStyle(color: readOnly ? AppColors.textSlate400 : AppColors.textPrimary, fontSize: Responsive.fp(14), fontFamily: isPhoneField ? 'Space Grotesk' : null),
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,

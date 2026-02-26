@@ -6,6 +6,7 @@ import '../theme/responsive_wrapper.dart';
 import '../models/order_model.dart';
 import '../models/wilaya_model.dart';
 import '../providers/cart_provider.dart';
+import '../services/auth_service.dart';
 import '../services/order_service.dart';
 import '../services/wilaya_service.dart';
 
@@ -25,17 +26,21 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
 
   final WilayaService _wilayaService = WilayaService();
   final OrderService _orderService = OrderService();
+  final AuthService _authService = AuthService();
 
   List<WilayaModel> _wilayas = [];
   WilayaModel? _selectedWilaya;
   String _shippingType = 'home';
   bool _isLoadingWilayas = true;
   bool _isSubmitting = false;
+  bool _isLoggedIn = false; // true for gros users (auto-fill & read-only)
+  String _userWilayaName = '';
 
   @override
   void initState() {
     super.initState();
     _loadWilayas();
+    _loadUserData();
   }
 
   @override
@@ -55,10 +60,55 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
       setState(() {
         _wilayas = wilayas;
         _isLoadingWilayas = false;
+        // If user data loaded already, try to pre-select wilaya
+        _tryPreSelectWilaya();
       });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoadingWilayas = false);
+    }
+  }
+
+  /// Load logged-in user data (for gros users) and auto-fill fields
+  Future<void> _loadUserData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user == null) return; // detail user, not logged in
+
+      final userData = await _authService.getCurrentUserData();
+      if (!mounted || userData == null) return;
+
+      // Split name into first/last (use full name as first if single word)
+      final nameParts = userData.name.trim().split(' ');
+      final firstName = nameParts.first;
+      final lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+
+      setState(() {
+        _isLoggedIn = true;
+        _firstNameController.text = firstName;
+        _lastNameController.text = lastName;
+        _phoneController.text = userData.phone;
+        _addressController.text = userData.storeName;
+        _userWilayaName = userData.wilaya;
+        _tryPreSelectWilaya();
+      });
+    } catch (_) {
+      // Silently fail — user can fill manually
+    }
+  }
+
+  /// Try to match user's wilaya name with the loaded wilayas list
+  void _tryPreSelectWilaya() {
+    if (_userWilayaName.isEmpty || _wilayas.isEmpty) return;
+    try {
+      final match = _wilayas.firstWhere(
+        (w) => w.name == _userWilayaName,
+      );
+      _selectedWilaya = match;
+    } catch (_) {
+      // No match found
     }
   }
 
@@ -340,6 +390,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
                                             label: 'الاسم',
                                             hint: 'الاسم',
                                             icon: Icons.person_outline,
+                                            readOnly: _isLoggedIn,
                                             validator: (v) =>
                                                 v == null ||
                                                         v.trim().isEmpty
@@ -354,6 +405,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
                                             label: 'اللقب',
                                             hint: 'اللقب',
                                             icon: Icons.badge_outlined,
+                                            readOnly: _isLoggedIn,
                                             validator: (v) =>
                                                 v == null ||
                                                         v.trim().isEmpty
@@ -373,6 +425,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
                                       icon: Icons.phone_outlined,
                                       keyboardType: TextInputType.phone,
                                       isLTR: true,
+                                      readOnly: _isLoggedIn,
                                       validator: (v) {
                                         if (v == null || v.trim().isEmpty)
                                           return 'مطلوب';
@@ -400,6 +453,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
                                       hint: 'الحي، الشارع، رقم المنزل...',
                                       icon: Icons.location_on_outlined,
                                       maxLines: 2,
+                                      readOnly: _isLoggedIn,
                                       validator: (v) =>
                                           v == null || v.trim().isEmpty
                                               ? 'مطلوب'
@@ -589,6 +643,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     bool isLTR = false,
+    bool readOnly = false,
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
@@ -610,8 +665,9 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
           textDirection: isLTR ? TextDirection.ltr : TextDirection.rtl,
           textAlign: isLTR ? TextAlign.left : TextAlign.right,
           maxLines: maxLines,
+          readOnly: readOnly,
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: readOnly ? AppColors.textSlate400 : AppColors.textPrimary,
             fontSize: Responsive.fp(14),
             fontFamily: isLTR ? 'Space Grotesk' : null,
           ),

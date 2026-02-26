@@ -426,20 +426,8 @@ class _CartPanel extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text(
-                      'سيتم إضافة خاصية الدفع قريباً!',
-                      textAlign: TextAlign.center,
-                    ),
-                    backgroundColor: AppColors.surfaceDarkAlt,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                Navigator.of(context).pop(); // Close cart drawer
+                Navigator.of(context).pushNamed('/cart-checkout');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

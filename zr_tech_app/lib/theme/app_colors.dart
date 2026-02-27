@@ -40,7 +40,6 @@ class AppColors {
   static const Color cyan = primaryLight;
   static const Color tabActive = Color(0xFFE8F4FD);
 
-  // ── Gradients (kept but unused for buttons) ───────────────────
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [primaryLight, primaryDark],
     begin: Alignment.centerRight,

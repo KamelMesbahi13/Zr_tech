@@ -549,6 +549,70 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                         ),
+
+                        // ── QUANTITY LEFT (gros only) ──
+                        if (_shoppingType == 'gros') ...[
+                          SizedBox(height: Responsive.sp(10)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: hPad + 4),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: Responsive.sp(16), vertical: Responsive.sp(10)),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceDarkAlt,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.borderDark),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.inventory_2_outlined,
+                                    color: product.quantity > 10
+                                        ? AppColors.success
+                                        : product.quantity > 5
+                                            ? AppColors.warning
+                                            : Colors.red,
+                                    size: Responsive.sp(20),
+                                  ),
+                                  SizedBox(width: Responsive.sp(8)),
+                                  Text(
+                                    'الكمية المتبقية',
+                                    style: TextStyle(
+                                      color: AppColors.textSlate400,
+                                      fontSize: Responsive.fp(14),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: Responsive.sp(12), vertical: Responsive.sp(4)),
+                                    decoration: BoxDecoration(
+                                      color: (product.quantity > 10
+                                              ? AppColors.success
+                                              : product.quantity > 5
+                                                  ? AppColors.warning
+                                                  : Colors.red)
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${product.quantity}',
+                                      style: TextStyle(
+                                        color: product.quantity > 10
+                                            ? AppColors.success
+                                            : product.quantity > 5
+                                                ? AppColors.warning
+                                                : Colors.red,
+                                        fontSize: Responsive.fp(16),
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Space Grotesk',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                         SizedBox(height: Responsive.sp(24)),
 
                         // ── DESCRIPTION ──

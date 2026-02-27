@@ -24,6 +24,23 @@ class AuthService {
   /// The currently signed-in Firebase user.
   User? get currentUser => _auth.currentUser;
 
+  /// Check if the currently logged-in user has admin role.
+  Future<bool> isCurrentUserAdmin() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final snapshot = await _dbRef.child('users').child(user.uid).child('role').get();
+    return snapshot.exists && snapshot.value == 'admin';
+  }
+
+  /// Throws an exception if the current user is not an admin.
+  /// Call this at the beginning of any admin-only operation.
+  Future<void> requireAdmin() async {
+    if (!await isCurrentUserAdmin()) {
+      throw Exception('غير مصرح: هذه العملية متاحة للإدارة فقط');
+    }
+  }
+
   /// Fetch the UserModel from Realtime Database for the current user.
   Future<UserModel?> getCurrentUserData() async {
     final user = _auth.currentUser;
@@ -79,6 +96,7 @@ class AuthService {
         email: email.trim(),
         phone: phone.trim(),
         status: 'pending',
+        role: 'user', // Always 'user' — never trust client input for role
       );
 
       await _dbRef
@@ -125,13 +143,15 @@ class AuthService {
     }
   }
 
-  /// Update a user's status in the Realtime Database.
+  /// Update a user's status in the Realtime Database. Admin only.
   Future<void> updateUserStatus(String uid, String status) async {
+    await requireAdmin();
     await _dbRef.child('users').child(uid).update({'status': status});
   }
 
-  /// Fetch all registered users from the Realtime Database.
+  /// Fetch all registered users from the Realtime Database. Admin only.
   Future<List<Map<String, dynamic>>> fetchAllUsers() async {
+    await requireAdmin();
     final snapshot = await _dbRef.child('users').get();
     if (!snapshot.exists || snapshot.value == null) return [];
     final rawData = snapshot.value;
@@ -149,8 +169,9 @@ class AuthService {
     return users;
   }
 
-  /// Delete a user's Auth account and database record.
+  /// Delete a user's Auth account and database record. Admin only.
   Future<void> deleteUserAccount(String uid) async {
+    await requireAdmin();
     // Remove from Realtime Database
     await _dbRef.child('users').child(uid).remove();
     // Note: Deleting the Firebase Auth account from client-side

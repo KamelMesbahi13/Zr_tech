@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import '../models/order_model.dart';
 import '../services/product_service.dart';
+import '../services/auth_service.dart';
 
 class OrderService {
   final DatabaseReference _dbRef =
@@ -32,8 +33,9 @@ class OrderService {
     }
   }
 
-  /// Fetch all orders (for admin panel).
+  /// Fetch all orders (for admin panel). Admin only.
   Future<List<OrderModel>> getAllOrders() async {
+    await AuthService().requireAdmin();
     final snapshot = await _dbRef.get();
     if (!snapshot.exists || snapshot.value == null) return [];
 
@@ -53,13 +55,15 @@ class OrderService {
     return orders;
   }
 
-  /// Update the status of an order.
+  /// Update the status of an order. Admin only.
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    await AuthService().requireAdmin();
     await _dbRef.child(orderId).update({'status': newStatus});
   }
 
-  /// Delete an order.
+  /// Delete an order. Admin only.
   Future<void> deleteOrder(String orderId) async {
+    await AuthService().requireAdmin();
     await _dbRef.child(orderId).remove();
   }
 }

@@ -58,8 +58,47 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();   // initial load of products/categories
-    // Statistics is now the default tab — users loaded on demand
+    _checkAdminAccess();
+  }
+
+  /// Verify the current user is logged in and has admin role.
+  /// Redirects to /login if not authorized.
+  Future<void> _checkAdminAccess() async {
+    final authService = AuthService();
+    final user = authService.currentUser;
+
+    if (user == null) {
+      // Not logged in at all
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
+      });
+      return;
+    }
+
+    final isAdmin = await authService.isCurrentUserAdmin();
+    if (!isAdmin) {
+      // Logged in but not an admin
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'غير مصرح لك بالدخول. هذه الصفحة مخصصة للإدارة فقط.',
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
+      });
+      return;
+    }
+
+    // User is admin — proceed to load data
+    _loadData();
   }
 
   @override

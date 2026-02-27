@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import '../models/ledger_transaction_model.dart';
+import '../services/auth_service.dart';
 
 class LedgerService {
   // Singleton
@@ -9,8 +10,9 @@ class LedgerService {
 
   DatabaseReference get _dbRef => FirebaseDatabase.instance.ref();
 
-  /// Fetch all transactions for a specific user, sorted by date descending.
+  /// Fetch all transactions for a specific user, sorted by date descending. Admin only.
   Future<List<LedgerTransaction>> getTransactions(String userId) async {
+    await AuthService().requireAdmin();
     final snapshot = await _dbRef
         .child('ledger')
         .child(userId)
@@ -40,8 +42,9 @@ class LedgerService {
     return transactions;
   }
 
-  /// Add a new transaction for a user.
+  /// Add a new transaction for a user. Admin only.
   Future<void> addTransaction(String userId, LedgerTransaction tx) async {
+    await AuthService().requireAdmin();
     await _dbRef
         .child('ledger')
         .child(userId)
@@ -50,8 +53,9 @@ class LedgerService {
         .set(tx.toMap());
   }
 
-  /// Delete a specific transaction.
+  /// Delete a specific transaction. Admin only.
   Future<void> deleteTransaction(String userId, String txId) async {
+    await AuthService().requireAdmin();
     await _dbRef
         .child('ledger')
         .child(userId)

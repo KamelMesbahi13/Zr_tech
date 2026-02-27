@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import '../models/product_model.dart';
+import '../services/auth_service.dart';
 
 class ProductService {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
@@ -87,7 +88,7 @@ class ProductService {
     return 'prod_${nextNum.toString().padLeft(3, '0')}';
   }
 
-  /// Add a new product under a specific shopping type and category.
+  /// Add a new product under a specific shopping type and category. Admin only.
   Future<void> addProduct({
     required String shoppingType,
     required String categoryId,
@@ -97,6 +98,7 @@ class ProductService {
     required String description,
     required int quantity,
   }) async {
+    await AuthService().requireAdmin();
     final prodId = await _getNextProductId(shoppingType, categoryId);
     await _dbRef
         .child('products')
@@ -113,7 +115,7 @@ class ProductService {
     });
   }
 
-  /// Update an existing product.
+  /// Update an existing product. Admin only.
   Future<void> updateProduct({
     required String shoppingType,
     required String categoryId,
@@ -124,6 +126,7 @@ class ProductService {
     required String description,
     required int quantity,
   }) async {
+    await AuthService().requireAdmin();
     await _dbRef
         .child('products')
         .child(shoppingType)
@@ -138,12 +141,13 @@ class ProductService {
     });
   }
 
-  /// Delete a product.
+  /// Delete a product. Admin only.
   Future<void> deleteProduct({
     required String shoppingType,
     required String categoryId,
     required String productId,
   }) async {
+    await AuthService().requireAdmin();
     await _dbRef
         .child('products')
         .child(shoppingType)

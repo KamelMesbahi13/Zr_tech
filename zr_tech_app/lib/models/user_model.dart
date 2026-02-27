@@ -6,6 +6,7 @@ class UserModel {
   final String email;
   final String phone;
   final String status; // 'pending' | 'approved' | 'rejected'
+  final String role; // 'user' | 'admin'
 
   UserModel({
     required this.uid,
@@ -15,6 +16,7 @@ class UserModel {
     required this.email,
     required this.phone,
     this.status = 'pending',
+    this.role = 'user',
   });
 
   /// Convert to a Map for Realtime Database storage.
@@ -27,6 +29,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'status': status,
+      'role': role,
     };
   }
 
@@ -40,6 +43,8 @@ class UserModel {
       email: map['email'] ?? '',
       phone: map['phone'] ?? '',
       status: map['status'] ?? 'pending',
+      role: map['role'] ?? 'user',
     );
   }
 }
+

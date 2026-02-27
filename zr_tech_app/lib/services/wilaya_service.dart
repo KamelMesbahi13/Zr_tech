@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import '../models/wilaya_model.dart';
+import '../services/auth_service.dart';
 
 class WilayaService {
   final DatabaseReference _dbRef =
@@ -43,12 +44,13 @@ class WilayaService {
     return wilayas;
   }
 
-  /// Add a new wilaya.
+  /// Add a new wilaya. Admin only.
   Future<void> addWilaya({
     required String name,
     required double homeDeliveryPrice,
     required double deskDeliveryPrice,
   }) async {
+    await AuthService().requireAdmin();
     // Generate next wilaya ID
     final snapshot = await _dbRef.get();
     int maxNum = 0;
@@ -69,13 +71,14 @@ class WilayaService {
     });
   }
 
-  /// Update an existing wilaya.
+  /// Update an existing wilaya. Admin only.
   Future<void> updateWilaya({
     required String wilayaId,
     required String name,
     required double homeDeliveryPrice,
     required double deskDeliveryPrice,
   }) async {
+    await AuthService().requireAdmin();
     await _dbRef.child(wilayaId).update({
       'name': name,
       'homeDeliveryPrice': homeDeliveryPrice,
@@ -83,13 +86,15 @@ class WilayaService {
     });
   }
 
-  /// Delete a wilaya.
+  /// Delete a wilaya. Admin only.
   Future<void> deleteWilaya(String wilayaId) async {
+    await AuthService().requireAdmin();
     await _dbRef.child(wilayaId).remove();
   }
 
-  /// Toggle wilaya active status.
+  /// Toggle wilaya active status. Admin only.
   Future<void> toggleWilaya(String wilayaId, bool isActive) async {
+    await AuthService().requireAdmin();
     await _dbRef.child(wilayaId).update({'isActive': isActive});
   }
 

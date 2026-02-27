@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import '../models/category_model.dart';
+import '../services/auth_service.dart';
 
 class CategoryService {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
@@ -47,13 +48,14 @@ class CategoryService {
     return 'cat_${nextNum.toString().padLeft(3, '0')}';
   }
 
-  /// Add a new category to one or both shopping types.
+  /// Add a new category to one or both shopping types. Admin only.
   Future<void> addCategory({
     required String name,
     required String image,
     required int order,
     required List<String> types, // ['gros'], ['detail'], or ['gros', 'detail']
   }) async {
+    await AuthService().requireAdmin();
     for (final type in types) {
       final catId = await _getNextCategoryId(type);
       await _dbRef.child('categories').child(type).child(catId).set({
@@ -64,7 +66,7 @@ class CategoryService {
     }
   }
 
-  /// Update an existing category.
+  /// Update an existing category. Admin only.
   Future<void> updateCategory({
     required String shoppingType,
     required String categoryId,
@@ -72,6 +74,7 @@ class CategoryService {
     required String image,
     required int order,
   }) async {
+    await AuthService().requireAdmin();
     await _dbRef.child('categories').child(shoppingType).child(categoryId).update({
       'name': name,
       'image': image,
@@ -79,11 +82,12 @@ class CategoryService {
     });
   }
 
-  /// Delete a category.
+  /// Delete a category. Admin only.
   Future<void> deleteCategory({
     required String shoppingType,
     required String categoryId,
   }) async {
+    await AuthService().requireAdmin();
     await _dbRef.child('categories').child(shoppingType).child(categoryId).remove();
   }
 

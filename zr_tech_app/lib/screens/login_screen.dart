@@ -363,22 +363,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: Responsive.sp(4)),
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            'هل نسيت كلمة المرور؟',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: Responsive.fp(12),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: Responsive.sp(16)),
+                      SizedBox(height: Responsive.sp(20)),
 
                       // Login Button
                       SizedBox(

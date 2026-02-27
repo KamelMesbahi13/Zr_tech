@@ -224,35 +224,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         border: Border.all(color: AppColors.borderDark),
       ),
       child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(label, style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(12))),
-                SizedBox(height: Responsive.sp(4)),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: valueColor ?? AppColors.textPrimary,
-                    fontSize: Responsive.fp(15),
-                    fontWeight: FontWeight.w600,
-                  ),
+      children: [
+        Container(
+          width: Responsive.sp(44),
+          height: Responsive.sp(44),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primary.withValues(alpha: 0.1),
+          ),
+          child: Icon(icon, color: AppColors.primaryLight, size: Responsive.sp(22)),
+        ),
+        SizedBox(width: Responsive.sp(14)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(12))),
+              SizedBox(height: Responsive.sp(4)),
+              Text(
+                value,
+                style: TextStyle(
+                  color: valueColor ?? AppColors.textPrimary,
+                  fontSize: Responsive.fp(15),
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          SizedBox(width: Responsive.sp(14)),
-          Container(
-            width: Responsive.sp(44),
-            height: Responsive.sp(44),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withValues(alpha: 0.1),
-            ),
-            child: Icon(icon, color: AppColors.primaryLight, size: Responsive.sp(22)),
-          ),
-        ],
+        ),
+      ],
       ),
     );
   }

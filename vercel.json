@@ -1,0 +1,12 @@
+{
+  "buildCommand": "bash build.sh",
+  "outputDirectory": "zr_tech_app/build/web",
+  "installCommand": "echo 'skip install'",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

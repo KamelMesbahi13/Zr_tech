@@ -97,6 +97,7 @@ class ProductService {
     required double price,
     required String description,
     required int quantity,
+    int minQuantity = 1,
   }) async {
     await AuthService().requireAdmin();
     final prodId = await _getNextProductId(shoppingType, categoryId);
@@ -111,6 +112,7 @@ class ProductService {
       'price': price,
       'description': description,
       'quantity': quantity,
+      'minQuantity': minQuantity,
       'createdAt': DateTime.now().millisecondsSinceEpoch,
     });
   }
@@ -125,6 +127,7 @@ class ProductService {
     required double price,
     required String description,
     required int quantity,
+    int minQuantity = 1,
   }) async {
     await AuthService().requireAdmin();
     await _dbRef
@@ -138,6 +141,7 @@ class ProductService {
       'price': price,
       'description': description,
       'quantity': quantity,
+      'minQuantity': minQuantity,
     });
   }
 

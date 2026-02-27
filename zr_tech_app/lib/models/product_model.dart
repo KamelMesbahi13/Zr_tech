@@ -4,6 +4,7 @@ class ProductModel {
   final String image;
   final double price;
   final int quantity;
+  final int minQuantity;
   final String categoryId;
   final String description;
   final int createdAt;
@@ -17,6 +18,7 @@ class ProductModel {
     required this.image,
     required this.price,
     this.quantity = 0,
+    this.minQuantity = 1,
     required this.categoryId,
     required this.description,
     this.createdAt = 0,
@@ -28,6 +30,7 @@ class ProductModel {
       'image': image,
       'price': price,
       'quantity': quantity,
+      'minQuantity': minQuantity,
       'description': description,
       'createdAt': createdAt,
     };
@@ -41,6 +44,7 @@ class ProductModel {
       image: map['image'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
       quantity: (map['quantity'] ?? 0) is int ? (map['quantity'] ?? 0) : 0,
+      minQuantity: (map['minQuantity'] ?? 1) is int ? (map['minQuantity'] ?? 1) : 1,
       description: map['description'] ?? '',
       createdAt: (map['createdAt'] ?? 0) is int ? (map['createdAt'] ?? 0) : 0,
     );

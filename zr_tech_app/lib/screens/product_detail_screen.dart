@@ -550,32 +550,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
 
-                        // ── QUANTITY LEFT (gros only) ──
-                        if (_shoppingType == 'gros') ...[
+                        // ── MIN QUANTITY (gros only) ──
+                        if (_shoppingType == 'gros' && product.minQuantity > 1) ...[
                           SizedBox(height: Responsive.sp(10)),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: hPad + 4),
                             child: Container(
                               padding: EdgeInsets.symmetric(horizontal: Responsive.sp(16), vertical: Responsive.sp(10)),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceDarkAlt,
+                                color: Colors.orange.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.borderDark),
+                                border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
-                                    Icons.inventory_2_outlined,
-                                    color: product.quantity > 10
-                                        ? AppColors.success
-                                        : product.quantity > 5
-                                            ? AppColors.warning
-                                            : Colors.red,
+                                    Icons.shopping_bag_outlined,
+                                    color: Colors.orange,
                                     size: Responsive.sp(20),
                                   ),
                                   SizedBox(width: Responsive.sp(8)),
                                   Text(
-                                    'الكمية المتبقية',
+                                    'الحد الأدنى للطلب',
                                     style: TextStyle(
                                       color: AppColors.textSlate400,
                                       fontSize: Responsive.fp(14),
@@ -586,22 +582,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   Container(
                                     padding: EdgeInsets.symmetric(horizontal: Responsive.sp(12), vertical: Responsive.sp(4)),
                                     decoration: BoxDecoration(
-                                      color: (product.quantity > 10
-                                              ? AppColors.success
-                                              : product.quantity > 5
-                                                  ? AppColors.warning
-                                                  : Colors.red)
-                                          .withValues(alpha: 0.15),
+                                      color: Colors.orange.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      '${product.quantity}',
+                                      '${product.minQuantity}',
                                       style: TextStyle(
-                                        color: product.quantity > 10
-                                            ? AppColors.success
-                                            : product.quantity > 5
-                                                ? AppColors.warning
-                                                : Colors.red,
+                                        color: Colors.orange,
                                         fontSize: Responsive.fp(16),
                                         fontWeight: FontWeight.bold,
                                         fontFamily: 'Space Grotesk',
@@ -719,7 +706,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    setState(() => _showOrderForm = true);
+                                    setState(() {
+                                      _showOrderForm = true;
+                                      // For gros, start quantity at minQuantity
+                                      if (_shoppingType == 'gros') {
+                                        _quantity = product.minQuantity;
+                                      } else {
+                                        _quantity = 1;
+                                      }
+                                    });
                                     _loadWilayasFromFirebase();
                                     _loadUserData();
                                   },
@@ -1050,6 +1045,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildQuantitySelector(ProductModel product) {
     final maxQty = product.quantity;
+    final minQty = _shoppingType == 'gros' ? product.minQuantity : 1;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: Responsive.sp(16), vertical: Responsive.sp(12)),
       decoration: BoxDecoration(
@@ -1066,10 +1062,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             alignment: Alignment.center,
             child: Text('$_quantity', style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(20), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk')),
           ),
-          _buildQtyButton(icon: Icons.remove, onTap: _quantity > 1 ? () => setState(() => _quantity--) : null),
+          _buildQtyButton(icon: Icons.remove, onTap: _quantity > minQty ? () => setState(() => _quantity--) : null),
           const Spacer(),
           // Stock info
-          Text('المتوفر: $maxQty', style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(13))),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('المتوفر: $maxQty', style: TextStyle(color: AppColors.textSlate400, fontSize: Responsive.fp(13))),
+              if (_shoppingType == 'gros' && minQty > 1)
+                Text('الحد الأدنى: $minQty', style: TextStyle(color: Colors.orange, fontSize: Responsive.fp(11))),
+            ],
+          ),
         ],
       ),
     );

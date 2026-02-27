@@ -1853,6 +1853,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         style: const TextStyle(color: AppColors.primaryLight, fontSize: 10, fontWeight: FontWeight.w600),
                       ),
                     ),
+                    if (_currentType == 'gros') ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'الحد الأدنى: ${product.minQuantity}',
+                          style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1902,6 +1916,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final priceController = TextEditingController();
     final descController = TextEditingController();
     final quantityController = TextEditingController(text: '0');
+    final minQuantityController = TextEditingController(text: '1');
     String? selectedCategoryId;
     bool isSaving = false;
     bool useUrl = false;
@@ -1974,6 +1989,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     const SizedBox(height: 16),
                     // Quantity input
                     _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
+                    if (_currentType == 'gros') ...[
+                      const SizedBox(height: 16),
+                      _buildTextField(controller: minQuantityController, label: 'الحد الأدنى للطلب', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
+                    ],
                     const SizedBox(height: 24),
                     // Save button
                     SizedBox(
@@ -1984,6 +2003,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           onPressed: (isSaving || isUploading) ? null : () async {
                             if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
                             if (selectedCategoryId == null) { _showErrorSnackBar('الرجاء اختيار الفئة'); return; }
+                            final qty = int.tryParse(quantityController.text.trim()) ?? 0;
+                            final minQty = _currentType == 'gros' ? (int.tryParse(minQuantityController.text.trim()) ?? 1) : 1;
+                            if (_currentType == 'gros' && minQty > qty) {
+                              _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون أقل أو يساوي الكمية');
+                              return;
+                            }
+                            if (_currentType == 'gros' && minQty < 1) {
+                              _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون 1 على الأقل');
+                              return;
+                            }
                             final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? '');
                             setSheetState(() => isSaving = true);
                             try {
@@ -1994,7 +2023,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 image: imageUrl,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
                                 description: descController.text.trim(),
-                                quantity: int.tryParse(quantityController.text.trim()) ?? 0,
+                                quantity: qty,
+                                minQuantity: minQty,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);
@@ -2031,6 +2061,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final priceController = TextEditingController(text: product.price.toStringAsFixed(0));
     final descController = TextEditingController(text: product.description);
     final quantityController = TextEditingController(text: product.quantity.toString());
+    final minQuantityController = TextEditingController(text: product.minQuantity.toString());
     bool isSaving = false;
     bool useUrl = product.image.isNotEmpty;
     bool isUploading = false;
@@ -2093,6 +2124,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     const SizedBox(height: 16),
                     // Quantity input
                     _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
+                    if (_currentType == 'gros') ...[
+                      const SizedBox(height: 16),
+                      _buildTextField(controller: minQuantityController, label: 'الحد الأدنى للطلب', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
+                    ],
                     const SizedBox(height: 24),
                     // Save button
                     SizedBox(
@@ -2102,6 +2137,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         child: ElevatedButton(
                           onPressed: (isSaving || isUploading) ? null : () async {
                             if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
+                            final qty = int.tryParse(quantityController.text.trim()) ?? 0;
+                            final minQty = _currentType == 'gros' ? (int.tryParse(minQuantityController.text.trim()) ?? 1) : 1;
+                            if (_currentType == 'gros' && minQty > qty) {
+                              _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون أقل أو يساوي الكمية');
+                              return;
+                            }
+                            if (_currentType == 'gros' && minQty < 1) {
+                              _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون 1 على الأقل');
+                              return;
+                            }
                             final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? product.image);
                             setSheetState(() => isSaving = true);
                             try {
@@ -2113,7 +2158,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 image: imageUrl,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
                                 description: descController.text.trim(),
-                                quantity: int.tryParse(quantityController.text.trim()) ?? 0,
+                                quantity: qty,
+                                minQuantity: minQty,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);

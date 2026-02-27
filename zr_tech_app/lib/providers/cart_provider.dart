@@ -42,9 +42,10 @@ class CartProvider extends ChangeNotifier {
       }
       existing.cartQuantity++;
     } else {
-      // Not in cart yet — add with qty 1
-      if (product.quantity < 1) return false; // out of stock
-      _items.add(CartItem(product: product, shoppingType: shoppingType));
+      // Not in cart yet — add with appropriate starting quantity
+      final startQty = shoppingType == 'gros' ? product.minQuantity : 1;
+      if (product.quantity < startQty) return false; // not enough stock
+      _items.add(CartItem(product: product, shoppingType: shoppingType, cartQuantity: startQty));
     }
 
     notifyListeners();
@@ -73,12 +74,14 @@ class CartProvider extends ChangeNotifier {
   }
 
   /// Decrease quantity by 1.
-  /// Removes the item if quantity drops to 0.
+  /// For gros items, removes if quantity drops below minQuantity.
+  /// For detail items, removes if quantity drops to 0.
   void decreaseQuantity(String productId) {
     final item = getCartItem(productId);
     if (item == null) return;
 
-    if (item.cartQuantity <= 1) {
+    final minQty = item.shoppingType == 'gros' ? item.product.minQuantity : 1;
+    if (item.cartQuantity <= minQty) {
       removeFromCart(productId);
     } else {
       item.cartQuantity--;

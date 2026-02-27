@@ -13,6 +13,7 @@ import '../models/product_model.dart';
 import '../models/order_model.dart';
 import '../models/wilaya_model.dart';
 import '../widgets/admin_statistics_view.dart';
+import '../widgets/admin_ledger_view.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -27,7 +28,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final OrderService _orderService = OrderService();
   final WilayaService _wilayaService = WilayaService();
 
-  int _sectionIndex = 0; // 0 = statistics, 1 = accounts, 2 = categories, 3 = products, 4 = orders, 5 = delivery settings
+  int _sectionIndex = 0; // 0 = statistics, 1 = accounts, 2 = categories, 3 = products, 4 = orders, 5 = delivery settings, 6 = ledger
   int _typeIndex = 0; // 0 = gros, 1 = detail
 
   List<CategoryModel> _grosCategories = [];
@@ -44,6 +45,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   // Orders management state
   List<OrderModel> _allOrders = [];
   String _orderFilter = 'all';
+  int _orderTypeIndex = 0; // 0 = gros, 1 = detail
   bool _isLoadingOrders = false;
   String? _expandedOrderId;
   final TextEditingController _orderSearchController = TextEditingController();
@@ -110,7 +112,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   List<OrderModel> get _filteredOrders {
-    var list = _allOrders;
+    final shoppingType = _orderTypeIndex == 0 ? 'gros' : 'detail';
+    var list = _allOrders.where((o) {
+      final type = o.shoppingType.isEmpty ? 'detail' : o.shoppingType;
+      return type == shoppingType;
+    }).toList();
     if (_orderFilter != 'all') {
       list = list.where((o) => o.status == _orderFilter).toList();
     }
@@ -1278,6 +1284,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             sectionIndex: 5,
             closeDrawer: isDrawer,
           ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
+            title: 'حسابات الزبائن',
+            icon: Icons.account_balance_wallet,
+            sectionIndex: 6,
+            closeDrawer: isDrawer,
+          ),
         ],
       ),
     );
@@ -1448,6 +1464,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               Expanded(child: _buildOrdersManagerView())
                             else if (_sectionIndex == 5)
                               Expanded(child: _buildDeliverySettingsView())
+                            else if (_sectionIndex == 6)
+                              const Expanded(child: AdminLedgerView())
                             else ...[
                               // ── ITEM COUNT ──
                               Padding(
@@ -2188,7 +2206,66 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       textDirection: TextDirection.rtl,
       child: Column(
         children: [
-          // Search bar
+          // Gros / Detail toggle
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _orderTypeIndex = 0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: Responsive.sp(10)),
+                        decoration: BoxDecoration(
+                          color: _orderTypeIndex == 0 ? AppColors.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'الجملة (Gros)',
+                            style: TextStyle(
+                              color: _orderTypeIndex == 0 ? Colors.white : AppColors.textMuted,
+                              fontSize: Responsive.fp(13),
+                              fontWeight: _orderTypeIndex == 0 ? FontWeight.bold : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _orderTypeIndex = 1),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: Responsive.sp(10)),
+                        decoration: BoxDecoration(
+                          color: _orderTypeIndex == 1 ? AppColors.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'التفصيل (Detail)',
+                            style: TextStyle(
+                              color: _orderTypeIndex == 1 ? Colors.white : AppColors.textMuted,
+                              fontSize: Responsive.fp(13),
+                              fontWeight: _orderTypeIndex == 1 ? FontWeight.bold : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: Responsive.horizontalPadding, vertical: Responsive.sp(8)),
             child: Container(

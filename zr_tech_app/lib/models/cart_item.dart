@@ -2,10 +2,12 @@ import 'product_model.dart';
 
 class CartItem {
   final ProductModel product;
+  final String shoppingType; // 'gros' or 'detail'
   int cartQuantity;
 
   CartItem({
     required this.product,
+    required this.shoppingType,
     this.cartQuantity = 1,
   });
 

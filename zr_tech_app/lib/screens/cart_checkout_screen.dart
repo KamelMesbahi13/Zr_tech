@@ -149,7 +149,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
           productImage: item.product.image,
           productPrice: item.product.price,
           categoryId: item.product.categoryId,
-          shoppingType: '', // cart items don't track shopping type
+          shoppingType: item.shoppingType,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           phone: _phoneController.text.trim(),

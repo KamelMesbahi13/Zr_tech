@@ -122,6 +122,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _isLoadingPrices = false;
   bool _isLoggedIn = false;
   String _userWilayaName = '';
+  String _shoppingType = 'detail'; // from navigation args
 
   ProductModel? _product;
 
@@ -206,9 +207,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   double get _total => _subtotal + _deliveryPrice;
 
   String _resolveShoppingType() {
-    final route = ModalRoute.of(context)?.settings.name ?? '';
-    if (route.contains('gros')) return 'gros';
-    return 'detail';
+    return _shoppingType;
   }
 
   Future<void> _submitOrder() async {
@@ -362,7 +361,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     Responsive.init(context);
     final hPad = Responsive.horizontalPadding;
 
-    _product ??= ModalRoute.of(context)?.settings.arguments as ProductModel?;
+    if (_product == null) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map) {
+        _product = args['product'] as ProductModel?;
+        _shoppingType = args['shoppingType'] as String? ?? 'detail';
+      } else if (args is ProductModel) {
+        _product = args;
+      }
+    }
 
     if (_product == null) {
       return Directionality(
@@ -611,7 +618,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 onPressed: product.isAvailable
                                     ? () {
                                         final cart = Provider.of<CartProvider>(context, listen: false);
-                                        final added = cart.addToCart(product);
+                                        final added = cart.addToCart(product, shoppingType: _shoppingType);
                                         if (!added) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(

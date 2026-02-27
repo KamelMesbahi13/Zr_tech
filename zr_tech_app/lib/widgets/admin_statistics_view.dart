@@ -4,6 +4,8 @@ import '../theme/app_colors.dart';
 import '../theme/responsive_wrapper.dart';
 import '../services/order_service.dart';
 import '../services/category_service.dart';
+import '../services/auth_service.dart';
+import '../services/ledger_service.dart';
 import '../models/order_model.dart';
 
 class AdminStatisticsView extends StatefulWidget {
@@ -17,10 +19,16 @@ class _AdminStatisticsViewState extends State<AdminStatisticsView>
     with SingleTickerProviderStateMixin {
   final OrderService _orderService = OrderService();
   final CategoryService _categoryService = CategoryService();
+  final LedgerService _ledgerService = LedgerService();
 
   List<OrderModel> _allOrders = [];
   Map<String, String> _categoryNameMap = {}; // categoryId -> name
   bool _isLoading = true;
+
+  // Debt metrics (all-time, not period-filtered)
+  List<_DebtorInfo> _debtors = [];
+  double _totalOutstandingDebt = 0;
+  int _debtorCount = 0;
 
   late TabController _periodTabController;
 
@@ -72,9 +80,69 @@ class _AdminStatisticsViewState extends State<AdminStatisticsView>
         _categoryNameMap = catMap;
         _isLoading = false;
       });
+
+      // Load debt metrics in parallel (non-blocking)
+      _loadDebtMetrics(orders);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadDebtMetrics(List<OrderModel> allOrders) async {
+    try {
+      final users = await AuthService().fetchAllUsers().timeout(const Duration(seconds: 10));
+      final approvedUsers = users.where((u) => u['status'] == 'approved').toList();
+
+      final debtors = <_DebtorInfo>[];
+
+      for (final user in approvedUsers) {
+        final uid = user['uid'] ?? '';
+        final name = user['name'] ?? '';
+        final storeName = user['storeName'] ?? '';
+        final phone = (user['phone'] ?? '').toString().trim();
+        if (uid.isEmpty) continue;
+
+        // Get ledger transactions
+        final txs = await _ledgerService.getTransactions(uid);
+        double manualCredit = 0;
+        double totalDebit = 0;
+        for (final tx in txs) {
+          if (tx.type == 'credit') {
+            manualCredit += tx.amount;
+          } else {
+            totalDebit += tx.amount;
+          }
+        }
+
+        // Get gros orders total for this user (matched by phone)
+        final ordersCredit = phone.isNotEmpty
+            ? allOrders
+                .where((o) => o.phone.trim() == phone && o.shoppingType == 'gros')
+                .fold(0.0, (sum, o) => sum + o.totalPrice)
+            : 0.0;
+
+        final balance = (manualCredit + ordersCredit) - totalDebit;
+        if (balance > 0) {
+          debtors.add(_DebtorInfo(
+            name: name,
+            storeName: storeName,
+            balance: balance,
+          ));
+        }
+      }
+
+      // Sort by balance descending
+      debtors.sort((a, b) => b.balance.compareTo(a.balance));
+
+      if (!mounted) return;
+      setState(() {
+        _debtors = debtors;
+        _totalOutstandingDebt = debtors.fold(0.0, (sum, d) => sum + d.balance);
+        _debtorCount = debtors.length;
+      });
+    } catch (_) {
+      // Debt metrics are non-critical — fail silently
     }
   }
 
@@ -289,6 +357,13 @@ class _AdminStatisticsViewState extends State<AdminStatisticsView>
                       icon: Icons.category,
                       child: _buildTopItemsChart(_topCategories()),
                     ),
+                    SizedBox(height: Responsive.sp(16)),
+                    // Top debtors
+                    _buildChartCard(
+                      title: 'أكثر المدينين',
+                      icon: Icons.account_balance_wallet,
+                      child: _buildTopDebtorsSection(),
+                    ),
                     SizedBox(height: Responsive.sp(32)),
                   ],
                 ),
@@ -372,6 +447,18 @@ class _AdminStatisticsViewState extends State<AdminStatisticsView>
           color: const Color(0xFF8B5CF6),
           value: '${_totalRevenue.toStringAsFixed(0)} د.ج',
           label: 'إجمالي الإيرادات',
+        ),
+        _buildKpiCard(
+          icon: Icons.account_balance_wallet_outlined,
+          color: const Color(0xFFEF4444),
+          value: '${_totalOutstandingDebt.toStringAsFixed(0)} د.ج',
+          label: 'إجمالي الديون',
+        ),
+        _buildKpiCard(
+          icon: Icons.people_outline,
+          color: const Color(0xFFF97316),
+          value: _debtorCount.toString(),
+          label: 'عدد المدينين',
         ),
       ],
     );
@@ -944,6 +1031,146 @@ class _AdminStatisticsViewState extends State<AdminStatisticsView>
       ),
     );
   }
+  // ─── TOP DEBTORS SECTION ────────────────────────────────────
+
+  Widget _buildTopDebtorsSection() {
+    if (_debtors.isEmpty) {
+      return _buildEmptyChartMessage();
+    }
+
+    final topDebtors = _debtors.take(5).toList();
+    final maxBalance = topDebtors.first.balance;
+
+    final colors = [
+      const Color(0xFFEF4444),
+      const Color(0xFFF97316),
+      const Color(0xFFEAB308),
+      const Color(0xFF8B5CF6),
+      const Color(0xFFEC4899),
+    ];
+
+    return Column(
+      children: topDebtors.asMap().entries.map((entry) {
+        final idx = entry.key;
+        final debtor = entry.value;
+        final fraction = maxBalance > 0 ? debtor.balance / maxBalance : 0.0;
+        final color = colors[idx % colors.length];
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: Responsive.sp(12)),
+          child: Row(
+            children: [
+              // Rank badge
+              Container(
+                width: Responsive.sp(28),
+                height: Responsive.sp(28),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    '${idx + 1}',
+                    style: TextStyle(
+                      color: color,
+                      fontSize: Responsive.fp(12),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Space Grotesk',
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: Responsive.sp(10)),
+              // Name + store + bar
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            debtor.name,
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: Responsive.fp(13),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (debtor.storeName.isNotEmpty) ...[
+                          SizedBox(width: Responsive.sp(6)),
+                          Icon(Icons.store, color: AppColors.textMuted, size: Responsive.sp(12)),
+                          SizedBox(width: Responsive.sp(3)),
+                          Flexible(
+                            child: Text(
+                              debtor.storeName,
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: Responsive.fp(11),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    SizedBox(height: Responsive.sp(4)),
+                    // Progress bar
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Stack(
+                          children: [
+                            Container(
+                              height: 8,
+                              width: constraints.maxWidth,
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceAlt,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutCubic,
+                              height: 8,
+                              width: constraints.maxWidth * fraction,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    color,
+                                    color.withValues(alpha: 0.7),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: Responsive.sp(10)),
+              // Amount
+              Text(
+                '${debtor.balance.toStringAsFixed(0)} د.ج',
+                style: TextStyle(
+                  color: color,
+                  fontSize: Responsive.fp(13),
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Space Grotesk',
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
 
 // ─── TIME BUCKET MODEL ──────────────────────────────────────
@@ -953,4 +1180,17 @@ class _TimeBucket {
   final DateTime start;
   final DateTime end;
   const _TimeBucket(this.label, this.start, this.end);
+}
+
+// ─── DEBTOR INFO MODEL ──────────────────────────────────────
+
+class _DebtorInfo {
+  final String name;
+  final String storeName;
+  final double balance;
+  const _DebtorInfo({
+    required this.name,
+    required this.storeName,
+    required this.balance,
+  });
 }

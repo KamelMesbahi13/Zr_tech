@@ -32,7 +32,7 @@ class CartProvider extends ChangeNotifier {
   /// Add a product to the cart.
   /// Returns `true` if added/incremented successfully,
   /// `false` if the stock limit has been reached.
-  bool addToCart(ProductModel product) {
+  bool addToCart(ProductModel product, {required String shoppingType}) {
     final existing = getCartItem(product.id);
 
     if (existing != null) {
@@ -44,7 +44,7 @@ class CartProvider extends ChangeNotifier {
     } else {
       // Not in cart yet — add with qty 1
       if (product.quantity < 1) return false; // out of stock
-      _items.add(CartItem(product: product));
+      _items.add(CartItem(product: product, shoppingType: shoppingType));
     }
 
     notifyListeners();

@@ -321,7 +321,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         Navigator.pushNamed(
           context,
           '/product-detail',
-          arguments: product,
+          arguments: {'product': product, 'shoppingType': _shoppingType},
         );
       },
       child: Container(
@@ -489,7 +489,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         Navigator.pushNamed(
                           context,
                           '/product-detail',
-                          arguments: product,
+                          arguments: {'product': product, 'shoppingType': _shoppingType},
                         );
                       },
                       style: ElevatedButton.styleFrom(

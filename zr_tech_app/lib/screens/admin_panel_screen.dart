@@ -1331,31 +1331,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ),
       body: Stack(
         children: [
-          // Background decorations
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: Responsive.sp(300),
-              height: Responsive.sp(300),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryDark.withValues(alpha: 0.12),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            right: -80,
-            child: Container(
-              width: Responsive.sp(250),
-              height: Responsive.sp(250),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.cyan.withValues(alpha: 0.06),
-              ),
-            ),
-          ),
           // Main content
           SafeArea(
             child: Column(

@@ -18,7 +18,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _agreeTerms = false;
+
   bool _isLoading = false;
 
   static const List<String> _wilayas = [
@@ -55,17 +55,7 @@ class _SignupScreenState extends State<SignupScreen> {
   void _handleSignUp() async {
     if (_isLoading) return;
 
-    if (!_agreeTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('يرجى الموافقة على الشروط والأحكام', textAlign: TextAlign.center),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-      return;
-    }
+
 
     setState(() => _isLoading = true);
 
@@ -107,49 +97,6 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Decorative top gradient line
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    AppColors.cyan.withValues(alpha: 0.2),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Background blurs
-          Positioned(
-            top: -80,
-            right: -80,
-            child: Container(
-              width: Responsive.sp(256),
-              height: Responsive.sp(256),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.cyan.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            left: -80,
-            child: Container(
-              width: Responsive.sp(256),
-              height: Responsive.sp(256),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryDark.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
           // Main content
           SafeArea(
             child: Center(
@@ -382,49 +329,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             borderSide: const BorderSide(color: AppColors.cyan),
                           ),
                         ),
-                      ),
-                      SizedBox(height: Responsive.sp(16)),
-
-                      // Terms Checkbox
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: Responsive.sp(20),
-                            height: Responsive.sp(20),
-                            child: Checkbox(
-                              value: _agreeTerms,
-                              onChanged: (v) => setState(() => _agreeTerms = v!),
-                              activeColor: AppColors.cyan,
-                              side: const BorderSide(color: AppColors.textSlate500),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            ),
-                          ),
-                          SizedBox(width: Responsive.sp(12)),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: TextStyle(
-                                  color: AppColors.textSlate400,
-                                  fontSize: Responsive.fp(14),
-                                  fontFamily: 'IBM Plex Sans Arabic',
-                                ),
-                                children: [
-                                  const TextSpan(text: 'أوافق على '),
-                                  TextSpan(
-                                    text: 'الشروط والأحكام',
-                                    style: TextStyle(color: AppColors.cyan),
-                                  ),
-                                  const TextSpan(text: ' و '),
-                                  TextSpan(
-                                    text: 'سياسة الخصوصية',
-                                    style: TextStyle(color: AppColors.cyan),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                       SizedBox(height: Responsive.sp(24)),
 

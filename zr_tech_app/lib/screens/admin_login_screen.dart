@@ -80,31 +80,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background blurs
-          Positioned(
-            top: -80,
-            left: -80,
-            child: Container(
-              width: Responsive.sp(300),
-              height: Responsive.sp(300),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            right: -80,
-            child: Container(
-              width: Responsive.sp(300),
-              height: Responsive.sp(300),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryDark.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
           // Main content
           SafeArea(
             child: Center(

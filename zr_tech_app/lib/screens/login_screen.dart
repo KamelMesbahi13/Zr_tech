@@ -141,31 +141,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background blurs
-          Positioned(
-            top: -80,
-            left: -80,
-            child: Container(
-              width: Responsive.sp(300),
-              height: Responsive.sp(300),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            right: -80,
-            child: Container(
-              width: Responsive.sp(300),
-              height: Responsive.sp(300),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryDark.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
           // Main content
           SafeArea(
             child: Center(
@@ -427,36 +402,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: Responsive.sp(32)),
-
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: AppColors.borderDark)),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: Responsive.sp(12)),
-                            child: Text(
-                              'أو تابع باستخدام',
-                              style: TextStyle(color: AppColors.textSlate500, fontSize: Responsive.fp(14)),
-                            ),
-                          ),
-                          Expanded(child: Divider(color: AppColors.borderDark)),
-                        ],
-                      ),
-                      SizedBox(height: Responsive.sp(24)),
-
-                      // Social Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _socialButton('Google', Icons.g_mobiledata),
-                          ),
-                          SizedBox(width: Responsive.sp(16)),
-                          Expanded(
-                            child: _socialButton('Apple', Icons.apple),
-                          ),
-                        ],
                       ),
                       SizedBox(height: Responsive.sp(32)),
 

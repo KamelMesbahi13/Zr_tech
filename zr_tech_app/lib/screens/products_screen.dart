@@ -162,31 +162,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return Scaffold(
         body: Stack(
           children: [
-            // Background decorations
-            Positioned(
-              top: -80,
-              left: -80,
-              child: Container(
-                width: Responsive.sp(260),
-                height: Responsive.sp(260),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -60,
-              right: -60,
-              child: Container(
-                width: Responsive.sp(200),
-                height: Responsive.sp(200),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.cyan.withValues(alpha: 0.04),
-                ),
-              ),
-            ),
             SafeArea(
               child: Center(
                 child: ConstrainedBox(

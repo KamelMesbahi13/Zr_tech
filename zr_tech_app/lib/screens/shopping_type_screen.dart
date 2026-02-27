@@ -13,8 +13,6 @@ class ShoppingTypeScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned(top: -100, left: -50, child: Container(width: Responsive.sp(300), height: Responsive.sp(300), decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.primaryDark.withValues(alpha: 0.2)))),
-          Positioned(bottom: -50, right: -50, child: Container(width: Responsive.sp(400), height: Responsive.sp(400), decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.primaryLight.withValues(alpha: 0.1)))),
           SafeArea(
             child: Center(
               child: Padding(
@@ -41,41 +39,43 @@ class ShoppingTypeScreen extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center, 
                               children: [
-                                // ── Decorative Graphic to fill vertical space ──
-                                Container(
-                                  width: Responsive.sp(140),
-                                  height: Responsive.sp(140),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppColors.primary.withValues(alpha: 0.15),
-                                        AppColors.cyan.withValues(alpha: 0.05),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    border: Border.all(
-                                      color: AppColors.primary.withValues(alpha: 0.2),
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primary.withValues(alpha: 0.1),
-                                        blurRadius: 30,
-                                        spreadRadius: 10,
+                                // ── Decorative Graphic (phone only) ──
+                                if (Responsive.screenWidth < Breakpoints.mobile) ...[
+                                  Container(
+                                    width: Responsive.sp(140),
+                                    height: Responsive.sp(140),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppColors.primary.withValues(alpha: 0.15),
+                                          AppColors.cyan.withValues(alpha: 0.05),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
                                       ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.store_mall_directory_rounded,
-                                      size: Responsive.sp(64),
-                                      color: AppColors.primaryLight,
+                                      border: Border.all(
+                                        color: AppColors.primary.withValues(alpha: 0.2),
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withValues(alpha: 0.1),
+                                          blurRadius: 30,
+                                          spreadRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.store_mall_directory_rounded,
+                                        size: Responsive.sp(64),
+                                        color: AppColors.primaryLight,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(height: Responsive.sp(48)),
+                                  SizedBox(height: Responsive.sp(48)),
+                                ],
 
                                 // ── Choices ──
                                 _card(context, 'بالجملة', 'للشركات والتجار', Icons.inventory_2_outlined, () => Navigator.pushNamed(context, '/login')),

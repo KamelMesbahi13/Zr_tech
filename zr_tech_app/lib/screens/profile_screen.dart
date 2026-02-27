@@ -59,30 +59,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned(
-            top: -80,
-            right: -80,
-            child: Container(
-              width: Responsive.sp(256),
-              height: Responsive.sp(256),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.cyan.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            left: -80,
-            child: Container(
-              width: Responsive.sp(256),
-              height: Responsive.sp(256),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryDark.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
           SafeArea(
             child: Center(
               child: ConstrainedBox(

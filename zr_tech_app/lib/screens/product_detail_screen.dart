@@ -406,31 +406,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Scaffold(
         body: Stack(
           children: [
-            // Background decorations
-            Positioned(
-              top: -80,
-              left: -80,
-              child: Container(
-                width: Responsive.sp(240),
-                height: Responsive.sp(240),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryDark.withValues(alpha: 0.1),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -60,
-              right: -60,
-              child: Container(
-                width: Responsive.sp(200),
-                height: Responsive.sp(200),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.cyan.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
             SafeArea(
               child: Center(
                 child: ConstrainedBox(

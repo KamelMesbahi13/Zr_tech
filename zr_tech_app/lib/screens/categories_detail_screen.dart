@@ -422,10 +422,11 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
               children: [
                 Consumer<CartProvider>(
                   builder: (context, cart, _) => _navItem(
-                    Icons.shopping_cart_outlined, 'السلة', 2,
+                    Icons.shopping_cart_outlined, 'السلة', 3,
                     badge: cart.totalItems > 0 ? cart.totalItems : null,
                   ),
                 ),
+                _navItem(Icons.favorite_outline, 'المفضلة', 2),
                 _navItem(Icons.category, 'الفئات', 1, isActive: true),
                 _navItem(Icons.home_outlined, 'الرئيسية', 0),
               ],
@@ -454,6 +455,9 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
             // Already on categories
             break;
           case 2:
+            Navigator.pushNamed(context, '/favorites');
+            break;
+          case 3:
             showCartDrawer(context);
             break;
         }

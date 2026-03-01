@@ -417,13 +417,14 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _navItem(Icons.person_outline, 'حسابي', 3),
+                _navItem(Icons.person_outline, 'حسابي', 4),
                 Consumer<CartProvider>(
                   builder: (context, cart, _) => _navItem(
-                    Icons.shopping_cart_outlined, 'السلة', 2,
+                    Icons.shopping_cart_outlined, 'السلة', 3,
                     badge: cart.totalItems > 0 ? cart.totalItems : null,
                   ),
                 ),
+                _navItem(Icons.favorite_outline, 'المفضلة', 2),
                 _navItem(Icons.category, 'الفئات', 1, isActive: true),
                 _navItem(Icons.home_outlined, 'الرئيسية', 0),
               ],
@@ -451,9 +452,12 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
           case 1:
             break;
           case 2:
-            showCartDrawer(context);
+            Navigator.pushNamed(context, '/favorites');
             break;
           case 3:
+            showCartDrawer(context);
+            break;
+          case 4:
             Navigator.pushNamed(context, '/profile');
             break;
         }

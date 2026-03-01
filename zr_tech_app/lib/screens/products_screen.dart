@@ -19,6 +19,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   bool _hasSeeded = false;
   String _shoppingType = 'gros';
   String _categoryId = '';
+  String _subcategoryId = '';
   String _categoryName = '';
   String _selectedFilter = 'all'; // 'all' or 'new'
 
@@ -29,6 +30,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if (args is Map<String, String>) {
       _shoppingType = args['shoppingType'] ?? 'gros';
       _categoryId = args['categoryId'] ?? '';
+      _subcategoryId = args['subcategoryId'] ?? '';
       _categoryName = args['categoryName'] ?? '';
     }
     if (!_hasSeeded) {
@@ -40,13 +42,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      var products = await _productService.getProducts(_shoppingType, _categoryId).timeout(const Duration(seconds: 10));
+      var products = await _productService.getProducts(_shoppingType, _categoryId, _subcategoryId).timeout(const Duration(seconds: 10));
 
-      // If no products exist, seed sample data first
+      // If no products exist, show empty state
       if (products.isEmpty && !_hasSeeded) {
         _hasSeeded = true;
-        await _productService.seedProducts();
-        products = await _productService.getProducts(_shoppingType, _categoryId).timeout(const Duration(seconds: 10));
       }
 
       if (!mounted) return;

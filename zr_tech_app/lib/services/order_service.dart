@@ -24,6 +24,7 @@ class OrderService {
       await productService.decreaseQuantity(
         shoppingType: order.shoppingType,
         categoryId: order.categoryId,
+        subcategoryId: order.subcategoryId,
         productId: order.productId,
         amount: order.quantity,
       );

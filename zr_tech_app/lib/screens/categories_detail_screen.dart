@@ -285,7 +285,7 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                                   onTap: () {
                                     Navigator.pushNamed(
                                       context,
-                                      '/products',
+                                      '/subcategories',
                                       arguments: {
                                         'shoppingType': 'detail',
                                         'categoryId': cat.id,

@@ -13,6 +13,7 @@ import 'screens/categories_detail_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/admin_panel_screen.dart';
 import 'screens/products_screen.dart';
+import 'screens/subcategories_screen.dart';
 import 'screens/product_detail_screen.dart';
 import 'screens/order_form_screen.dart';
 import 'screens/cart_checkout_screen.dart';
@@ -69,6 +70,7 @@ class ZRTechApp extends StatelessWidget {
           '/categories-detail': (context) => const CategoriesDetailScreen(),
           '/profile': (context) => const ProfileScreen(),
           '/admin': (context) => const AdminPanelScreen(),
+          '/subcategories': (context) => const SubcategoriesScreen(),
           '/products': (context) => const ProductsScreen(),
           '/product-detail': (context) => const ProductDetailScreen(),
           '/order-form': (context) => const OrderFormScreen(),

@@ -5,6 +5,7 @@ class OrderModel {
   final String productImage;
   final double productPrice;
   final String categoryId;
+  final String subcategoryId;
   final String shoppingType;
   final String firstName;
   final String lastName;
@@ -25,6 +26,7 @@ class OrderModel {
     required this.productImage,
     required this.productPrice,
     required this.categoryId,
+    this.subcategoryId = '',
     required this.shoppingType,
     required this.firstName,
     required this.lastName,
@@ -48,6 +50,7 @@ class OrderModel {
       'productImage': productImage,
       'productPrice': productPrice,
       'categoryId': categoryId,
+      'subcategoryId': subcategoryId,
       'shoppingType': shoppingType,
       'firstName': firstName,
       'lastName': lastName,
@@ -71,6 +74,7 @@ class OrderModel {
       productImage: map['productImage'] ?? '',
       productPrice: (map['productPrice'] ?? 0).toDouble(),
       categoryId: map['categoryId'] ?? '',
+      subcategoryId: map['subcategoryId'] ?? '',
       shoppingType: map['shoppingType'] ?? '',
       firstName: map['firstName'] ?? '',
       lastName: map['lastName'] ?? '',

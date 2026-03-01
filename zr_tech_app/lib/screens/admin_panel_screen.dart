@@ -6,9 +6,11 @@ import '../theme/responsive_wrapper.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/product_service.dart';
+import '../services/subcategory_service.dart';
 import '../services/order_service.dart';
 import '../services/wilaya_service.dart';
 import '../models/category_model.dart';
+import '../models/subcategory_model.dart';
 import '../models/product_model.dart';
 import '../models/order_model.dart';
 import '../models/wilaya_model.dart';
@@ -25,6 +27,7 @@ class AdminPanelScreen extends StatefulWidget {
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
+  final SubcategoryService _subcategoryService = SubcategoryService();
   final OrderService _orderService = OrderService();
   final WilayaService _wilayaService = WilayaService();
 
@@ -33,6 +36,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   List<CategoryModel> _grosCategories = [];
   List<CategoryModel> _detailCategories = [];
+  Map<String, List<SubcategoryModel>> _grosSubcategories = {};
+  Map<String, List<SubcategoryModel>> _detailSubcategories = {};
   List<ProductModel> _grosProducts = [];
   List<ProductModel> _detailProducts = [];
   bool _isLoading = true;
@@ -107,25 +112,56 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     super.dispose();
   }
 
+  Map<String, List<SubcategoryModel>> get _currentSubcategories =>
+      _typeIndex == 0 ? _grosSubcategories : _detailSubcategories;
+
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
       final gros = await _categoryService.getCategories('gros').timeout(const Duration(seconds: 10));
       final detail = await _categoryService.getCategories('detail').timeout(const Duration(seconds: 10));
-      final grosProd = await _productService.getAllProducts('gros').timeout(const Duration(seconds: 10));
-      final detailProd = await _productService.getAllProducts('detail').timeout(const Duration(seconds: 10));
+
+      Map<String, List<SubcategoryModel>> grosSubcats = {};
+      Map<String, List<SubcategoryModel>> detailSubcats = {};
+      try {
+        grosSubcats = await _subcategoryService.getAllSubcategories('gros').timeout(const Duration(seconds: 10));
+      } catch (e) {
+        debugPrint('[ADMIN] Error loading gros subcategories: $e');
+      }
+      try {
+        detailSubcats = await _subcategoryService.getAllSubcategories('detail').timeout(const Duration(seconds: 10));
+      } catch (e) {
+        debugPrint('[ADMIN] Error loading detail subcategories: $e');
+      }
+
+      List<ProductModel> grosProd = [];
+      List<ProductModel> detailProd = [];
+      try {
+        grosProd = await _productService.getAllProducts('gros').timeout(const Duration(seconds: 10));
+      } catch (e) {
+        debugPrint('[ADMIN] Error loading gros products: $e');
+      }
+      try {
+        detailProd = await _productService.getAllProducts('detail').timeout(const Duration(seconds: 10));
+      } catch (e) {
+        debugPrint('[ADMIN] Error loading detail products: $e');
+      }
+
       if (!mounted) return;
       setState(() {
         _grosCategories = gros;
         _detailCategories = detail;
+        _grosSubcategories = grosSubcats;
+        _detailSubcategories = detailSubcats;
         _grosProducts = grosProd;
         _detailProducts = detailProd;
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('[ADMIN] Error loading categories: $e');
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _showErrorSnackBar('حدث خطأ أثناء تحميل البيانات');
+      _showErrorSnackBar('\u062d\u062f\u062b \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a');
     }
   }
 
@@ -1038,6 +1074,313 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // ─── SUBCATEGORIES MANAGEMENT ──────────────
+                    const Divider(color: AppColors.borderDark, height: 32),
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'الأقسام الفرعية',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Add subcategory button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showAddSubcategoryDialog(category);
+                        },
+                        icon: const Icon(Icons.add, color: AppColors.primary, size: 20),
+                        label: const Text('إضافة قسم فرعي', style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w600)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // List of existing subcategories
+                    Builder(
+                      builder: (context) {
+                        final subcats = _currentSubcategories[category.id] ?? [];
+                        if (subcats.isEmpty) {
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceDarkAlt,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderDark),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'لا توجد أقسام فرعية بعد',
+                                style: TextStyle(color: AppColors.textSlate500, fontSize: 13),
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: subcats.map((subcat) => Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceDarkAlt,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderDark),
+                            ),
+                            child: Row(
+                              children: [
+                                if (subcat.image.isNotEmpty)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: SizedBox(
+                                      width: 36, height: 36,
+                                      child: _buildImageWidget(subcat.image, fit: BoxFit.cover),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    width: 36, height: 36,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceDark,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(Icons.category_outlined, color: AppColors.textSlate500, size: 18),
+                                  ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    subcat.name,
+                                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 20),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _showEditSubcategoryDialog(category, subcat);
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                  onPressed: () async {
+                                    try {
+                                      await _subcategoryService.deleteSubcategory(
+                                        shoppingType: _currentType,
+                                        categoryId: category.id,
+                                        subcategoryId: subcat.id,
+                                      );
+                                      _showSuccessSnackBar('تم حذف القسم الفرعي');
+                                      Navigator.pop(context);
+                                      _loadData();
+                                    } catch (e) {
+                                      _showErrorSnackBar('حدث خطأ أثناء حذف القسم الفرعي');
+                                    }
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                ),
+                              ],
+                            ),
+                          )).toList(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  // ─── ADD SUBCATEGORY ────────────────────────────────────────────
+
+  void _showAddSubcategoryDialog(CategoryModel category) {
+    final nameController = TextEditingController();
+    final imageUrlController = TextEditingController();
+    final orderController = TextEditingController(text: '0');
+    bool isSaving = false;
+    bool useUrl = true;
+    String? uploadedUrl;
+    String? uploadedFileName;
+    bool isUploading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.borderDark, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(height: 16),
+                    const Text('إضافة قسم فرعي', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
+                    _buildTextField(controller: nameController, label: 'اسم القسم الفرعي', hint: 'مثال: أحذية رياضية', icon: Icons.category_outlined),
+                    const SizedBox(height: 16),
+                    _buildImagePicker(
+                      useUrl: useUrl,
+                      onToggle: (val) => setSheetState(() => useUrl = val),
+                      urlController: imageUrlController,
+                      uploadedUrl: uploadedUrl,
+                      uploadedFileName: uploadedFileName,
+                      isUploading: isUploading,
+                      onUploaded: (url, name) => setSheetState(() { uploadedUrl = url; uploadedFileName = name; }),
+                      setUploading: (val) => setSheetState(() => isUploading = val),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: orderController, label: 'الترتيب', hint: '0', icon: Icons.sort, keyboardType: TextInputType.number, isLTR: true),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary, boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4))]),
+                        child: ElevatedButton(
+                          onPressed: (isSaving || isUploading) ? null : () async {
+                            if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم القسم الفرعي'); return; }
+                            final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? '');
+                            setSheetState(() => isSaving = true);
+                            try {
+                              await _subcategoryService.addSubcategory(
+                                shoppingType: _currentType,
+                                categoryId: category.id,
+                                name: nameController.text.trim(),
+                                image: imageUrl,
+                                order: int.tryParse(orderController.text.trim()) ?? 0,
+                              );
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                              _showSuccessSnackBar('تم إضافة القسم الفرعي بنجاح');
+                              _loadData();
+                            } catch (e) {
+                              setSheetState(() => isSaving = false);
+                              _showErrorSnackBar('حدث خطأ أثناء إضافة القسم الفرعي');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                          child: isSaving
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add_circle_outline, color: Colors.white, size: 20), SizedBox(width: 8), Text('إضافة', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditSubcategoryDialog(CategoryModel category, SubcategoryModel subcat) {
+    final nameController = TextEditingController(text: subcat.name);
+    final imageUrlController = TextEditingController(text: subcat.image);
+    final orderController = TextEditingController(text: subcat.order.toString());
+    bool isSaving = false;
+    bool useUrl = true;
+    String? uploadedUrl;
+    String? uploadedFileName;
+    bool isUploading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.borderDark, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(height: 16),
+                    Text('تعديل: ${subcat.name}', style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
+                    _buildTextField(controller: nameController, label: 'اسم القسم الفرعي', hint: 'مثال: أحذية رياضية', icon: Icons.category_outlined),
+                    const SizedBox(height: 16),
+                    _buildImagePicker(
+                      useUrl: useUrl,
+                      onToggle: (val) => setSheetState(() => useUrl = val),
+                      urlController: imageUrlController,
+                      uploadedUrl: uploadedUrl,
+                      uploadedFileName: uploadedFileName,
+                      isUploading: isUploading,
+                      onUploaded: (url, name) => setSheetState(() { uploadedUrl = url; uploadedFileName = name; }),
+                      setUploading: (val) => setSheetState(() => isUploading = val),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(controller: orderController, label: 'الترتيب', hint: '0', icon: Icons.sort, keyboardType: TextInputType.number, isLTR: true),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary, boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4))]),
+                        child: ElevatedButton(
+                          onPressed: (isSaving || isUploading) ? null : () async {
+                            if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم القسم الفرعي'); return; }
+                            final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? subcat.image);
+                            setSheetState(() => isSaving = true);
+                            try {
+                              await _subcategoryService.updateSubcategory(
+                                shoppingType: _currentType,
+                                categoryId: category.id,
+                                subcategoryId: subcat.id,
+                                name: nameController.text.trim(),
+                                image: imageUrl,
+                                order: int.tryParse(orderController.text.trim()) ?? 0,
+                              );
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                              _showSuccessSnackBar('تم تعديل القسم الفرعي بنجاح');
+                              _loadData();
+                            } catch (e) {
+                              setSheetState(() => isSaving = false);
+                              _showErrorSnackBar('حدث خطأ أثناء تعديل القسم الفرعي');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                          child: isSaving
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.save_outlined, color: Colors.white, size: 20), SizedBox(width: 8), Text('حفظ التعديلات', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
@@ -1918,6 +2261,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final quantityController = TextEditingController(text: '0');
     final minQuantityController = TextEditingController(text: '1');
     String? selectedCategoryId;
+    String? selectedSubcategoryId;
+    List<SubcategoryModel> availableSubcategories = [];
     bool isSaving = false;
     bool useUrl = false;
     bool isUploading = false;
@@ -1982,7 +2327,39 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           hint: const Text('اختر الفئة', style: TextStyle(color: AppColors.textSlate500, fontSize: 14)),
                           style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                           items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, style: const TextStyle(color: AppColors.textPrimary)))).toList(),
-                          onChanged: (val) => setSheetState(() => selectedCategoryId = val),
+                          onChanged: (val) {
+                            setSheetState(() {
+                              selectedCategoryId = val;
+                              selectedSubcategoryId = null;
+                              availableSubcategories = _currentSubcategories[val] ?? [];
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Subcategory dropdown
+                    Align(alignment: Alignment.centerRight, child: const Text('القسم الفرعي', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceDarkAlt,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.borderDark),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedSubcategoryId,
+                          isExpanded: true,
+                          dropdownColor: AppColors.surfaceDarkAlt,
+                          hint: Text(
+                            selectedCategoryId == null ? 'اختر الفئة أولاً' : 'اختر القسم الفرعي',
+                            style: const TextStyle(color: AppColors.textSlate500, fontSize: 14),
+                          ),
+                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                          items: availableSubcategories.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name, style: const TextStyle(color: AppColors.textPrimary)))).toList(),
+                          onChanged: selectedCategoryId == null ? null : (val) => setSheetState(() => selectedSubcategoryId = val),
                         ),
                       ),
                     ),
@@ -2003,6 +2380,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           onPressed: (isSaving || isUploading) ? null : () async {
                             if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
                             if (selectedCategoryId == null) { _showErrorSnackBar('الرجاء اختيار الفئة'); return; }
+                            if (selectedSubcategoryId == null) { _showErrorSnackBar('الرجاء اختيار القسم الفرعي'); return; }
                             final qty = int.tryParse(quantityController.text.trim()) ?? 0;
                             final minQty = _currentType == 'gros' ? (int.tryParse(minQuantityController.text.trim()) ?? 1) : 1;
                             if (_currentType == 'gros' && minQty > qty) {
@@ -2019,6 +2397,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               await _productService.addProduct(
                                 shoppingType: _currentType,
                                 categoryId: selectedCategoryId!,
+                                subcategoryId: selectedSubcategoryId!,
                                 name: nameController.text.trim(),
                                 image: imageUrl,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
@@ -2122,6 +2501,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       child: Text(product.categoryId, style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontFamily: 'Space Grotesk')),
                     ),
                     const SizedBox(height: 16),
+                    // Subcategory (read-only display)
+                    Align(alignment: Alignment.centerRight, child: const Text('القسم الفرعي', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(color: AppColors.surfaceDarkAlt, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.borderDark)),
+                      child: Text(product.subcategoryId, style: const TextStyle(color: AppColors.textSlate400, fontSize: 14, fontFamily: 'Space Grotesk')),
+                    ),
+                    const SizedBox(height: 16),
                     // Quantity input
                     _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
                     if (_currentType == 'gros') ...[
@@ -2153,6 +2542,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               await _productService.updateProduct(
                                 shoppingType: _currentType,
                                 categoryId: product.categoryId,
+                                subcategoryId: product.subcategoryId,
                                 productId: product.id,
                                 name: nameController.text.trim(),
                                 image: imageUrl,
@@ -2236,7 +2626,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   onPressed: isDeleting ? null : () async {
                     setDialogState(() => isDeleting = true);
                     try {
-                      await _productService.deleteProduct(shoppingType: _currentType, categoryId: product.categoryId, productId: product.id);
+                      await _productService.deleteProduct(shoppingType: _currentType, categoryId: product.categoryId, subcategoryId: product.subcategoryId, productId: product.id);
                       if (!mounted) return;
                       Navigator.pop(context);
                       _showSuccessSnackBar('تم حذف المنتج بنجاح');

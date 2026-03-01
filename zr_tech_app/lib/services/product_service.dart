@@ -5,12 +5,13 @@ import '../services/auth_service.dart';
 class ProductService {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
 
-  /// Fetch products for a specific category under a shopping type.
-  Future<List<ProductModel>> getProducts(String shoppingType, String categoryId) async {
+  /// Fetch products for a specific subcategory under a category and shopping type.
+  Future<List<ProductModel>> getProducts(String shoppingType, String categoryId, String subcategoryId) async {
     final snapshot = await _dbRef
         .child('products')
         .child(shoppingType)
         .child(categoryId)
+        .child(subcategoryId)
         .get();
 
     if (!snapshot.exists || snapshot.value == null) {
@@ -22,14 +23,14 @@ class ProductService {
 
     data.forEach((key, value) {
       products.add(
-        ProductModel.fromMap(key, categoryId, Map<String, dynamic>.from(value as Map)),
+        ProductModel.fromMap(key, categoryId, Map<String, dynamic>.from(value as Map), subcategoryId: subcategoryId),
       );
     });
 
     return products;
   }
 
-  /// Fetch ALL products across all categories for a shopping type.
+  /// Fetch ALL products across all categories and subcategories for a shopping type.
   Future<List<ProductModel>> getAllProducts(String shoppingType) async {
     final snapshot = await _dbRef
         .child('products')
@@ -43,18 +44,24 @@ class ProductService {
     final categoriesData = Map<String, dynamic>.from(snapshot.value as Map);
     final products = <ProductModel>[];
 
-    categoriesData.forEach((categoryId, categoryProducts) {
-      if (categoryProducts is Map) {
-        final productsMap = Map<String, dynamic>.from(categoryProducts);
-        productsMap.forEach((productId, productData) {
-          if (productData is Map) {
-            products.add(
-              ProductModel.fromMap(
-                productId,
-                categoryId,
-                Map<String, dynamic>.from(productData),
-              ),
-            );
+    categoriesData.forEach((categoryId, categoryData) {
+      if (categoryData is Map) {
+        final subcategoriesMap = Map<String, dynamic>.from(categoryData);
+        subcategoriesMap.forEach((subcategoryId, subcatProducts) {
+          if (subcatProducts is Map) {
+            final productsMap = Map<String, dynamic>.from(subcatProducts);
+            productsMap.forEach((productId, productData) {
+              if (productData is Map) {
+                products.add(
+                  ProductModel.fromMap(
+                    productId,
+                    categoryId,
+                    Map<String, dynamic>.from(productData),
+                    subcategoryId: subcategoryId,
+                  ),
+                );
+              }
+            });
           }
         });
       }
@@ -63,12 +70,13 @@ class ProductService {
     return products;
   }
 
-  /// Generate the next product ID (prod_XXX format) for a category.
-  Future<String> _getNextProductId(String shoppingType, String categoryId) async {
+  /// Generate the next product ID (prod_XXX format) for a subcategory.
+  Future<String> _getNextProductId(String shoppingType, String categoryId, String subcategoryId) async {
     final snapshot = await _dbRef
         .child('products')
         .child(shoppingType)
         .child(categoryId)
+        .child(subcategoryId)
         .get();
 
     int maxNum = 0;
@@ -88,10 +96,11 @@ class ProductService {
     return 'prod_${nextNum.toString().padLeft(3, '0')}';
   }
 
-  /// Add a new product under a specific shopping type and category. Admin only.
+  /// Add a new product under a specific shopping type, category, and subcategory. Admin only.
   Future<void> addProduct({
     required String shoppingType,
     required String categoryId,
+    required String subcategoryId,
     required String name,
     required String image,
     required double price,
@@ -100,11 +109,12 @@ class ProductService {
     int minQuantity = 1,
   }) async {
     await AuthService().requireAdmin();
-    final prodId = await _getNextProductId(shoppingType, categoryId);
+    final prodId = await _getNextProductId(shoppingType, categoryId, subcategoryId);
     await _dbRef
         .child('products')
         .child(shoppingType)
         .child(categoryId)
+        .child(subcategoryId)
         .child(prodId)
         .set({
       'name': name,
@@ -121,6 +131,7 @@ class ProductService {
   Future<void> updateProduct({
     required String shoppingType,
     required String categoryId,
+    required String subcategoryId,
     required String productId,
     required String name,
     required String image,
@@ -134,6 +145,7 @@ class ProductService {
         .child('products')
         .child(shoppingType)
         .child(categoryId)
+        .child(subcategoryId)
         .child(productId)
         .update({
       'name': name,
@@ -149,6 +161,7 @@ class ProductService {
   Future<void> deleteProduct({
     required String shoppingType,
     required String categoryId,
+    required String subcategoryId,
     required String productId,
   }) async {
     await AuthService().requireAdmin();
@@ -156,6 +169,7 @@ class ProductService {
         .child('products')
         .child(shoppingType)
         .child(categoryId)
+        .child(subcategoryId)
         .child(productId)
         .remove();
   }
@@ -165,6 +179,7 @@ class ProductService {
   Future<void> decreaseQuantity({
     required String shoppingType,
     required String categoryId,
+    required String subcategoryId,
     required String productId,
     required int amount,
   }) async {
@@ -172,6 +187,7 @@ class ProductService {
         .child('products')
         .child(shoppingType)
         .child(categoryId)
+        .child(subcategoryId)
         .child(productId)
         .child('quantity');
 
@@ -179,45 +195,5 @@ class ProductService {
     final currentQty = (snapshot.value ?? 0) as int;
     final newQty = (currentQty - amount).clamp(0, currentQty);
     await ref.set(newQty);
-  }
-
-  /// Seed sample products for demo purposes.
-  /// Call once to populate the database with sample data.
-  Future<void> seedProducts() async {
-    final sampleProducts = {
-      'cat_001': [
-        {'name': 'كابل USB-C سريع الشحن', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-pnanfgsRJ5BIbYazJJOKbNOnNrsxUyPwrl-w2C8SAu_Bk_ItGS3l5l1S1Io65YAnHQKJAlAEsVrZB4zrerg7qGOeBciMA-6wuPL2JEZmgTD8fQsuHPWyORqK-5nkKFEuPmnapCdIvXNGF0npLvRZek4pQ19GRJw4Pv15gkhClKoumDffuo2Fy3IIpxjCTfcpF8_ENb2yvk6G8hidRR_LZa0eKr2sJv4f_8fr-rfh8a0fC3ucYbe6mtpeXxPHRYwl-5A0bbuNSPa4', 'price': 350.0, 'quantity': 25, 'description': 'كابل USB-C عالي الجودة يدعم الشحن السريع بقوة 65 واط. متوافق مع جميع الأجهزة الحديثة.'},
-        {'name': 'كابل Lightning أصلي', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-pnanfgsRJ5BIbYazJJOKbNOnNrsxUyPwrl-w2C8SAu_Bk_ItGS3l5l1S1Io65YAnHQKJAlAEsVrZB4zrerg7qGOeBciMA-6wuPL2JEZmgTD8fQsuHPWyORqK-5nkKFEuPmnapCdIvXNGF0npLvRZek4pQ19GRJw4Pv15gkhClKoumDffuo2Fy3IIpxjCTfcpF8_ENb2yvk6G8hidRR_LZa0eKr2sJv4f_8fr-rfh8a0fC3ucYbe6mtpeXxPHRYwl-5A0bbuNSPa4', 'price': 500.0, 'quantity': 15, 'description': 'كابل Lightning معتمد من Apple. طول 1.5 متر مع حماية من التلف.'},
-        {'name': 'كابل HDMI 4K', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-pnanfgsRJ5BIbYazJJOKbNOnNrsxUyPwrl-w2C8SAu_Bk_ItGS3l5l1S1Io65YAnHQKJAlAEsVrZB4zrerg7qGOeBciMA-6wuPL2JEZmgTD8fQsuHPWyORqK-5nkKFEuPmnapCdIvXNGF0npLvRZek4pQ19GRJw4Pv15gkhClKoumDffuo2Fy3IIpxjCTfcpF8_ENb2yvk6G8hidRR_LZa0eKr2sJv4f_8fr-rfh8a0fC3ucYbe6mtpeXxPHRYwl-5A0bbuNSPa4', 'price': 800.0, 'quantity': 0, 'description': 'كابل HDMI 2.1 يدعم دقة 4K@120Hz. مثالي للألعاب والعرض.'},
-      ],
-      'cat_002': [
-        {'name': 'شاحن سريع 65W', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDeNiB1DjysNW3AJGscjFY16A8Yp5nw67mOVa3TtD1aK6DJ3-6-duUC1addJ-0WGP-6FzHglbzZPPH9XPPqhYdUgHIA45dxFxamMMJhTY4GU7AU-YPmas_m--mi1MY8fvQU9AWVxO0BdYki_ewaxoM4S56TtHJWt6Az1l-LIB-tEUUBCuhRO20uXlsJmaMO0CZWhi89qz-LceQxmQdfbzhHh2R56FLwyGVrgWkVGW2IkFw9W1tTZhZSs321UtqWEiHKYgzN3iP71kBz', 'price': 1200.0, 'quantity': 30, 'description': 'شاحن GaN سريع بقوة 65 واط مع منفذين USB-C ومنفذ USB-A.'},
-        {'name': 'شاحن لاسلكي MagSafe', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDeNiB1DjysNW3AJGscjFY16A8Yp5nw67mOVa3TtD1aK6DJ3-6-duUC1addJ-0WGP-6FzHglbzZPPH9XPPqhYdUgHIA45dxFxamMMJhTY4GU7AU-YPmas_m--mi1MY8fvQU9AWVxO0BdYki_ewaxoM4S56TtHJWt6Az1l-LIB-tEUUBCuhRO20uXlsJmaMO0CZWhi89qz-LceQxmQdfbzhHh2R56FLwyGVrgWkVGW2IkFw9W1tTZhZSs321UtqWEiHKYgzN3iP71kBz', 'price': 1800.0, 'quantity': 10, 'description': 'قاعدة شحن لاسلكي متوافقة مع MagSafe. شحن سريع 15 واط.'},
-        {'name': 'شاحن سيارة 30W', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDeNiB1DjysNW3AJGscjFY16A8Yp5nw67mOVa3TtD1aK6DJ3-6-duUC1addJ-0WGP-6FzHglbzZPPH9XPPqhYdUgHIA45dxFxamMMJhTY4GU7AU-YPmas_m--mi1MY8fvQU9AWVxO0BdYki_ewaxoM4S56TtHJWt6Az1l-LIB-tEUUBCuhRO20uXlsJmaMO0CZWhi89qz-LceQxmQdfbzhHh2R56FLwyGVrgWkVGW2IkFw9W1tTZhZSs321UtqWEiHKYgzN3iP71kBz', 'price': 650.0, 'quantity': 0, 'description': 'شاحن سيارة مزدوج المنافذ بقوة 30 واط. تصميم صغير ومتين.'},
-      ],
-      'cat_003': [
-        {'name': 'سماعات بلوتوث لاسلكية', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkgTHrVRzR4sHh38G57yo3ykt_uCkWhnmqWQ5AldNRJ7w3grsegAKGCrY2VP1G7QfC_rfS2EV_9eL91wpVnvTAA1gRsUh5oaTFXj-JFnF6-6yJJ9-vB2M3gKu-X0Gvzr5rFRzYITcEs2dsx7c8g0CAdDa8pSb5H23sDrpewfq9PtJ1EjMwnytewG2lOCAHXI8rkXWCPhmCw4_Yh5A447Jcw4tS1Wb1eVYTJIU2tGgV5oW0p9EbL9eQdo-wFvzBc5REoehQjVk9hGc4', 'price': 2500.0, 'quantity': 20, 'description': 'سماعات TWS بجودة صوت عالية مع إلغاء الضوضاء النشط. بطارية تدوم 8 ساعات.'},
-        {'name': 'سماعات رأس احترافية', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkgTHrVRzR4sHh38G57yo3ykt_uCkWhnmqWQ5AldNRJ7w3grsegAKGCrY2VP1G7QfC_rfS2EV_9eL91wpVnvTAA1gRsUh5oaTFXj-JFnF6-6yJJ9-vB2M3gKu-X0Gvzr5rFRzYITcEs2dsx7c8g0CAdDa8pSb5H23sDrpewfq9PtJ1EjMwnytewG2lOCAHXI8rkXWCPhmCw4_Yh5A447Jcw4tS1Wb1eVYTJIU2tGgV5oW0p9EbL9eQdo-wFvzBc5REoehQjVk9hGc4', 'price': 4500.0, 'quantity': 8, 'description': 'سماعات رأس لاسلكية مع ميكروفون مدمج. مثالية للألعاب والمكالمات.'},
-        {'name': 'سماعات سلكية HiFi', 'image': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkgTHrVRzR4sHh38G57yo3ykt_uCkWhnmqWQ5AldNRJ7w3grsegAKGCrY2VP1G7QfC_rfS2EV_9eL91wpVnvTAA1gRsUh5oaTFXj-JFnF6-6yJJ9-vB2M3gKu-X0Gvzr5rFRzYITcEs2dsx7c8g0CAdDa8pSb5H23sDrpewfq9PtJ1EjMwnytewG2lOCAHXI8rkXWCPhmCw4_Yh5A447Jcw4tS1Wb1eVYTJIU2tGgV5oW0p9EbL9eQdo-wFvzBc5REoehQjVk9hGc4', 'price': 1200.0, 'quantity': 0, 'description': 'سماعات سلكية بجودة HiFi مع تحكم بالصوت. متوافقة مع جميع الأجهزة.'},
-      ],
-    };
-
-    for (final type in ['gros', 'detail']) {
-      for (final entry in sampleProducts.entries) {
-        final catId = entry.key;
-        final products = entry.value;
-        for (int i = 0; i < products.length; i++) {
-          final prodId = 'prod_${(i + 1).toString().padLeft(3, '0')}';
-          final productData = Map<String, dynamic>.from(products[i]);
-          productData['createdAt'] = DateTime.now().millisecondsSinceEpoch;
-          await _dbRef
-              .child('products')
-              .child(type)
-              .child(catId)
-              .child(prodId)
-              .set(productData);
-        }
-      }
-    }
   }
 }

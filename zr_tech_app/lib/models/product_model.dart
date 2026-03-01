@@ -6,6 +6,7 @@ class ProductModel {
   final int quantity;
   final int minQuantity;
   final String categoryId;
+  final String subcategoryId;
   final String description;
   final int createdAt;
 
@@ -20,6 +21,7 @@ class ProductModel {
     this.quantity = 0,
     this.minQuantity = 1,
     required this.categoryId,
+    this.subcategoryId = '',
     required this.description,
     this.createdAt = 0,
   });
@@ -36,10 +38,11 @@ class ProductModel {
     };
   }
 
-  factory ProductModel.fromMap(String id, String categoryId, Map<String, dynamic> map) {
+  factory ProductModel.fromMap(String id, String categoryId, Map<String, dynamic> map, {String subcategoryId = ''}) {
     return ProductModel(
       id: id,
       categoryId: categoryId,
+      subcategoryId: subcategoryId,
       name: map['name'] ?? '',
       image: map['image'] ?? '',
       price: (map['price'] ?? 0).toDouble(),

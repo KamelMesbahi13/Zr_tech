@@ -228,6 +228,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         productImage: _product!.image,
         productPrice: _product!.price,
         categoryId: _product!.categoryId,
+        subcategoryId: _product!.subcategoryId,
         shoppingType: _resolveShoppingType(),
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),

@@ -1,5 +1,6 @@
 class OrderModel {
   final String orderId;
+  final String userId;
   final String productId;
   final String productName;
   final String productImage;
@@ -16,11 +17,12 @@ class OrderModel {
   final String shippingType; // 'home' or 'desk'
   final double deliveryPrice;
   final double totalPrice;
-  final String status; // 'pending', 'confirmed', 'delivered', 'cancelled'
+  final String status; // 'waiting', 'preparing', 'ready', 'on_the_way', 'delivered', 'received', 'cancelled', 'rejected'
   final int createdAt;
 
   OrderModel({
     required this.orderId,
+    this.userId = '',
     required this.productId,
     required this.productName,
     required this.productImage,
@@ -37,14 +39,27 @@ class OrderModel {
     required this.shippingType,
     required this.deliveryPrice,
     required this.totalPrice,
-    this.status = 'pending',
+    this.status = 'waiting',
     this.createdAt = 0,
   });
 
   String get customerFullName => '$firstName $lastName';
 
+  /// Normalize legacy status values to new tracking statuses.
+  String get normalizedStatus {
+    switch (status) {
+      case 'pending':
+        return 'waiting';
+      case 'confirmed':
+        return 'preparing';
+      default:
+        return status;
+    }
+  }
+
   Map<String, dynamic> toMap() {
     return {
+      'userId': userId,
       'productId': productId,
       'productName': productName,
       'productImage': productImage,
@@ -69,6 +84,7 @@ class OrderModel {
   factory OrderModel.fromMap(String orderId, Map<String, dynamic> map) {
     return OrderModel(
       orderId: orderId,
+      userId: map['userId'] ?? '',
       productId: map['productId'] ?? '',
       productName: map['productName'] ?? '',
       productImage: map['productImage'] ?? '',
@@ -85,7 +101,7 @@ class OrderModel {
       shippingType: map['shippingType'] ?? 'home',
       deliveryPrice: (map['deliveryPrice'] ?? 0).toDouble(),
       totalPrice: (map['totalPrice'] ?? 0).toDouble(),
-      status: map['status'] ?? 'pending',
+      status: map['status'] ?? 'waiting',
       createdAt: (map['createdAt'] ?? 0) is int ? (map['createdAt'] ?? 0) : 0,
     );
   }

@@ -193,7 +193,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       return type == shoppingType;
     }).toList();
     if (_orderFilter != 'all') {
-      list = list.where((o) => o.status == _orderFilter).toList();
+      list = list.where((o) => o.normalizedStatus == _orderFilter).toList();
     }
     if (_orderSearchQuery.isNotEmpty) {
       final q = _orderSearchQuery.toLowerCase();
@@ -3306,13 +3306,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 children: [
                   _buildOrderFilterChip('الكل', 'all'),
                   SizedBox(width: Responsive.sp(8)),
-                  _buildOrderFilterChip('قيد الانتظار', 'pending'),
+                  _buildOrderFilterChip('في الإنتظار', 'waiting'),
                   SizedBox(width: Responsive.sp(8)),
-                  _buildOrderFilterChip('مؤكد', 'confirmed'),
+                  _buildOrderFilterChip('في التجهيز', 'preparing'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('جاهزة', 'ready'),
+                  SizedBox(width: Responsive.sp(8)),
+                  _buildOrderFilterChip('في الطريق', 'on_the_way'),
                   SizedBox(width: Responsive.sp(8)),
                   _buildOrderFilterChip('تم التوصيل', 'delivered'),
                   SizedBox(width: Responsive.sp(8)),
-                  _buildOrderFilterChip('مرتجع', 'returned'),
+                  _buildOrderFilterChip('مستلمة', 'received'),
                   SizedBox(width: Responsive.sp(8)),
                   _buildOrderFilterChip('مرفوض', 'rejected'),
                   SizedBox(width: Responsive.sp(8)),
@@ -3405,36 +3409,51 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     String label;
     IconData icon;
 
-    switch (status) {
-      case 'pending':
+    // Normalize legacy values
+    final s = (status == 'pending') ? 'waiting' : (status == 'confirmed') ? 'preparing' : status;
+
+    switch (s) {
+      case 'waiting':
         bgColor = AppColors.warning.withValues(alpha: 0.1);
         textColor = AppColors.warning;
-        label = 'قيد الانتظار';
+        label = 'في الإنتظار';
         icon = Icons.schedule;
         break;
-      case 'confirmed':
-        bgColor = AppColors.success.withValues(alpha: 0.1);
-        textColor = AppColors.success;
-        label = 'مؤكد';
-        icon = Icons.check_circle_outline;
+      case 'preparing':
+        bgColor = Colors.blue.withValues(alpha: 0.1);
+        textColor = Colors.blue;
+        label = 'في التجهيز';
+        icon = Icons.inventory_2_outlined;
+        break;
+      case 'ready':
+        bgColor = Colors.teal.withValues(alpha: 0.1);
+        textColor = Colors.teal;
+        label = 'جاهزة';
+        icon = Icons.check_box_outlined;
+        break;
+      case 'on_the_way':
+        bgColor = Colors.indigo.withValues(alpha: 0.1);
+        textColor = Colors.indigo;
+        label = 'في الطريق';
+        icon = Icons.local_shipping;
         break;
       case 'delivered':
         bgColor = AppColors.primary.withValues(alpha: 0.1);
         textColor = AppColors.primary;
         label = 'تم التوصيل';
-        icon = Icons.local_shipping;
+        icon = Icons.done_all;
+        break;
+      case 'received':
+        bgColor = AppColors.success.withValues(alpha: 0.1);
+        textColor = AppColors.success;
+        label = 'مستلمة';
+        icon = Icons.verified;
         break;
       case 'cancelled':
         bgColor = AppColors.error.withValues(alpha: 0.1);
         textColor = AppColors.error;
         label = 'ملغي';
         icon = Icons.cancel_outlined;
-        break;
-      case 'returned':
-        bgColor = Colors.orange.withValues(alpha: 0.1);
-        textColor = Colors.orange.shade700;
-        label = 'مرتجع';
-        icon = Icons.assignment_return;
         break;
       case 'rejected':
         bgColor = Colors.deepPurple.withValues(alpha: 0.1);
@@ -3613,50 +3632,35 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Action buttons
+                  // Action buttons — tracking flow
                   Wrap(
                     spacing: 12,
                     runSpacing: 12,
                     alignment: WrapAlignment.center,
                     children: [
-                      // Pending → Confirm
-                      if (order.status == 'pending')
-                        _buildPremiumActionButton(
-                          label: 'تأكيد الطلب',
-                          icon: Icons.check_circle,
-                          color: AppColors.success,
-                          onTap: () => _updateOrderStatus(order.orderId, 'confirmed'),
-                          isPrimary: true,
-                        ),
-                      // Confirmed → Delivered / Returned / Rejected
-                      if (order.status == 'confirmed') ...[
-                        _buildPremiumActionButton(
-                          label: 'تم التوصيل',
-                          icon: Icons.local_shipping,
-                          color: AppColors.primary,
-                          onTap: () => _updateOrderStatus(order.orderId, 'delivered'),
-                          isPrimary: true,
-                        ),
-                        _buildPremiumActionButton(
-                          label: 'مرتجع',
-                          icon: Icons.assignment_return,
-                          color: Colors.orange.shade700,
-                          onTap: () => _updateOrderStatus(order.orderId, 'returned'),
-                        ),
-                        _buildPremiumActionButton(
-                          label: 'مرفوض',
-                          icon: Icons.block,
-                          color: Colors.deepPurple,
-                          onTap: () => _updateOrderStatus(order.orderId, 'rejected'),
-                        ),
-                      ],
-                      // Cancel (available while pending or confirmed)
-                      if (order.status == 'pending' || order.status == 'confirmed')
+                      // Advance to next tracking step
+                      ..._buildTrackingActionButtons(order),
+                      // Cancel (available until delivered)
+                      if (order.normalizedStatus != 'delivered' &&
+                          order.normalizedStatus != 'received' &&
+                          order.normalizedStatus != 'cancelled' &&
+                          order.normalizedStatus != 'rejected')
                         _buildPremiumActionButton(
                           label: 'إلغاء',
                           icon: Icons.cancel,
                           color: AppColors.error,
                           onTap: () => _updateOrderStatus(order.orderId, 'cancelled'),
+                        ),
+                      // Reject (available until delivered)
+                      if (order.normalizedStatus != 'delivered' &&
+                          order.normalizedStatus != 'received' &&
+                          order.normalizedStatus != 'cancelled' &&
+                          order.normalizedStatus != 'rejected')
+                        _buildPremiumActionButton(
+                          label: 'رفض',
+                          icon: Icons.block,
+                          color: Colors.deepPurple,
+                          onTap: () => _updateOrderStatus(order.orderId, 'rejected'),
                         ),
                       // Delete always available
                       _buildPremiumActionButton(
@@ -3712,6 +3716,50 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     } catch (e) {
       _showErrorSnackBar('حدث خطأ أثناء تحديث حالة الطلب');
     }
+  }
+
+  /// Build the advance-to-next-step button(s) for order tracking.
+  List<Widget> _buildTrackingActionButtons(OrderModel order) {
+    final status = order.normalizedStatus;
+    const steps = ['waiting', 'preparing', 'ready', 'on_the_way', 'delivered', 'received'];
+    const stepLabels = {
+      'preparing': 'في التجهيز',
+      'ready': 'جاهزة',
+      'on_the_way': 'في الطريق',
+      'delivered': 'تم التوصيل',
+      'received': 'مستلمة',
+    };
+    const stepIcons = {
+      'preparing': Icons.inventory_2_outlined,
+      'ready': Icons.check_box_outlined,
+      'on_the_way': Icons.local_shipping,
+      'delivered': Icons.done_all,
+      'received': Icons.verified,
+    };
+    const stepColors = {
+      'preparing': Colors.blue,
+      'ready': Colors.teal,
+      'on_the_way': Colors.indigo,
+    };
+
+    final idx = steps.indexOf(status);
+    // If status is cancelled/rejected or already at the end, no advance button
+    if (idx < 0 || idx >= steps.length - 1) return [];
+
+    final nextStatus = steps[idx + 1];
+    final nextLabel = stepLabels[nextStatus] ?? nextStatus;
+    final nextIcon = stepIcons[nextStatus] ?? Icons.arrow_forward;
+    final nextColor = stepColors[nextStatus] ?? AppColors.primary;
+
+    return [
+      _buildPremiumActionButton(
+        label: nextLabel,
+        icon: nextIcon,
+        color: nextColor,
+        onTap: () => _updateOrderStatus(order.orderId, nextStatus),
+        isPrimary: true,
+      ),
+    ];
   }
 
   Future<void> _deleteOrder(String orderId) async {

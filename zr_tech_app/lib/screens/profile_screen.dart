@@ -156,6 +156,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             SizedBox(height: Responsive.sp(32)),
 
+                            // Order tracking button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/order-tracking');
+                                },
+                                icon: Icon(Icons.local_shipping_outlined, color: Colors.white, size: Responsive.sp(20)),
+                                label: Text(
+                                  'متابعة الطلبات',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: Responsive.fp(14),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: EdgeInsets.symmetric(vertical: Responsive.sp(14)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.sp(12)),
+
                             // Logout
                             SizedBox(
                               width: double.infinity,

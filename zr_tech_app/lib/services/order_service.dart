@@ -56,6 +56,30 @@ class OrderService {
     return orders;
   }
 
+  /// Fetch orders for a specific user (for order tracking screen).
+  /// Does NOT require admin auth — reads all orders and filters client-side.
+  Future<List<OrderModel>> getOrdersByUserId(String userId) async {
+    if (userId.isEmpty) return [];
+
+    final snapshot = await _dbRef.orderByChild('userId').equalTo(userId).get();
+    if (!snapshot.exists || snapshot.value == null) return [];
+
+    final data = Map<String, dynamic>.from(snapshot.value as Map);
+    final orders = <OrderModel>[];
+
+    data.forEach((key, value) {
+      if (value is Map) {
+        orders.add(
+          OrderModel.fromMap(key, Map<String, dynamic>.from(value)),
+        );
+      }
+    });
+
+    // Sort by createdAt descending (newest first)
+    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return orders;
+  }
+
   /// Update the status of an order. Admin only.
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     await AuthService().requireAdmin();

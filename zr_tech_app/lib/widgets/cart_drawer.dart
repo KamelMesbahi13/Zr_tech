@@ -86,6 +86,8 @@ class _CartPanelState extends State<_CartPanel> {
         return;
       }
 
+      final currentUserId = _authService.currentUser?.uid ?? '';
+
       // Split name into first + last
       final nameParts = userData.name.trim().split(' ');
       final firstName = nameParts.first;
@@ -96,6 +98,7 @@ class _CartPanelState extends State<_CartPanel> {
       for (final item in cart.items) {
         final order = OrderModel(
           orderId: '',
+          userId: currentUserId,
           productId: item.product.id,
           productName: item.product.name,
           productImage: item.product.image,
@@ -112,6 +115,7 @@ class _CartPanelState extends State<_CartPanel> {
           shippingType: 'home',
           deliveryPrice: 0,
           totalPrice: item.lineTotal,
+          status: 'waiting',
         );
         await _orderService.placeOrder(order);
       }
@@ -121,25 +125,9 @@ class _CartPanelState extends State<_CartPanel> {
       if (!mounted) return;
       setState(() => _isSending = false);
 
-      // Show success and close
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              const Text('تم إرسال الطلب بنجاح',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      // Close the drawer and navigate to order tracking
       Navigator.of(context).pop();
+      Navigator.of(context).pushNamed('/order-tracking');
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSending = false);

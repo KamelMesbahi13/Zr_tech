@@ -137,6 +137,8 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
     setState(() => _isSubmitting = true);
 
     try {
+      final currentUserId = _authService.currentUser?.uid ?? '';
+
       // Place one order per cart item, sharing customer & delivery info
       for (final item in cart.items) {
         final itemSubtotal = item.lineTotal;
@@ -144,6 +146,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
 
         final order = OrderModel(
           orderId: '',
+          userId: currentUserId,
           productId: item.product.id,
           productName: item.product.name,
           productImage: item.product.image,
@@ -160,6 +163,7 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
           shippingType: _shippingType,
           deliveryPrice: _deliveryPrice,
           totalPrice: itemTotal,
+          status: 'waiting',
         );
 
         await _orderService.placeOrder(order);
@@ -170,7 +174,13 @@ class _CartCheckoutScreenState extends State<CartCheckoutScreen> {
 
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      _showSuccessDialog();
+
+      // Gros users: navigate to order tracking. Detail users: show popup.
+      if (_isLoggedIn) {
+        Navigator.pushReplacementNamed(context, '/order-tracking');
+      } else {
+        _showSuccessDialog();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);

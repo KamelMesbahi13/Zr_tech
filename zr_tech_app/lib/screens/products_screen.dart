@@ -715,7 +715,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           itemCount: displayProducts.length,
           itemBuilder: (context, index) {
             final product = displayProducts[index];
-            return _buildProductCard(product);
+            return _buildProductCard(product, index, displayProducts);
           },
         );
       },
@@ -725,7 +725,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   // ── Product Card ───────────────────────────────────────────────
 
-  Widget _buildProductCard(ProductModel product) {
+  Widget _buildProductCard(ProductModel product, int index, List<ProductModel> products) {
     final isFav = _favoritesMap[product.id] ?? false;
     final favCount = _favoritesCountMap[product.id] ?? 0;
     final noteCount = _noteCountsMap[product.id] ?? 0;
@@ -756,6 +756,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   '/product-detail',
                   arguments: {
                     'product': product,
+                    'products': products,
+                    'initialIndex': index,
                     'shoppingType': _shoppingType,
                   },
                 );
@@ -1017,46 +1019,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       fontSize: Responsive.fp(13),
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Space Grotesk',
-                    ),
-                  ),
-                ),
-                SizedBox(height: Responsive.sp(8)),
-                SizedBox(
-                  width: double.infinity,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: AppColors.primary,
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/product-detail',
-                          arguments: {
-                            'product': product,
-                            'shoppingType': _shoppingType,
-                          },
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: EdgeInsets.symmetric(
-                            vertical: Responsive.sp(8)),
-                        minimumSize: Size.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'عرض المنتج',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: Responsive.fp(11),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ),
                   ),
                 ),

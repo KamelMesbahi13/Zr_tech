@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
+import '../services/auth_service.dart';
+import '../services/order_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/responsive_wrapper.dart';
 
@@ -18,23 +21,31 @@ void showCartDrawer(BuildContext context) {
       return const _CartPanel();
     },
     transitionBuilder: (context, animation, secondaryAnimation, child) {
-      // Slide from right edge regardless of text direction
       final offsetAnimation = Tween<Offset>(
-        begin: const Offset(1.0, 0.0), // off-screen right
+        begin: const Offset(1.0, 0.0),
         end: Offset.zero,
       ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
 
       return SlideTransition(
         position: offsetAnimation,
-        textDirection: TextDirection.ltr, // force LTR so 1.0 = right
+        textDirection: TextDirection.ltr,
         child: child,
       );
     },
   );
 }
 
-class _CartPanel extends StatelessWidget {
+class _CartPanel extends StatefulWidget {
   const _CartPanel();
+
+  @override
+  State<_CartPanel> createState() => _CartPanelState();
+}
+
+class _CartPanelState extends State<_CartPanel> {
+  bool _isSending = false;
+  final _orderService = OrderService();
+  final _authService = AuthService();
 
   Widget _buildProductImage(String imageStr) {
     if (imageStr.isEmpty) return _imagePlaceholder();
@@ -62,11 +73,96 @@ class _CartPanel extends StatelessWidget {
     );
   }
 
+  /// For gros users: auto-place orders using their profile info
+  Future<void> _sendOrderDirectly(CartProvider cart) async {
+    setState(() => _isSending = true);
+
+    try {
+      final userData = await _authService.getCurrentUserData();
+      if (userData == null) {
+        if (!mounted) return;
+        setState(() => _isSending = false);
+        _showSnack('يجب تسجيل الدخول لإرسال الطلب', isError: true);
+        return;
+      }
+
+      // Split name into first + last
+      final nameParts = userData.name.trim().split(' ');
+      final firstName = nameParts.first;
+      final lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+
+      for (final item in cart.items) {
+        final order = OrderModel(
+          orderId: '',
+          productId: item.product.id,
+          productName: item.product.name,
+          productImage: item.product.image,
+          productPrice: item.product.price,
+          categoryId: item.product.categoryId,
+          subcategoryId: item.product.subcategoryId,
+          shoppingType: item.shoppingType,
+          firstName: firstName,
+          lastName: lastName,
+          phone: userData.phone,
+          wilaya: userData.wilaya,
+          address: userData.storeName, // store name as address for gros
+          quantity: item.cartQuantity,
+          shippingType: 'home',
+          deliveryPrice: 0,
+          totalPrice: item.lineTotal,
+        );
+        await _orderService.placeOrder(order);
+      }
+
+      cart.clearCart();
+
+      if (!mounted) return;
+      setState(() => _isSending = false);
+
+      // Show success and close
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Text('تم إرسال الطلب بنجاح',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSending = false);
+      _showSnack('حدث خطأ أثناء إرسال الطلب', isError: true);
+    }
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, textAlign: TextAlign.center),
+        backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Responsive.init(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    // Panel width: 85% of screen, max 400px
     final panelWidth = (screenWidth * 0.85).clamp(0.0, 400.0);
 
     return Align(
@@ -93,23 +189,13 @@ class _CartPanel extends StatelessWidget {
                 builder: (context, cart, _) {
                   return Column(
                     children: [
-                      // ─── Header ───────────────────────────────
                       _buildHeader(context, cart),
-
-                      // ─── Divider ──────────────────────────────
-                      Container(
-                        height: 1,
-                        color: AppColors.border,
-                      ),
-
-                      // ─── Cart Items or Empty State ────────────
+                      Container(height: 1, color: AppColors.border),
                       Expanded(
                         child: cart.items.isEmpty
                             ? _buildEmptyState()
                             : _buildItemList(context, cart),
                       ),
-
-                      // ─── Footer (Total + Checkout) ────────────
                       if (cart.items.isNotEmpty) _buildFooter(context, cart),
                     ],
                   );
@@ -128,7 +214,6 @@ class _CartPanel extends StatelessWidget {
         Responsive.sp(20), Responsive.sp(20), Responsive.sp(20), Responsive.sp(16)),
       child: Row(
         children: [
-          // Close button
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             child: Container(
@@ -142,7 +227,6 @@ class _CartPanel extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          // Title + badge
           Row(
             children: [
               if (cart.totalItems > 0)
@@ -228,147 +312,147 @@ class _CartPanel extends StatelessWidget {
       separatorBuilder: (_, __) => SizedBox(height: Responsive.sp(12)),
       itemBuilder: (context, index) {
         final item = cart.items[index];
-        return Container(
-          padding: EdgeInsets.all(Responsive.sp(12)),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.borderSubtle),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  width: Responsive.sp(72),
-                  height: Responsive.sp(72),
-                  child: _buildProductImage(item.product.image),
-                ),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Dismissible(
+            key: ValueKey(item.product.id),
+            direction: DismissDirection.startToEnd,
+            onDismissed: (_) => cart.removeFromCart(item.product.id),
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.only(right: Responsive.sp(20)),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(14),
               ),
-              SizedBox(width: Responsive.sp(12)),
-
-              // Product details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name + delete
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.product.name,
-                            style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: Responsive.fp(14),
-                              fontWeight: FontWeight.w600,
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => cart.removeFromCart(item.product.id),
-                          child: Container(
-                            padding: EdgeInsets.all(Responsive.sp(4)),
-                            child: Icon(Icons.delete_outline,
-                                color: AppColors.error,
-                                size: Responsive.sp(18)),
-                          ),
-                        ),
-                      ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.delete_outline, color: Colors.white, size: Responsive.sp(22)),
+                  SizedBox(width: Responsive.sp(8)),
+                  Text(
+                    'حذف',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: Responsive.fp(14),
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(height: Responsive.sp(8)),
-
-                    // Price + Quantity controls
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Unit price
-                        Text(
-                          '${item.product.price.toStringAsFixed(0)} DA',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: Responsive.fp(14),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Space Grotesk',
-                          ),
+                  ),
+                ],
+              ),
+            ),
+          child: Container(
+            padding: EdgeInsets.all(Responsive.sp(12)),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: Responsive.sp(72),
+                    height: Responsive.sp(72),
+                    child: _buildProductImage(item.product.image),
+                  ),
+                ),
+                SizedBox(width: Responsive.sp(12)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.product.name,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: Responsive.fp(14),
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
                         ),
-
-                        // Quantity selector
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: Responsive.sp(8)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${item.product.price.toStringAsFixed(0)} DA',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: Responsive.fp(14),
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Space Grotesk',
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Decrease
-                              _quantityButton(
-                                icon: Icons.remove,
-                                onTap: () => cart.decreaseQuantity(item.product.id),
-                              ),
-                              // Current qty
-                              Container(
-                                constraints: BoxConstraints(
-                                    minWidth: Responsive.sp(32)),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '${item.cartQuantity}',
-                                  style: TextStyle(
-                                    color: AppColors.textPrimary,
-                                    fontSize: Responsive.fp(14),
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Space Grotesk',
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _quantityButton(
+                                  icon: Icons.remove,
+                                  onTap: () => cart.decreaseQuantity(item.product.id),
+                                ),
+                                Container(
+                                  constraints: BoxConstraints(minWidth: Responsive.sp(32)),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '${item.cartQuantity}',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: Responsive.fp(14),
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Space Grotesk',
+                                    ),
                                   ),
                                 ),
-                              ),
-                              // Increase
-                              _quantityButton(
-                                icon: Icons.add,
-                                onTap: () {
-                                  final ok = cart.increaseQuantity(item.product.id);
-                                  if (!ok) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'الحد الأقصى المتوفر: ${item.product.quantity}',
-                                          textAlign: TextAlign.center,
+                                _quantityButton(
+                                  icon: Icons.add,
+                                  onTap: () {
+                                    final ok = cart.increaseQuantity(item.product.id);
+                                    if (!ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'الحد الأقصى المتوفر: ${item.product.quantity}',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          backgroundColor: AppColors.warning,
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10)),
+                                          duration: const Duration(seconds: 2),
                                         ),
-                                        backgroundColor: AppColors.warning,
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            ],
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
+          ), // Dismissible
+        ); // ClipRRect
       },
     );
   }
 
-  Widget _quantityButton(
-      {required IconData icon, required VoidCallback onTap}) {
+  Widget _quantityButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -381,6 +465,9 @@ class _CartPanel extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context, CartProvider cart) {
+    // Check if any cart item is gros
+    final isGros = cart.items.any((item) => item.shoppingType == 'gros');
+
     return Container(
       padding: EdgeInsets.all(Responsive.sp(20)),
       decoration: BoxDecoration(
@@ -419,38 +506,73 @@ class _CartPanel extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: Responsive.sp(16)),
+          SizedBox(height: Responsive.sp(14)),
 
-          // Checkout button
+          // Swipe hint
+          Padding(
+            padding: EdgeInsets.only(bottom: Responsive.sp(10)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.swipe, color: AppColors.textHint, size: Responsive.sp(16)),
+                SizedBox(width: Responsive.sp(6)),
+                Text(
+                  'اسحب المنتج لليسار للحذف',
+                  style: TextStyle(
+                    color: AppColors.textHint,
+                    fontSize: Responsive.fp(11),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Send Order button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close cart drawer
-                Navigator.of(context).pushNamed('/cart-checkout');
-              },
+              onPressed: _isSending
+                  ? null
+                  : () {
+                      if (isGros) {
+                        _sendOrderDirectly(cart);
+                      } else {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pushNamed('/cart-checkout');
+                      }
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
                 padding: EdgeInsets.symmetric(vertical: Responsive.sp(14)),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'الدفع',
-                    style: TextStyle(
-                      fontSize: Responsive.fp(16),
-                      fontWeight: FontWeight.bold,
+              child: _isSending
+                  ? SizedBox(
+                      width: Responsive.sp(22),
+                      height: Responsive.sp(22),
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.send, size: Responsive.sp(18)),
+                        SizedBox(width: Responsive.sp(8)),
+                        Text(
+                          'إرسال الطلب',
+                          style: TextStyle(
+                            fontSize: Responsive.fp(16),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: Responsive.sp(8)),
-                  Icon(Icons.arrow_back, size: Responsive.sp(18)),
-                ],
-              ),
             ),
           ),
         ],

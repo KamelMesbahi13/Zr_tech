@@ -356,20 +356,25 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           itemCount: _favoriteProducts.length,
           itemBuilder: (context, index) {
             final product = _favoriteProducts[index];
-            return _buildFavoriteCard(product);
+            return _buildFavoriteCard(product, index);
           },
         );
       },
     );
   }
 
-  Widget _buildFavoriteCard(ProductModel product) {
+  Widget _buildFavoriteCard(ProductModel product, int index) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
           '/product-detail',
-          arguments: {'product': product, 'shoppingType': 'gros'},
+          arguments: {
+            'product': product,
+            'products': _favoriteProducts,
+            'initialIndex': index,
+            'shoppingType': 'gros'
+          },
         );
       },
       child: Container(

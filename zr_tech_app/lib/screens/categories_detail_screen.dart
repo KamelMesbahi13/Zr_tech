@@ -296,91 +296,90 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                                   child: Column(
                                     children: [
                                       Expanded(
-                                        child: AspectRatio(
-                                          aspectRatio: 1,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppColors.surfaceDark,
-                                              border: Border.all(
-                                                color: AppColors.borderSubtle,
-                                                width: 2,
+                                        child: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            AspectRatio(
+                                              aspectRatio: 1,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: AppColors.surfaceDark,
+                                                  border: Border.all(
+                                                    color: AppColors.borderSubtle,
+                                                    width: 2,
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withValues(
+                                                        alpha: 0.06,
+                                                      ),
+                                                      blurRadius: 10,
+                                                      offset: const Offset(0, 4),
+                                                    ),
+                                                  ],
+                                                ),
+                                                clipBehavior: Clip.antiAlias,
+                                                child: ClipOval(
+                                                  child: Image.network(
+                                                    cat.image,
+                                                    fit: BoxFit.cover,
+                                                    width: double.infinity,
+                                                    errorBuilder: (c, e, s) => Container(
+                                                      color: AppColors.surfaceDark,
+                                                      child: Icon(
+                                                        Icons.image,
+                                                        color: AppColors.textSlate500,
+                                                        size: Responsive.sp(28),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withValues(
-                                                    alpha: 0.06,
-                                                  ),
-                                                  blurRadius: 10,
-                                                  offset: const Offset(0, 4),
-                                                ),
-                                              ],
                                             ),
-                                            clipBehavior: Clip.antiAlias,
-                                            child: Stack(
-                                              children: [
-                                                Positioned.fill(
-                                                  child: ClipOval(
-                                                    child: Image.network(
-                                                      cat.image,
-                                                      fit: BoxFit.cover,
-                                                      width: double.infinity,
-                                                      errorBuilder: (c, e, s) => Container(
-                                                        color: AppColors.surfaceDark,
-                                                        child: Icon(
-                                                          Icons.image,
-                                                          color: AppColors.textSlate500,
-                                                          size: Responsive.sp(28),
+                                            if (_categoriesWithNewProducts.contains(cat.id))
+                                              PositionedDirectional(
+                                                top: Responsive.sp(2),
+                                                start: Responsive.sp(2),
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(horizontal: Responsive.sp(5), vertical: Responsive.sp(2)),
+                                                  decoration: BoxDecoration(
+                                                    gradient: const LinearGradient(
+                                                      colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
+                                                      begin: Alignment.topLeft,
+                                                      end: Alignment.bottomRight,
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.auto_awesome,
+                                                        color: Colors.white,
+                                                        size: Responsive.sp(9),
+                                                      ),
+                                                      SizedBox(width: Responsive.sp(2)),
+                                                      Text(
+                                                        'جديد',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: Responsive.fp(8),
+                                                          fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
-                                                    ),
+                                                    ],
                                                   ),
                                                 ),
-                                                if (_categoriesWithNewProducts.contains(cat.id))
-                                                  Positioned(
-                                                    top: Responsive.sp(2),
-                                                    right: Responsive.sp(2),
-                                                    child: Container(
-                                                      padding: EdgeInsets.symmetric(horizontal: Responsive.sp(5), vertical: Responsive.sp(2)),
-                                                      decoration: BoxDecoration(
-                                                        gradient: const LinearGradient(
-                                                          colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
-                                                          begin: Alignment.topLeft,
-                                                          end: Alignment.bottomRight,
-                                                        ),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
-                                                            blurRadius: 4,
-                                                            offset: const Offset(0, 2),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Icon(
-                                                            Icons.auto_awesome,
-                                                            color: Colors.white,
-                                                            size: Responsive.sp(9),
-                                                          ),
-                                                          SizedBox(width: Responsive.sp(2)),
-                                                          Text(
-                                                            'جديد',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: Responsive.fp(8),
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
+                                              ),
+                                          ],
                                         ),
                                       ),
                                       SizedBox(height: Responsive.sp(6)),

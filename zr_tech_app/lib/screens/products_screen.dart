@@ -773,102 +773,105 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         : _imagePlaceholder(),
                   ),
 
-                  // Stock badge
-                  Positioned(
+                  // Stock + New badges (combined in one Positioned)
+                  PositionedDirectional(
                     top: Responsive.sp(8),
-                    left: Responsive.sp(8),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.sp(8),
-                          vertical: Responsive.sp(4)),
-                      decoration: BoxDecoration(
-                        color: product.isAvailable
-                            ? AppColors.success.withValues(alpha: 0.9)
-                            : AppColors.error.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+                    start: Responsive.sp(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Stock badge
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.sp(8),
+                              vertical: Responsive.sp(4)),
+                          decoration: BoxDecoration(
+                            color: product.isAvailable
+                                ? AppColors.success.withValues(alpha: 0.9)
+                                : AppColors.error.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            product.isAvailable
-                                ? Icons.check_circle_outline
-                                : Icons.cancel_outlined,
-                            color: Colors.white,
-                            size: Responsive.sp(12),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                product.isAvailable
+                                    ? Icons.check_circle_outline
+                                    : Icons.cancel_outlined,
+                                color: Colors.white,
+                                size: Responsive.sp(12),
+                              ),
+                              SizedBox(width: Responsive.sp(3)),
+                              Text(
+                                product.isAvailable ? 'متوفر' : 'غير متوفر',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: Responsive.fp(10),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(width: Responsive.sp(3)),
-                          Text(
-                            product.isAvailable ? 'متوفر' : 'غير متوفر',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: Responsive.fp(10),
-                              fontWeight: FontWeight.bold,
+                        ),
+                        // "New" badge
+                        if (_isNewProduct(product)) ...[
+                          SizedBox(height: Responsive.sp(4)),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.sp(8),
+                                vertical: Responsive.sp(4)),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFFFF6B35),
+                                  Color(0xFFFF8F00)
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFF6B35)
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.auto_awesome,
+                                    color: Colors.white,
+                                    size: Responsive.sp(11)),
+                                SizedBox(width: Responsive.sp(3)),
+                                Text(
+                                  'جديد',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: Responsive.fp(10),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
 
-                  // "New" badge
-                  if (_isNewProduct(product))
-                    Positioned(
-                      top: Responsive.sp(8),
-                      right: Responsive.sp(8),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.sp(8),
-                            vertical: Responsive.sp(4)),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFFF6B35),
-                              Color(0xFFFF8F00)
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF6B35)
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.auto_awesome,
-                                color: Colors.white,
-                                size: Responsive.sp(11)),
-                            SizedBox(width: Responsive.sp(3)),
-                            Text(
-                              'جديد',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: Responsive.fp(10),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // RIGHT side visually (Positioned left in RTL): Favorite + Note
-                  Positioned(
-                    left: Responsive.sp(6),
+                  // Favorite + Note buttons
+                  PositionedDirectional(
+                    end: Responsive.sp(6),
                     bottom: Responsive.sp(8),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -898,9 +901,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ),
                   ),
 
-                  // LEFT side visually (Positioned right in RTL): Quantity controls
-                  Positioned(
-                    right: Responsive.sp(6),
+                  // Quantity controls
+                  PositionedDirectional(
+                    start: Responsive.sp(6),
                     bottom: Responsive.sp(8),
                     child: Consumer<CartProvider>(
                       builder: (context, cart, _) {

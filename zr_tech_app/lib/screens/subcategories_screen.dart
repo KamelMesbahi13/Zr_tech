@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../services/subcategory_service.dart';
+import '../services/product_service.dart';
 import '../models/subcategory_model.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_drawer.dart';
@@ -16,9 +17,11 @@ class SubcategoriesScreen extends StatefulWidget {
 
 class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
   final SubcategoryService _subcategoryService = SubcategoryService();
+  final ProductService _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
   List<SubcategoryModel> _subcategories = [];
   List<SubcategoryModel> _filteredSubcategories = [];
+  Set<String> _subcategoriesWithNewProducts = {};
   bool _isLoading = true;
   String _shoppingType = 'gros';
   String _categoryId = '';
@@ -63,6 +66,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           _filteredSubcategories = subcategories;
           _isLoading = false;
         });
+        _checkForNewProducts();
         return;
       } catch (e) {
         if (attempt < maxRetries) {
@@ -94,6 +98,30 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             .toList();
       }
     });
+  }
+
+  Future<void> _checkForNewProducts() async {
+    try {
+      final allProducts = await _productService
+          .getAllProducts(_shoppingType)
+          .timeout(const Duration(seconds: 10));
+      final sevenDaysAgo = DateTime.now()
+          .subtract(const Duration(days: 7))
+          .millisecondsSinceEpoch;
+      final newSubcatIds = <String>{};
+      for (final product in allProducts) {
+        if (product.categoryId == _categoryId &&
+            product.createdAt > sevenDaysAgo) {
+          newSubcatIds.add(product.subcategoryId);
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _subcategoriesWithNewProducts = newSubcatIds;
+      });
+    } catch (_) {
+      // Silently fail — badge is a nice-to-have
+    }
   }
 
   @override
@@ -320,38 +348,88 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       child: Column(
         children: [
           Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.surfaceDark,
-                  border: Border.all(
-                    color: AppColors.borderSubtle,
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: ClipOval(
-                  child: subcat.image.isNotEmpty
-                      ? _buildImageWidget(subcat.image)
-                      : Container(
-                          color: AppColors.surfaceDark,
-                          child: Icon(
-                            Icons.category_outlined,
-                            color: AppColors.textSlate500,
-                            size: Responsive.sp(28),
-                          ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.surfaceDark,
+                      border: Border.all(
+                        color: AppColors.borderSubtle,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: ClipOval(
+                      child: subcat.image.isNotEmpty
+                          ? _buildImageWidget(subcat.image)
+                          : Container(
+                              color: AppColors.surfaceDark,
+                              child: Icon(
+                                Icons.category_outlined,
+                                color: AppColors.textSlate500,
+                                size: Responsive.sp(28),
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
-              ),
+                if (_subcategoriesWithNewProducts.contains(subcat.id))
+                  PositionedDirectional(
+                    top: Responsive.sp(2),
+                    start: Responsive.sp(2),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.sp(5),
+                        vertical: Responsive.sp(2),
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            color: Colors.white,
+                            size: Responsive.sp(9),
+                          ),
+                          SizedBox(width: Responsive.sp(2)),
+                          Text(
+                            'جديد',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.fp(8),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           SizedBox(height: Responsive.sp(6)),

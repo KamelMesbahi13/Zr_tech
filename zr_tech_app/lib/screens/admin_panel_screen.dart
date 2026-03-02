@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../theme/app_colors.dart';
@@ -2251,23 +2251,498 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
+  // ─── PRODUCT OPTION CONSTANTS ────────────────────────────────────
+
+  static const List<Map<String, dynamic>> _colorOptions = [
+    {'name': 'أسود', 'value': 'black', 'color': Color(0xFF000000)},
+    {'name': 'أبيض', 'value': 'white', 'color': Color(0xFFFFFFFF)},
+    {'name': 'أحمر', 'value': 'red', 'color': Color(0xFFE53935)},
+    {'name': 'أزرق', 'value': 'blue', 'color': Color(0xFF1E88E5)},
+    {'name': 'أخضر', 'value': 'green', 'color': Color(0xFF43A047)},
+    {'name': 'أصفر', 'value': 'yellow', 'color': Color(0xFFFDD835)},
+    {'name': 'برتقالي', 'value': 'orange', 'color': Color(0xFFFF9800)},
+    {'name': 'وردي', 'value': 'pink', 'color': Color(0xFFE91E63)},
+    {'name': 'بنفسجي', 'value': 'purple', 'color': Color(0xFF9C27B0)},
+    {'name': 'رمادي', 'value': 'gray', 'color': Color(0xFF757575)},
+    {'name': 'ذهبي', 'value': 'gold', 'color': Color(0xFFFFD700)},
+    {'name': 'فضي', 'value': 'silver', 'color': Color(0xFFC0C0C0)},
+    {'name': 'بني', 'value': 'brown', 'color': Color(0xFF795548)},
+    {'name': 'شفاف', 'value': 'transparent', 'color': Color(0x00000000)},
+  ];
+
+  static const List<Map<String, String>> _warrantyOptions = [
+    {'label': 'بدون ضمان', 'value': ''},
+    {'label': 'شهر واحد', 'value': '1_month'},
+    {'label': '3 أشهر', 'value': '3_months'},
+    {'label': '6 أشهر', 'value': '6_months'},
+    {'label': 'سنة واحدة', 'value': '1_year'},
+    {'label': 'سنتين', 'value': '2_years'},
+  ];
+
+  static const List<Map<String, String>> _countryOptions = [
+    {'label': 'الجزائر 🇩🇿', 'value': 'DZ'},
+    {'label': 'الصين 🇨🇳', 'value': 'CN'},
+    {'label': 'كوريا الجنوبية 🇰🇷', 'value': 'KR'},
+    {'label': 'اليابان 🇯🇵', 'value': 'JP'},
+    {'label': 'تايوان 🇹🇼', 'value': 'TW'},
+    {'label': 'فيتنام 🇻🇳', 'value': 'VN'},
+    {'label': 'الهند 🇮🇳', 'value': 'IN'},
+    {'label': 'تركيا 🇹🇷', 'value': 'TR'},
+    {'label': 'ألمانيا 🇩🇪', 'value': 'DE'},
+    {'label': 'الولايات المتحدة 🇺🇸', 'value': 'US'},
+    {'label': 'ماليزيا 🇲🇾', 'value': 'MY'},
+    {'label': 'تايلاند 🇹🇭', 'value': 'TH'},
+    {'label': 'إندونيسيا 🇮🇩', 'value': 'ID'},
+  ];
+
+  // ─── HELPER: Build a toggle option row ────────────────────────
+
+  Widget _buildToggleOption({
+    required String label,
+    required IconData icon,
+    required String? currentValue,
+    required String trueValue,
+    required String falseValue,
+    required String trueLabel,
+    required String falseLabel,
+    required Function(String?) onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.textSlate400, size: 20),
+          const SizedBox(width: 10),
+          Text(label, style: const TextStyle(color: AppColors.textSlate300, fontSize: 13, fontWeight: FontWeight.w500)),
+          const Spacer(),
+          if (currentValue != null)
+            GestureDetector(
+              onTap: () => onChanged(null),
+              child: Container(
+                margin: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.red, size: 14),
+              ),
+            ),
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDarkAlt,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderDark),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () => onChanged(trueValue),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: currentValue == trueValue ? AppColors.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(trueLabel, style: TextStyle(color: currentValue == trueValue ? Colors.white : AppColors.textSlate500, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => onChanged(falseValue),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: currentValue == falseValue ? Colors.orange : Colors.transparent,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(falseLabel, style: TextStyle(color: currentValue == falseValue ? Colors.white : AppColors.textSlate500, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── HELPER: Build optional fields section ────────────────────
+
+  Widget _buildOptionalFieldsSection({
+    required Function(void Function()) setSheetState,
+    required String? selectedColor,
+    required String? selectedCondition,
+    required String? selectedBox,
+    required String? selectedConditionStatus,
+    required String? selectedCharger,
+    required String? selectedHeadphones,
+    required String? selectedWarranty,
+    required String? selectedCountry,
+    required TextEditingController detailMarketPriceController,
+    required Function(String?) onColorChanged,
+    required Function(String?) onConditionChanged,
+    required Function(String?) onBoxChanged,
+    required Function(String?) onConditionStatusChanged,
+    required Function(String?) onChargerChanged,
+    required Function(String?) onHeadphonesChanged,
+    required Function(String?) onWarrantyChanged,
+    required Function(String?) onCountryChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            children: [
+              Icon(Icons.tune, color: AppColors.primary, size: 18),
+              const SizedBox(width: 8),
+              const Text('تفاصيل إضافية (اختياري)', style: TextStyle(color: AppColors.primaryLight, fontSize: 14, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Color dropdown
+        Align(alignment: Alignment.centerRight, child: const Text('اللون', style: TextStyle(color: AppColors.textSlate300, fontSize: 13, fontWeight: FontWeight.w500))),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDarkAlt,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderDark),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedColor,
+              isExpanded: true,
+              dropdownColor: AppColors.surfaceDarkAlt,
+              hint: const Text('اختر اللون', style: TextStyle(color: AppColors.textSlate500, fontSize: 13)),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+              items: [
+                const DropdownMenuItem<String>(value: null, child: Text('بدون لون', style: TextStyle(color: AppColors.textSlate500))),
+                ..._colorOptions.map((c) => DropdownMenuItem<String>(
+                  value: c['value'] as String,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 20, height: 20,
+                        decoration: BoxDecoration(
+                          color: c['color'] as Color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.borderDark, width: 1.5),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(c['name'] as String, style: const TextStyle(color: AppColors.textPrimary)),
+                    ],
+                  ),
+                )),
+              ],
+              onChanged: (val) => setSheetState(() => onColorChanged(val)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Toggle options
+        _buildToggleOption(
+          label: 'الأصالة',
+          icon: Icons.verified_outlined,
+          currentValue: selectedCondition,
+          trueValue: 'original',
+          falseValue: 'not_original',
+          trueLabel: 'أصلي',
+          falseLabel: 'غير أصلي',
+          onChanged: (val) => setSheetState(() => onConditionChanged(val)),
+        ),
+        _buildToggleOption(
+          label: 'العلبة',
+          icon: Icons.inventory_2_outlined,
+          currentValue: selectedBox,
+          trueValue: 'with_box',
+          falseValue: 'without_box',
+          trueLabel: 'مع العلبة',
+          falseLabel: 'بدون',
+          onChanged: (val) => setSheetState(() => onBoxChanged(val)),
+        ),
+        _buildToggleOption(
+          label: 'الحالة',
+          icon: Icons.new_releases_outlined,
+          currentValue: selectedConditionStatus,
+          trueValue: 'new',
+          falseValue: 'used',
+          trueLabel: 'جديد',
+          falseLabel: 'مستعمل',
+          onChanged: (val) => setSheetState(() => onConditionStatusChanged(val)),
+        ),
+        _buildToggleOption(
+          label: 'الشاحن',
+          icon: Icons.power_outlined,
+          currentValue: selectedCharger,
+          trueValue: 'with_charger',
+          falseValue: 'without_charger',
+          trueLabel: 'مع الشاحن',
+          falseLabel: 'بدون',
+          onChanged: (val) => setSheetState(() => onChargerChanged(val)),
+        ),
+        _buildToggleOption(
+          label: 'السماعات',
+          icon: Icons.headphones_outlined,
+          currentValue: selectedHeadphones,
+          trueValue: 'with_headphones',
+          falseValue: 'without_headphones',
+          trueLabel: 'مع السماعات',
+          falseLabel: 'بدون',
+          onChanged: (val) => setSheetState(() => onHeadphonesChanged(val)),
+        ),
+
+        // Warranty dropdown
+        Align(alignment: Alignment.centerRight, child: const Text('الضمان', style: TextStyle(color: AppColors.textSlate300, fontSize: 13, fontWeight: FontWeight.w500))),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDarkAlt,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderDark),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedWarranty ?? '',
+              isExpanded: true,
+              dropdownColor: AppColors.surfaceDarkAlt,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+              items: _warrantyOptions.map((w) => DropdownMenuItem<String>(
+                value: w['value']!,
+                child: Text(w['label']!, style: const TextStyle(color: AppColors.textPrimary)),
+              )).toList(),
+              onChanged: (val) => setSheetState(() => onWarrantyChanged(val == '' ? null : val)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Country of origin dropdown
+        Align(alignment: Alignment.centerRight, child: const Text('بلد المنشأ', style: TextStyle(color: AppColors.textSlate300, fontSize: 13, fontWeight: FontWeight.w500))),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDarkAlt,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderDark),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedCountry,
+              isExpanded: true,
+              dropdownColor: AppColors.surfaceDarkAlt,
+              hint: const Text('اختر بلد المنشأ', style: TextStyle(color: AppColors.textSlate500, fontSize: 13)),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+              items: [
+                const DropdownMenuItem<String>(value: null, child: Text('غير محدد', style: TextStyle(color: AppColors.textSlate500))),
+                ..._countryOptions.map((c) => DropdownMenuItem<String>(
+                  value: c['value']!,
+                  child: Text(c['label']!, style: const TextStyle(color: AppColors.textPrimary)),
+                )),
+              ],
+              onChanged: (val) => setSheetState(() => onCountryChanged(val)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Detail market price (gros only)
+        if (_currentType == 'gros') ...[
+          _buildTextField(
+            controller: detailMarketPriceController,
+            label: 'سعر التفصيل في السوق (د.ج)',
+            hint: 'السعر بالتفصيل (اختياري)',
+            icon: Icons.storefront_outlined,
+            keyboardType: TextInputType.number,
+            isLTR: true,
+          ),
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
+  }
+
+  // ─── HELPER: Build multi-image picker section ────────────────────
+
+  Widget _buildMultiImagePicker({
+    required List<String> imagesList,
+    required bool isUploading,
+    required Function(void Function()) setSheetState,
+    required Function(bool) setUploading,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Align(
+          alignment: Alignment.centerRight,
+          child: Text('صور المنتج', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500)),
+        ),
+        const SizedBox(height: 8),
+        // Image thumbnails grid
+        if (imagesList.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (int i = 0; i < imagesList.length; i++)
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        width: 72, height: 72,
+                        color: AppColors.surfaceDarkAlt,
+                        child: _buildImageWidget(imagesList[i], width: 72, height: 72, fit: BoxFit.cover),
+                      ),
+                    ),
+                    Positioned(
+                      top: -6, right: -6,
+                      child: GestureDetector(
+                        onTap: () => setSheetState(() => imagesList.removeAt(i)),
+                        child: Container(
+                          width: 22, height: 22,
+                          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+                          child: const Icon(Icons.close, color: Colors.white, size: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        const SizedBox(height: 10),
+        // Add image buttons
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: isUploading ? null : () async {
+                  final url = await _pickImageAsBase64(setUploading);
+                  if (url != null) {
+                    setSheetState(() => imagesList.add(url));
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceDarkAlt,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderDark),
+                  ),
+                  child: isUploading
+                    ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)))
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.upload_file, color: AppColors.textSlate400, size: 18),
+                          SizedBox(width: 6),
+                          Text('رفع صورة', style: TextStyle(color: AppColors.textSlate400, fontSize: 13)),
+                        ],
+                      ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  final urlController = TextEditingController();
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      backgroundColor: AppColors.surfaceDark,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: const Text('إضافة رابط صورة', style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                      content: TextField(
+                        controller: urlController,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(color: AppColors.textPrimary, fontFamily: 'Space Grotesk', fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'https://...',
+                          hintStyle: const TextStyle(color: AppColors.textSlate500, fontFamily: 'Space Grotesk'),
+                          filled: true,
+                          fillColor: AppColors.surfaceDarkAlt,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderDark)),
+                        ),
+                      ),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: AppColors.textSlate400))),
+                        TextButton(
+                          onPressed: () {
+                            final url = urlController.text.trim();
+                            if (url.isNotEmpty) {
+                              setSheetState(() => imagesList.add(url));
+                              Navigator.pop(ctx);
+                            }
+                          },
+                          child: const Text('إضافة', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceDarkAlt,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderDark),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.link, color: AppColors.textSlate400, size: 18),
+                      SizedBox(width: 6),
+                      Text('رابط URL', style: TextStyle(color: AppColors.textSlate400, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   // ─── ADD PRODUCT ────────────────────────────────────────────────
 
   void _showAddProductDialog() {
     final nameController = TextEditingController();
-    final imageUrlController = TextEditingController();
     final priceController = TextEditingController();
     final descController = TextEditingController();
     final quantityController = TextEditingController(text: '0');
     final minQuantityController = TextEditingController(text: '1');
+    final detailMarketPriceController = TextEditingController();
     String? selectedCategoryId;
     String? selectedSubcategoryId;
     List<SubcategoryModel> availableSubcategories = [];
+    List<String> imagesList = [];
     bool isSaving = false;
-    bool useUrl = false;
     bool isUploading = false;
-    String? uploadedUrl;
-    String? uploadedFileName;
+
+    // Optional fields state
+    String? selectedColor;
+    String? selectedCondition;
+    String? selectedBox;
+    String? selectedConditionStatus;
+    String? selectedCharger;
+    String? selectedHeadphones;
+    String? selectedWarranty;
+    String? selectedCountry;
 
     final categories = _currentCategories;
 
@@ -2279,6 +2754,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Container(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
               decoration: const BoxDecoration(
                 color: AppColors.surfaceDark,
@@ -2294,14 +2770,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     const SizedBox(height: 24),
                     _buildTextField(controller: nameController, label: 'اسم المنتج', hint: 'مثال: كابل USB-C', icon: Icons.inventory_2_outlined),
                     const SizedBox(height: 16),
-                    _buildImagePicker(
-                      useUrl: useUrl,
-                      onToggle: (val) => setSheetState(() => useUrl = val),
-                      urlController: imageUrlController,
-                      uploadedUrl: uploadedUrl,
-                      uploadedFileName: uploadedFileName,
+                    // Multi-image picker
+                    _buildMultiImagePicker(
+                      imagesList: imagesList,
                       isUploading: isUploading,
-                      onUploaded: (url, name) => setSheetState(() { uploadedUrl = url; uploadedFileName = name; }),
+                      setSheetState: setSheetState,
                       setUploading: (val) => setSheetState(() => isUploading = val),
                     ),
                     const SizedBox(height: 16),
@@ -2370,6 +2843,28 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       const SizedBox(height: 16),
                       _buildTextField(controller: minQuantityController, label: 'الحد الأدنى للطلب', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
                     ],
+                    const SizedBox(height: 20),
+                    // Optional fields section
+                    _buildOptionalFieldsSection(
+                      setSheetState: setSheetState,
+                      selectedColor: selectedColor,
+                      selectedCondition: selectedCondition,
+                      selectedBox: selectedBox,
+                      selectedConditionStatus: selectedConditionStatus,
+                      selectedCharger: selectedCharger,
+                      selectedHeadphones: selectedHeadphones,
+                      selectedWarranty: selectedWarranty,
+                      selectedCountry: selectedCountry,
+                      detailMarketPriceController: detailMarketPriceController,
+                      onColorChanged: (val) => selectedColor = val,
+                      onConditionChanged: (val) => selectedCondition = val,
+                      onBoxChanged: (val) => selectedBox = val,
+                      onConditionStatusChanged: (val) => selectedConditionStatus = val,
+                      onChargerChanged: (val) => selectedCharger = val,
+                      onHeadphonesChanged: (val) => selectedHeadphones = val,
+                      onWarrantyChanged: (val) => selectedWarranty = val,
+                      onCountryChanged: (val) => selectedCountry = val,
+                    ),
                     const SizedBox(height: 24),
                     // Save button
                     SizedBox(
@@ -2379,6 +2874,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         child: ElevatedButton(
                           onPressed: (isSaving || isUploading) ? null : () async {
                             if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
+                            if (imagesList.isEmpty) { _showErrorSnackBar('الرجاء إضافة صورة واحدة على الأقل'); return; }
                             if (selectedCategoryId == null) { _showErrorSnackBar('الرجاء اختيار الفئة'); return; }
                             if (selectedSubcategoryId == null) { _showErrorSnackBar('الرجاء اختيار القسم الفرعي'); return; }
                             final qty = int.tryParse(quantityController.text.trim()) ?? 0;
@@ -2391,7 +2887,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون 1 على الأقل');
                               return;
                             }
-                            final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? '');
+                            final detailPrice = detailMarketPriceController.text.trim().isNotEmpty
+                                ? double.tryParse(detailMarketPriceController.text.trim())
+                                : null;
                             setSheetState(() => isSaving = true);
                             try {
                               await _productService.addProduct(
@@ -2399,11 +2897,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 categoryId: selectedCategoryId!,
                                 subcategoryId: selectedSubcategoryId!,
                                 name: nameController.text.trim(),
-                                image: imageUrl,
+                                images: imagesList,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
                                 description: descController.text.trim(),
                                 quantity: qty,
                                 minQuantity: minQty,
+                                color: selectedColor,
+                                condition: selectedCondition,
+                                box: selectedBox,
+                                conditionStatus: selectedConditionStatus,
+                                charger: selectedCharger,
+                                headphones: selectedHeadphones,
+                                warranty: selectedWarranty,
+                                detailMarketPrice: detailPrice,
+                                countryOfOrigin: selectedCountry,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);
@@ -2436,16 +2943,26 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   void _showEditProductDialog(ProductModel product) {
     final nameController = TextEditingController(text: product.name);
-    final imageUrlController = TextEditingController(text: product.image);
     final priceController = TextEditingController(text: product.price.toStringAsFixed(0));
     final descController = TextEditingController(text: product.description);
     final quantityController = TextEditingController(text: product.quantity.toString());
     final minQuantityController = TextEditingController(text: product.minQuantity.toString());
+    final detailMarketPriceController = TextEditingController(
+      text: product.detailMarketPrice != null ? product.detailMarketPrice!.toStringAsFixed(0) : '',
+    );
+    List<String> imagesList = List<String>.from(product.images);
     bool isSaving = false;
-    bool useUrl = product.image.isNotEmpty;
     bool isUploading = false;
-    String? uploadedUrl;
-    String? uploadedFileName;
+
+    // Pre-populate optional fields
+    String? selectedColor = product.color;
+    String? selectedCondition = product.condition;
+    String? selectedBox = product.box;
+    String? selectedConditionStatus = product.conditionStatus;
+    String? selectedCharger = product.charger;
+    String? selectedHeadphones = product.headphones;
+    String? selectedWarranty = product.warranty;
+    String? selectedCountry = product.countryOfOrigin;
 
     showModalBottomSheet(
       context: context,
@@ -2455,6 +2972,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Container(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
               decoration: const BoxDecoration(
                 color: AppColors.surfaceDark,
@@ -2466,7 +2984,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: AppColors.textSlate500, borderRadius: BorderRadius.circular(2))),
-                    const Text('تعديل المنتج', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const Text('\u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u0646\u062A\u062C', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -2474,25 +2992,22 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       child: Text(product.id, style: const TextStyle(color: AppColors.primaryLight, fontSize: 12, fontFamily: 'Space Grotesk', fontWeight: FontWeight.w600)),
                     ),
                     const SizedBox(height: 24),
-                    _buildTextField(controller: nameController, label: 'اسم المنتج', hint: 'مثال: كابل USB-C', icon: Icons.inventory_2_outlined),
+                    _buildTextField(controller: nameController, label: '\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u062A\u062C', hint: '\u0645\u062B\u0627\u0644: \u0643\u0627\u0628\u0644 USB-C', icon: Icons.inventory_2_outlined),
                     const SizedBox(height: 16),
-                    _buildImagePicker(
-                      useUrl: useUrl,
-                      onToggle: (val) => setSheetState(() => useUrl = val),
-                      urlController: imageUrlController,
-                      uploadedUrl: uploadedUrl,
-                      uploadedFileName: uploadedFileName,
+                    // Multi-image picker
+                    _buildMultiImagePicker(
+                      imagesList: imagesList,
                       isUploading: isUploading,
-                      onUploaded: (url, name) => setSheetState(() { uploadedUrl = url; uploadedFileName = name; }),
+                      setSheetState: setSheetState,
                       setUploading: (val) => setSheetState(() => isUploading = val),
                     ),
                     const SizedBox(height: 16),
-                    _buildTextField(controller: priceController, label: 'السعر (د.ج)', hint: '350', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
+                    _buildTextField(controller: priceController, label: '\u0627\u0644\u0633\u0639\u0631 (\u062F.\u062C)', hint: '350', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
                     const SizedBox(height: 16),
-                    _buildTextField(controller: descController, label: 'الوصف', hint: 'وصف المنتج...', icon: Icons.description_outlined),
+                    _buildTextField(controller: descController, label: '\u0627\u0644\u0648\u0635\u0641', hint: '\u0648\u0635\u0641 \u0627\u0644\u0645\u0646\u062A\u062C...', icon: Icons.description_outlined),
                     const SizedBox(height: 16),
                     // Category (read-only display)
-                    Align(alignment: Alignment.centerRight, child: const Text('الفئة', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
+                    Align(alignment: Alignment.centerRight, child: const Text('\u0627\u0644\u0641\u0626\u0629', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
                     const SizedBox(height: 8),
                     Container(
                       width: double.infinity,
@@ -2502,7 +3017,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     ),
                     const SizedBox(height: 16),
                     // Subcategory (read-only display)
-                    Align(alignment: Alignment.centerRight, child: const Text('القسم الفرعي', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
+                    Align(alignment: Alignment.centerRight, child: const Text('\u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0641\u0631\u0639\u064A', style: TextStyle(color: AppColors.textSlate300, fontSize: 14, fontWeight: FontWeight.w500))),
                     const SizedBox(height: 8),
                     Container(
                       width: double.infinity,
@@ -2512,11 +3027,33 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     ),
                     const SizedBox(height: 16),
                     // Quantity input
-                    _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
+                    _buildTextField(controller: quantityController, label: '\u0627\u0644\u0643\u0645\u064A\u0629', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
                     if (_currentType == 'gros') ...[
                       const SizedBox(height: 16),
-                      _buildTextField(controller: minQuantityController, label: 'الحد الأدنى للطلب', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
+                      _buildTextField(controller: minQuantityController, label: '\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0644\u0644\u0637\u0644\u0628', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
                     ],
+                    const SizedBox(height: 20),
+                    // Optional fields section
+                    _buildOptionalFieldsSection(
+                      setSheetState: setSheetState,
+                      selectedColor: selectedColor,
+                      selectedCondition: selectedCondition,
+                      selectedBox: selectedBox,
+                      selectedConditionStatus: selectedConditionStatus,
+                      selectedCharger: selectedCharger,
+                      selectedHeadphones: selectedHeadphones,
+                      selectedWarranty: selectedWarranty,
+                      selectedCountry: selectedCountry,
+                      detailMarketPriceController: detailMarketPriceController,
+                      onColorChanged: (val) => selectedColor = val,
+                      onConditionChanged: (val) => selectedCondition = val,
+                      onBoxChanged: (val) => selectedBox = val,
+                      onConditionStatusChanged: (val) => selectedConditionStatus = val,
+                      onChargerChanged: (val) => selectedCharger = val,
+                      onHeadphonesChanged: (val) => selectedHeadphones = val,
+                      onWarrantyChanged: (val) => selectedWarranty = val,
+                      onCountryChanged: (val) => selectedCountry = val,
+                    ),
                     const SizedBox(height: 24),
                     // Save button
                     SizedBox(
@@ -2525,18 +3062,21 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                         decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: AppColors.primary, boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4))]),
                         child: ElevatedButton(
                           onPressed: (isSaving || isUploading) ? null : () async {
-                            if (nameController.text.trim().isEmpty) { _showErrorSnackBar('الرجاء إدخال اسم المنتج'); return; }
+                            if (nameController.text.trim().isEmpty) { _showErrorSnackBar('\u0627\u0644\u0631\u062C\u0627\u0621 \u0625\u062F\u062E\u0627\u0644 \u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u062A\u062C'); return; }
+                            if (imagesList.isEmpty) { _showErrorSnackBar('\u0627\u0644\u0631\u062C\u0627\u0621 \u0625\u0636\u0627\u0641\u0629 \u0635\u0648\u0631\u0629 \u0648\u0627\u062D\u062F\u0629 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644'); return; }
                             final qty = int.tryParse(quantityController.text.trim()) ?? 0;
                             final minQty = _currentType == 'gros' ? (int.tryParse(minQuantityController.text.trim()) ?? 1) : 1;
                             if (_currentType == 'gros' && minQty > qty) {
-                              _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون أقل أو يساوي الكمية');
+                              _showErrorSnackBar('\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0644\u0644\u0637\u0644\u0628 \u064A\u062C\u0628 \u0623\u0646 \u064A\u0643\u0648\u0646 \u0623\u0642\u0644 \u0623\u0648 \u064A\u0633\u0627\u0648\u064A \u0627\u0644\u0643\u0645\u064A\u0629');
                               return;
                             }
                             if (_currentType == 'gros' && minQty < 1) {
-                              _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون 1 على الأقل');
+                              _showErrorSnackBar('\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u062F\u0646\u0649 \u0644\u0644\u0637\u0644\u0628 \u064A\u062C\u0628 \u0623\u0646 \u064A\u0643\u0648\u0646 1 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644');
                               return;
                             }
-                            final imageUrl = useUrl ? imageUrlController.text.trim() : (uploadedUrl ?? product.image);
+                            final detailPrice = detailMarketPriceController.text.trim().isNotEmpty
+                                ? double.tryParse(detailMarketPriceController.text.trim())
+                                : null;
                             setSheetState(() => isSaving = true);
                             try {
                               await _productService.updateProduct(
@@ -2545,25 +3085,34 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 subcategoryId: product.subcategoryId,
                                 productId: product.id,
                                 name: nameController.text.trim(),
-                                image: imageUrl,
+                                images: imagesList,
                                 price: double.tryParse(priceController.text.trim()) ?? 0,
                                 description: descController.text.trim(),
                                 quantity: qty,
                                 minQuantity: minQty,
+                                color: selectedColor,
+                                condition: selectedCondition,
+                                box: selectedBox,
+                                conditionStatus: selectedConditionStatus,
+                                charger: selectedCharger,
+                                headphones: selectedHeadphones,
+                                warranty: selectedWarranty,
+                                detailMarketPrice: detailPrice,
+                                countryOfOrigin: selectedCountry,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);
-                              _showSuccessSnackBar('تم تعديل المنتج بنجاح');
+                              _showSuccessSnackBar('\u062A\u0645 \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u0646\u062A\u062C \u0628\u0646\u062C\u0627\u062D');
                               _loadData();
                             } catch (e) {
                               setSheetState(() => isSaving = false);
-                              _showErrorSnackBar('حدث خطأ أثناء تعديل المنتج');
+                              _showErrorSnackBar('\u062D\u062F\u062B \u062E\u0637\u0623 \u0623\u062B\u0646\u0627\u0621 \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u0646\u062A\u062C');
                             }
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                           child: isSaving
                               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.save_outlined, color: Colors.white, size: 20), SizedBox(width: 8), Text('حفظ التعديلات', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.save_outlined, color: Colors.white, size: 20), SizedBox(width: 8), Text('\u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644\u0627\u062A', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))]),
                         ),
                       ),
                     ),

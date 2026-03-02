@@ -102,29 +102,49 @@ class ProductService {
     required String categoryId,
     required String subcategoryId,
     required String name,
-    required String image,
+    required List<String> images,
     required double price,
     required String description,
     required int quantity,
     int minQuantity = 1,
+    String? color,
+    String? condition,
+    String? box,
+    String? conditionStatus,
+    String? charger,
+    String? headphones,
+    String? warranty,
+    double? detailMarketPrice,
+    String? countryOfOrigin,
   }) async {
     await AuthService().requireAdmin();
     final prodId = await _getNextProductId(shoppingType, categoryId, subcategoryId);
+    final data = <String, dynamic>{
+      'name': name,
+      'images': images,
+      'price': price,
+      'description': description,
+      'quantity': quantity,
+      'minQuantity': minQuantity,
+      'createdAt': DateTime.now().millisecondsSinceEpoch,
+    };
+    if (color != null) data['color'] = color;
+    if (condition != null) data['condition'] = condition;
+    if (box != null) data['box'] = box;
+    if (conditionStatus != null) data['conditionStatus'] = conditionStatus;
+    if (charger != null) data['charger'] = charger;
+    if (headphones != null) data['headphones'] = headphones;
+    if (warranty != null) data['warranty'] = warranty;
+    if (detailMarketPrice != null) data['detailMarketPrice'] = detailMarketPrice;
+    if (countryOfOrigin != null) data['countryOfOrigin'] = countryOfOrigin;
+
     await _dbRef
         .child('products')
         .child(shoppingType)
         .child(categoryId)
         .child(subcategoryId)
         .child(prodId)
-        .set({
-      'name': name,
-      'image': image,
-      'price': price,
-      'description': description,
-      'quantity': quantity,
-      'minQuantity': minQuantity,
-      'createdAt': DateTime.now().millisecondsSinceEpoch,
-    });
+        .set(data);
   }
 
   /// Update an existing product. Admin only.
@@ -134,27 +154,58 @@ class ProductService {
     required String subcategoryId,
     required String productId,
     required String name,
-    required String image,
+    required List<String> images,
     required double price,
     required String description,
     required int quantity,
     int minQuantity = 1,
+    String? color,
+    String? condition,
+    String? box,
+    String? conditionStatus,
+    String? charger,
+    String? headphones,
+    String? warranty,
+    double? detailMarketPrice,
+    String? countryOfOrigin,
   }) async {
     await AuthService().requireAdmin();
+    final data = <String, dynamic>{
+      'name': name,
+      'images': images,
+      'price': price,
+      'description': description,
+      'quantity': quantity,
+      'minQuantity': minQuantity,
+    };
+    if (color != null) data['color'] = color;
+    if (condition != null) data['condition'] = condition;
+    if (box != null) data['box'] = box;
+    if (conditionStatus != null) data['conditionStatus'] = conditionStatus;
+    if (charger != null) data['charger'] = charger;
+    if (headphones != null) data['headphones'] = headphones;
+    if (warranty != null) data['warranty'] = warranty;
+    if (detailMarketPrice != null) data['detailMarketPrice'] = detailMarketPrice;
+    if (countryOfOrigin != null) data['countryOfOrigin'] = countryOfOrigin;
+
+    // Clear fields that were set to null (remove from DB)
+    if (color == null) data['color'] = null;
+    if (condition == null) data['condition'] = null;
+    if (box == null) data['box'] = null;
+    if (conditionStatus == null) data['conditionStatus'] = null;
+    if (charger == null) data['charger'] = null;
+    if (headphones == null) data['headphones'] = null;
+    if (warranty == null) data['warranty'] = null;
+    if (detailMarketPrice == null) data['detailMarketPrice'] = null;
+    if (countryOfOrigin == null) data['countryOfOrigin'] = null;
+
     await _dbRef
         .child('products')
         .child(shoppingType)
         .child(categoryId)
         .child(subcategoryId)
         .child(productId)
-        .update({
-      'name': name,
-      'image': image,
-      'price': price,
-      'description': description,
-      'quantity': quantity,
-      'minQuantity': minQuantity,
-    });
+        .update(data);
   }
 
   /// Delete a product. Admin only.

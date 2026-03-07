@@ -416,7 +416,7 @@ class _AdminLedgerViewState extends State<AdminLedgerView> {
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (ctx, anim, anim2) {
-        return _UserLedgerDialog(
+        return UserLedgerDialog(
           userId: uid,
           userName: name,
           storeName: storeName,
@@ -445,7 +445,7 @@ class _AdminLedgerViewState extends State<AdminLedgerView> {
 //  USER LEDGER DIALOG
 // ═══════════════════════════════════════════════════════════════════
 
-class _UserLedgerDialog extends StatefulWidget {
+class UserLedgerDialog extends StatefulWidget {
   final String userId;
   final String userName;
   final String storeName;
@@ -453,7 +453,8 @@ class _UserLedgerDialog extends StatefulWidget {
   final LedgerService ledgerService;
   final VoidCallback onBalanceChanged;
 
-  const _UserLedgerDialog({
+  const UserLedgerDialog({
+    super.key,
     required this.userId,
     required this.userName,
     required this.storeName,
@@ -463,10 +464,10 @@ class _UserLedgerDialog extends StatefulWidget {
   });
 
   @override
-  State<_UserLedgerDialog> createState() => _UserLedgerDialogState();
+  State<UserLedgerDialog> createState() => _UserLedgerDialogState();
 }
 
-class _UserLedgerDialogState extends State<_UserLedgerDialog> {
+class _UserLedgerDialogState extends State<UserLedgerDialog> {
   List<LedgerTransaction> _transactions = [];
   List<OrderModel> _userOrders = [];
   bool _isLoading = true;
@@ -1741,15 +1742,16 @@ class _UserLedgerDialogState extends State<_UserLedgerDialog> {
   //  PRINT-ONLY INVOICE (opens clean HTML in new window)
   // ═══════════════════════════════════════════════════════════════
 
-  void _printInvoiceHtml(String dateStr, List<LedgerTransaction> sortedTxs, List<double> runningBalances) {
+  void _printInvoiceHtml(String dateStr, List<Map<String, dynamic>> entries, List<double> runningBalances) {
     // Build transaction rows HTML
     final rowsHtml = StringBuffer();
-    for (int i = 0; i < sortedTxs.length; i++) {
-      final tx = sortedTxs[i];
-      final txDate = '${tx.date.day.toString().padLeft(2, '0')}/${tx.date.month.toString().padLeft(2, '0')}/${tx.date.year} ${tx.date.hour.toString().padLeft(2, '0')}:${tx.date.minute.toString().padLeft(2, '0')}';
-      final desc = tx.note.isEmpty ? '-' : tx.note;
-      final credit = tx.type == 'credit' ? tx.amount.toStringAsFixed(2) : '-';
-      final debit = tx.type == 'debit' ? tx.amount.toStringAsFixed(2) : '-';
+    for (int i = 0; i < entries.length; i++) {
+      final e = entries[i];
+      final d = e['date'] as DateTime;
+      final txDate = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+      final desc = e['desc'] as String;
+      final credit = e['credit'] != null ? (e['credit'] as double).toStringAsFixed(2) : '-';
+      final debit = e['debit'] != null ? (e['debit'] as double).toStringAsFixed(2) : '-';
       final bal = runningBalances[i].toStringAsFixed(2);
       final balColor = runningBalances[i] > 0 ? '#e53935' : '#43a047';
       rowsHtml.write('''
@@ -1830,19 +1832,40 @@ class _UserLedgerDialogState extends State<_UserLedgerDialog> {
     final now = DateTime.now();
     final dateStr = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
-    // Sort transactions for invoice (oldest first)
-    final sortedTxs = List<LedgerTransaction>.from(_transactions)
-      ..sort((a, b) => a.date.compareTo(b.date));
+    // Build a unified list of invoice entries (orders + manual transactions), sorted oldest-first
+    // Each entry: { 'date': DateTime, 'desc': String, 'credit': double?, 'debit': double? }
+    final List<Map<String, dynamic>> entries = [];
+
+    // Add orders as credit entries
+    for (final order in _userOrders) {
+      final orderDate = DateTime.fromMillisecondsSinceEpoch(order.createdAt);
+      entries.add({
+        'date': orderDate,
+        'desc': '${order.quantity}× ${order.productName}',
+        'credit': order.totalPrice,
+        'debit': null,
+      });
+    }
+
+    // Add manual transactions
+    for (final tx in _transactions) {
+      entries.add({
+        'date': tx.date,
+        'desc': tx.note.isEmpty ? '-' : tx.note,
+        'credit': tx.type == 'credit' ? tx.amount : null,
+        'debit': tx.type == 'debit' ? tx.amount : null,
+      });
+    }
+
+    // Sort oldest first
+    entries.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
 
     // Compute running balances
     final List<double> runningBalances = [];
     double running = 0;
-    for (final tx in sortedTxs) {
-      if (tx.type == 'credit') {
-        running += tx.amount;
-      } else {
-        running -= tx.amount;
-      }
+    for (final e in entries) {
+      if (e['credit'] != null) running += (e['credit'] as double);
+      if (e['debit'] != null) running -= (e['debit'] as double);
       runningBalances.add(running);
     }
 
@@ -1877,7 +1900,7 @@ class _UserLedgerDialogState extends State<_UserLedgerDialog> {
                         const Spacer(),
                         ElevatedButton.icon(
                           onPressed: () {
-                            _printInvoiceHtml(dateStr, sortedTxs, runningBalances);
+                            _printInvoiceHtml(dateStr, entries, runningBalances);
                           },
                           icon: const Icon(Icons.print, size: 18, color: Colors.white),
                           label: const Text('طباعة', style: TextStyle(color: Colors.white)),
@@ -1964,26 +1987,26 @@ class _UserLedgerDialogState extends State<_UserLedgerDialog> {
                                 ],
                               ),
                               // Data rows
-                              for (int i = 0; i < sortedTxs.length; i++)
+                              for (int i = 0; i < entries.length; i++)
                                 TableRow(
                                   children: [
                                     _InvoiceDataCell(
-                                      '${sortedTxs[i].date.day.toString().padLeft(2, '0')}/${sortedTxs[i].date.month.toString().padLeft(2, '0')}/${sortedTxs[i].date.year} ${sortedTxs[i].date.hour.toString().padLeft(2, '0')}:${sortedTxs[i].date.minute.toString().padLeft(2, '0')}',
+                                      '${(entries[i]['date'] as DateTime).day.toString().padLeft(2, '0')}/${(entries[i]['date'] as DateTime).month.toString().padLeft(2, '0')}/${(entries[i]['date'] as DateTime).year} ${(entries[i]['date'] as DateTime).hour.toString().padLeft(2, '0')}:${(entries[i]['date'] as DateTime).minute.toString().padLeft(2, '0')}',
                                       isLTR: true,
                                     ),
                                     _InvoiceDataCell(
-                                      sortedTxs[i].note.isEmpty ? '-' : sortedTxs[i].note,
+                                      entries[i]['desc'] as String,
                                     ),
                                     _InvoiceDataCell(
-                                      sortedTxs[i].type == 'credit'
-                                          ? sortedTxs[i].amount.toStringAsFixed(2)
+                                      entries[i]['credit'] != null
+                                          ? (entries[i]['credit'] as double).toStringAsFixed(2)
                                           : '-',
                                       isLTR: true,
                                       color: AppColors.primary,
                                     ),
                                     _InvoiceDataCell(
-                                      sortedTxs[i].type == 'debit'
-                                          ? sortedTxs[i].amount.toStringAsFixed(2)
+                                      entries[i]['debit'] != null
+                                          ? (entries[i]['debit'] as double).toStringAsFixed(2)
                                           : '-',
                                       isLTR: true,
                                       color: AppColors.error,
@@ -2148,4 +2171,49 @@ class _InvoiceDataCell extends StatelessWidget {
       ),
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  PUBLIC HELPER — open the user ledger dialog from anywhere
+// ═══════════════════════════════════════════════════════════════════
+
+void openUserLedgerDialog(
+  BuildContext context, {
+  required Map<String, dynamic> user,
+  required LedgerService ledgerService,
+  VoidCallback? onBalanceChanged,
+}) {
+  final uid = user['uid'] ?? '';
+  final name = user['name'] ?? 'بدون اسم';
+  final storeName = user['storeName'] ?? '';
+
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'ledger',
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (ctx, anim, anim2) {
+      return UserLedgerDialog(
+        userId: uid,
+        userName: name,
+        storeName: storeName,
+        user: user,
+        ledgerService: ledgerService,
+        onBalanceChanged: onBalanceChanged ?? () {},
+      );
+    },
+    transitionBuilder: (ctx, anim, anim2, child) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+        child: FadeTransition(
+          opacity: anim,
+          child: child,
+        ),
+      );
+    },
+  );
 }

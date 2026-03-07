@@ -9,6 +9,7 @@ import '../services/product_service.dart';
 import '../services/subcategory_service.dart';
 import '../services/order_service.dart';
 import '../services/wilaya_service.dart';
+import '../services/ledger_service.dart';
 import '../models/category_model.dart';
 import '../models/subcategory_model.dart';
 import '../models/product_model.dart';
@@ -3640,6 +3641,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     children: [
                       // Advance to next tracking step
                       ..._buildTrackingActionButtons(order),
+                      // Customer account button (gros only)
+                      if (_orderTypeIndex == 0)
+                        _buildPremiumActionButton(
+                          label: 'حساب الزبون',
+                          icon: Icons.account_balance_wallet,
+                          color: Colors.teal,
+                          onTap: () => _openCustomerLedger(order),
+                        ),
                       // Cancel (available until delivered)
                       if (order.normalizedStatus != 'delivered' &&
                           order.normalizedStatus != 'received' &&
@@ -3815,6 +3824,44 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           },
         );
       },
+    );
+  }
+
+  /// Open the ledger dialog for the customer who placed this order.
+  Future<void> _openCustomerLedger(OrderModel order) async {
+    final orderPhone = order.phone.trim();
+    if (orderPhone.isEmpty) {
+      _showErrorSnackBar('لا يوجد حساب مرتبط بهذا الطلب');
+      return;
+    }
+
+    // Ensure users are loaded (they may not be if we haven't visited accounts tab)
+    if (_allUsers.isEmpty) {
+      try {
+        final users = await AuthService().fetchAllUsers().timeout(const Duration(seconds: 10));
+        if (!mounted) return;
+        setState(() => _allUsers = users);
+      } catch (e) {
+        _showErrorSnackBar('حدث خطأ أثناء تحميل المستخدمين');
+        return;
+      }
+    }
+
+    final matchedUser = _allUsers.cast<Map<String, dynamic>?>().firstWhere(
+      (u) => (u?['phone'] ?? '').toString().trim() == orderPhone,
+      orElse: () => null,
+    );
+
+    if (matchedUser == null) {
+      _showErrorSnackBar('لا يوجد حساب مرتبط بهذا الطلب');
+      return;
+    }
+
+    if (!mounted) return;
+    openUserLedgerDialog(
+      context,
+      user: matchedUser,
+      ledgerService: LedgerService(),
     );
   }
 

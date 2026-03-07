@@ -96,13 +96,16 @@ class _CartPanelState extends State<_CartPanel> {
           : '';
 
       for (final item in cart.items) {
+        final productName = item.variantLabel.isNotEmpty
+            ? '${item.product.name} (${item.variantLabel})'
+            : item.product.name;
         final order = OrderModel(
           orderId: '',
           userId: currentUserId,
           productId: item.product.id,
-          productName: item.product.name,
+          productName: productName,
           productImage: item.product.image,
-          productPrice: item.product.price,
+          productPrice: item.effectivePrice,
           categoryId: item.product.categoryId,
           subcategoryId: item.product.subcategoryId,
           shoppingType: item.shoppingType,
@@ -303,9 +306,9 @@ class _CartPanelState extends State<_CartPanel> {
         return ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: Dismissible(
-            key: ValueKey(item.product.id),
+            key: ValueKey(item.cartKey),
             direction: DismissDirection.startToEnd,
-            onDismissed: (_) => cart.removeFromCart(item.product.id),
+            onDismissed: (_) => cart.removeFromCart(item.product.id, variant: item.selectedVariant),
             background: Container(
               alignment: Alignment.centerRight,
               padding: EdgeInsets.only(right: Responsive.sp(20)),
@@ -363,12 +366,26 @@ class _CartPanelState extends State<_CartPanel> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      // Variant label
+                      if (item.variantLabel.isNotEmpty) ...[
+                        SizedBox(height: Responsive.sp(4)),
+                        Text(
+                          item.variantLabel,
+                          style: TextStyle(
+                            color: AppColors.primary.withValues(alpha: 0.8),
+                            fontSize: Responsive.fp(11),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       SizedBox(height: Responsive.sp(8)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${item.product.price.toStringAsFixed(0)} DA',
+                            '${item.effectivePrice.toStringAsFixed(0)} DA',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: Responsive.fp(14),
@@ -387,7 +404,7 @@ class _CartPanelState extends State<_CartPanel> {
                               children: [
                                 _quantityButton(
                                   icon: Icons.remove,
-                                  onTap: () => cart.decreaseQuantity(item.product.id),
+                                  onTap: () => cart.decreaseQuantity(item.product.id, variant: item.selectedVariant),
                                 ),
                                 Container(
                                   constraints: BoxConstraints(minWidth: Responsive.sp(32)),
@@ -405,12 +422,12 @@ class _CartPanelState extends State<_CartPanel> {
                                 _quantityButton(
                                   icon: Icons.add,
                                   onTap: () {
-                                    final ok = cart.increaseQuantity(item.product.id);
+                                    final ok = cart.increaseQuantity(item.product.id, variant: item.selectedVariant);
                                     if (!ok) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'الحد الأقصى المتوفر: ${item.product.quantity}',
+                                            'الحد الأقصى المتوفر: ${item.effectiveStock}',
                                             textAlign: TextAlign.center,
                                           ),
                                           backgroundColor: AppColors.warning,

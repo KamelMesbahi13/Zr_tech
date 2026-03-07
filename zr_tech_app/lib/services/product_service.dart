@@ -116,6 +116,8 @@ class ProductService {
     String? warranty,
     double? detailMarketPrice,
     String? countryOfOrigin,
+    List<Map<String, dynamic>>? options,
+    List<Map<String, dynamic>>? variants,
   }) async {
     await AuthService().requireAdmin();
     final prodId = await _getNextProductId(shoppingType, categoryId, subcategoryId);
@@ -137,6 +139,8 @@ class ProductService {
     if (warranty != null) data['warranty'] = warranty;
     if (detailMarketPrice != null) data['detailMarketPrice'] = detailMarketPrice;
     if (countryOfOrigin != null) data['countryOfOrigin'] = countryOfOrigin;
+    if (options != null && options.isNotEmpty) data['options'] = options;
+    if (variants != null && variants.isNotEmpty) data['variants'] = variants;
 
     await _dbRef
         .child('products')
@@ -168,6 +172,8 @@ class ProductService {
     String? warranty,
     double? detailMarketPrice,
     String? countryOfOrigin,
+    List<Map<String, dynamic>>? options,
+    List<Map<String, dynamic>>? variants,
   }) async {
     await AuthService().requireAdmin();
     final data = <String, dynamic>{
@@ -198,6 +204,18 @@ class ProductService {
     if (warranty == null) data['warranty'] = null;
     if (detailMarketPrice == null) data['detailMarketPrice'] = null;
     if (countryOfOrigin == null) data['countryOfOrigin'] = null;
+
+    // Variable product fields
+    if (options != null && options.isNotEmpty) {
+      data['options'] = options;
+    } else {
+      data['options'] = null;
+    }
+    if (variants != null && variants.isNotEmpty) {
+      data['variants'] = variants;
+    } else {
+      data['variants'] = null;
+    }
 
     await _dbRef
         .child('products')

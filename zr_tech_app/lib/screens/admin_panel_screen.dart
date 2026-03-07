@@ -2745,6 +2745,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     String? selectedWarranty;
     String? selectedCountry;
 
+    // Variable product state
+    bool isVariableProduct = false;
+    // Each option: {'name': TextEditingController, 'values': TextEditingController}
+    List<Map<String, TextEditingController>> variantOptions = [];
+    // Generated variants: [{'combination': {'اللون': 'أحمر', ...}, 'price': ctrl, 'quantity': ctrl}]
+    List<Map<String, dynamic>> generatedVariants = [];
+
     final categories = _currentCategories;
 
     showModalBottomSheet(
@@ -2778,8 +2785,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       setSheetState: setSheetState,
                       setUploading: (val) => setSheetState(() => isUploading = val),
                     ),
-                    const SizedBox(height: 16),
-                    _buildTextField(controller: priceController, label: 'السعر (د.ج)', hint: '350', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
                     const SizedBox(height: 16),
                     _buildTextField(controller: descController, label: 'الوصف', hint: 'وصف المنتج...', icon: Icons.description_outlined),
                     const SizedBox(height: 16),
@@ -2838,11 +2843,252 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Quantity input
-                    _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
-                    if (_currentType == 'gros') ...[
+                    // Quantity input (hidden for variable products)
+                    if (!isVariableProduct) ...[
+                      _buildTextField(controller: quantityController, label: 'الكمية', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
+                      if (_currentType == 'gros') ...[
+                        const SizedBox(height: 16),
+                        _buildTextField(controller: minQuantityController, label: 'الحد الأدنى للطلب', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
+                      ],
                       const SizedBox(height: 16),
-                      _buildTextField(controller: minQuantityController, label: 'الحد الأدنى للطلب', hint: '1', icon: Icons.shopping_bag_outlined, keyboardType: TextInputType.number, isLTR: true),
+                    ],
+                    // Price field (hidden for variable products)
+                    if (!isVariableProduct)
+                      _buildTextField(controller: priceController, label: 'السعر (د.ج)', hint: '350', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
+                    if (!isVariableProduct) const SizedBox(height: 16),
+                    // ── Variable product toggle ──
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isVariableProduct ? AppColors.primary.withValues(alpha: 0.08) : AppColors.surfaceDarkAlt,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: isVariableProduct ? AppColors.primary.withValues(alpha: 0.3) : AppColors.borderDark),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.dashboard_customize_outlined, color: isVariableProduct ? AppColors.primary : AppColors.textSlate400, size: 22),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('منتج متعدد الخيارات', style: TextStyle(color: isVariableProduct ? AppColors.primary : AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+                                Text('مثل: ألوان، أحجام، سعة تخزين...', style: TextStyle(color: AppColors.textSlate500, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: isVariableProduct,
+                            activeColor: AppColors.primary,
+                            onChanged: (val) {
+                              setSheetState(() {
+                                isVariableProduct = val;
+                                if (!val) {
+                                  variantOptions.clear();
+                                  generatedVariants.clear();
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    // ── Variable product options builder ──
+                    if (isVariableProduct) ...[
+                      const SizedBox(height: 16),
+                      // Options list
+                      ...List.generate(variantOptions.length, (i) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceDarkAlt,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.borderDark),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildTextField(
+                                      controller: variantOptions[i]['name']!,
+                                      label: 'اسم الخيار',
+                                      hint: 'مثلاً: اللون، الحجم، السعة',
+                                      icon: Icons.label_outline,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      setSheetState(() {
+                                        variantOptions[i]['name']!.dispose();
+                                        variantOptions[i]['values']!.dispose();
+                                        variantOptions.removeAt(i);
+                                        // Regenerate combinations
+                                        generatedVariants = _generateVariantCombinations(variantOptions);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              _buildTextField(
+                                controller: variantOptions[i]['values']!,
+                                label: 'القيم (مفصولة بفاصلة)',
+                                hint: 'مثلاً: أحمر, أزرق, أسود',
+                                icon: Icons.list,
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      // Add option button
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                setSheetState(() {
+                                  variantOptions.add({
+                                    'name': TextEditingController(),
+                                    'values': TextEditingController(),
+                                  });
+                                });
+                              },
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('إضافة خيار'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                setSheetState(() {
+                                  generatedVariants = _generateVariantCombinations(variantOptions);
+                                });
+                              },
+                              icon: const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
+                              label: const Text('توليد التركيبات', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                elevation: 0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      // ── Generated variants table ──
+                      if (generatedVariants.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceDarkAlt,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.borderDark),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.grid_view_rounded, color: AppColors.primary, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text('التركيبات (${generatedVariants.length})', style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  const Spacer(),
+                                  // Fill all button
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      _showFillAllVariantsDialog(context, setSheetState, generatedVariants);
+                                    },
+                                    icon: const Icon(Icons.format_paint, size: 16),
+                                    label: const Text('ملء الكل', style: TextStyle(fontSize: 12)),
+                                    style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              ...List.generate(generatedVariants.length, (i) {
+                                final variant = generatedVariants[i];
+                                final combo = variant['combination'] as Map<String, String>;
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceDark,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: AppColors.borderDark.withValues(alpha: 0.5)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Variant label
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 4,
+                                        children: combo.entries.map((e) {
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text('${e.key}: ${e.value}', style: const TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.w600)),
+                                          );
+                                        }).toList(),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildTextField(
+                                              controller: variant['priceCtrl'] as TextEditingController,
+                                              label: 'السعر',
+                                              hint: '0',
+                                              icon: Icons.attach_money,
+                                              keyboardType: TextInputType.number,
+                                              isLTR: true,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: _buildTextField(
+                                              controller: variant['quantityCtrl'] as TextEditingController,
+                                              label: 'الكمية',
+                                              hint: '0',
+                                              icon: Icons.inventory_outlined,
+                                              keyboardType: TextInputType.number,
+                                              isLTR: true,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                     const SizedBox(height: 20),
                     // Optional fields section
@@ -2878,9 +3124,42 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             if (imagesList.isEmpty) { _showErrorSnackBar('الرجاء إضافة صورة واحدة على الأقل'); return; }
                             if (selectedCategoryId == null) { _showErrorSnackBar('الرجاء اختيار الفئة'); return; }
                             if (selectedSubcategoryId == null) { _showErrorSnackBar('الرجاء اختيار القسم الفرعي'); return; }
-                            final qty = int.tryParse(quantityController.text.trim()) ?? 0;
+
+                            // Build variant data
+                            List<Map<String, dynamic>>? optionsData;
+                            List<Map<String, dynamic>>? variantsData;
+                            double finalPrice;
+                            int finalQty;
+
+                            if (isVariableProduct && generatedVariants.isNotEmpty) {
+                              optionsData = variantOptions.map((o) => {
+                                'name': o['name']!.text.trim(),
+                                'values': o['values']!.text.split(',').map((v) => v.trim()).where((v) => v.isNotEmpty).toList(),
+                              }).where((o) => (o['name'] as String).isNotEmpty && (o['values'] as List).isNotEmpty).toList();
+
+                              variantsData = generatedVariants.map((v) => {
+                                'combination': v['combination'],
+                                'price': double.tryParse((v['priceCtrl'] as TextEditingController).text.trim()) ?? 0,
+                                'quantity': int.tryParse((v['quantityCtrl'] as TextEditingController).text.trim()) ?? 0,
+                              }).toList();
+
+                              // Validate at least one variant has a price
+                              final hasPrice = variantsData.any((v) => (v['price'] as double) > 0);
+                              if (!hasPrice) {
+                                _showErrorSnackBar('الرجاء إدخال سعر لتركيبة واحدة على الأقل');
+                                return;
+                              }
+
+                              // Set base price to minimum variant price, total qty to sum
+                              finalPrice = variantsData.map((v) => v['price'] as double).where((p) => p > 0).reduce((a, b) => a < b ? a : b);
+                              finalQty = variantsData.fold<int>(0, (sum, v) => sum + (v['quantity'] as int));
+                            } else {
+                              finalPrice = double.tryParse(priceController.text.trim()) ?? 0;
+                              finalQty = int.tryParse(quantityController.text.trim()) ?? 0;
+                            }
+
                             final minQty = _currentType == 'gros' ? (int.tryParse(minQuantityController.text.trim()) ?? 1) : 1;
-                            if (_currentType == 'gros' && minQty > qty) {
+                            if (_currentType == 'gros' && !isVariableProduct && minQty > finalQty) {
                               _showErrorSnackBar('الحد الأدنى للطلب يجب أن يكون أقل أو يساوي الكمية');
                               return;
                             }
@@ -2899,9 +3178,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 subcategoryId: selectedSubcategoryId!,
                                 name: nameController.text.trim(),
                                 images: imagesList,
-                                price: double.tryParse(priceController.text.trim()) ?? 0,
+                                price: finalPrice,
                                 description: descController.text.trim(),
-                                quantity: qty,
+                                quantity: finalQty,
                                 minQuantity: minQty,
                                 color: selectedColor,
                                 condition: selectedCondition,
@@ -2912,6 +3191,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                 warranty: selectedWarranty,
                                 detailMarketPrice: detailPrice,
                                 countryOfOrigin: selectedCountry,
+                                options: optionsData,
+                                variants: variantsData,
                               );
                               if (!mounted) return;
                               Navigator.pop(context);
@@ -2935,6 +3216,109 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  // ─── VARIANT HELPER METHODS ─────────────────────────────────────
+
+  /// Generate all variant combinations from the given options (cartesian product).
+  List<Map<String, dynamic>> _generateVariantCombinations(
+    List<Map<String, TextEditingController>> options,
+  ) {
+    // Parse options into name → values pairs
+    final parsed = <Map<String, dynamic>>[];
+    for (final opt in options) {
+      final name = opt['name']!.text.trim();
+      final values = opt['values']!.text
+          .split(',')
+          .map((v) => v.trim())
+          .where((v) => v.isNotEmpty)
+          .toList();
+      if (name.isNotEmpty && values.isNotEmpty) {
+        parsed.add({'name': name, 'values': values});
+      }
+    }
+
+    if (parsed.isEmpty) return [];
+
+    // Build cartesian product
+    List<Map<String, String>> combos = [{}];
+    for (final opt in parsed) {
+      final newCombos = <Map<String, String>>[];
+      for (final combo in combos) {
+        for (final val in (opt['values'] as List<String>)) {
+          final newCombo = Map<String, String>.from(combo);
+          newCombo[opt['name'] as String] = val;
+          newCombos.add(newCombo);
+        }
+      }
+      combos = newCombos;
+    }
+
+    // Build variant entries with controllers
+    return combos.map((combo) => <String, dynamic>{
+      'combination': combo,
+      'priceCtrl': TextEditingController(),
+      'quantityCtrl': TextEditingController(text: '0'),
+    }).toList();
+  }
+
+  /// Show a dialog to fill all variants with the same price and quantity.
+  void _showFillAllVariantsDialog(
+    BuildContext ctx,
+    StateSetter setSheetState,
+    List<Map<String, dynamic>> variants,
+  ) {
+    final priceCtrl = TextEditingController();
+    final qtyCtrl = TextEditingController();
+
+    showDialog(
+      context: ctx,
+      builder: (dialogCtx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: AppColors.surfaceDark,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('ملء جميع التركيبات', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField(controller: priceCtrl, label: 'السعر لجميعها', hint: '0', icon: Icons.attach_money, keyboardType: TextInputType.number, isLTR: true),
+                const SizedBox(height: 12),
+                _buildTextField(controller: qtyCtrl, label: 'الكمية لجميعها', hint: '0', icon: Icons.inventory_outlined, keyboardType: TextInputType.number, isLTR: true),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: const Text('إلغاء', style: TextStyle(color: AppColors.textSlate400)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setSheetState(() {
+                    for (final v in variants) {
+                      if (priceCtrl.text.isNotEmpty) {
+                        (v['priceCtrl'] as TextEditingController).text = priceCtrl.text;
+                      }
+                      if (qtyCtrl.text.isNotEmpty) {
+                        (v['quantityCtrl'] as TextEditingController).text = qtyCtrl.text;
+                      }
+                    }
+                  });
+                  Navigator.pop(dialogCtx);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                child: const Text('تطبيق', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
         );
       },
     );

@@ -1,5 +1,6 @@
 ﻿import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../models/product_model.dart';
@@ -22,6 +23,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   // Per-product image gallery page tracking
   final Map<String, int> _imagePageMap = {};
+
+  // Per-product variant selection tracking
+  // Key: product.id, Value: {optionName: selectedValue}
+  final Map<String, Map<String, String>> _selectedVariants = {};
 
   @override
   void didChangeDependencies() {
@@ -506,19 +511,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         _buildQtyButton(
                           icon: Icons.add,
                           onTap: () {
-                            final added = cart.addToCart(product, shoppingType: _shoppingType);
-                            if (!added && cartQty > 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'الحد الأقصى المتوفر: ${product.quantity}',
-                                    textAlign: TextAlign.center,
+                            // For variable products, require variant selection first
+                            if (product.isVariable) {
+                              final selected = _selectedVariants[product.id];
+                              final requiredOptions = product.options!.length;
+                              if (selected == null || selected.length < requiredOptions) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('الرجاء اختيار جميع الخيارات', textAlign: TextAlign.center),
+                                    backgroundColor: AppColors.warning,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 2),
                                   ),
-                                  backgroundColor: AppColors.warning,
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
+                                );
+                                return;
+                              }
+                              final added = cart.addToCart(product, shoppingType: _shoppingType, selectedVariant: selected);
+                              if (!added && cartQty > 0) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('الحد الأقصى المتوفر: ${product.getVariantQuantity(selected)}', textAlign: TextAlign.center),
+                                    backgroundColor: AppColors.warning,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              }
+                            } else {
+                              final added = cart.addToCart(product, shoppingType: _shoppingType);
+                              if (!added && cartQty > 0) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('الحد الأقصى المتوفر: ${product.quantity}', textAlign: TextAlign.center),
+                                    backgroundColor: AppColors.warning,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              }
                             }
                           },
                         ),
@@ -797,10 +827,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           ),
                                           SizedBox(width: Responsive.sp(8)),
                                           Text(
-                                            product.price.toStringAsFixed(0),
+                                            product.isVariable
+                                                ? (_getSelectedVariantPrice(product)?.toStringAsFixed(0) ?? product.priceRange)
+                                                : product.price.toStringAsFixed(0),
                                             style: TextStyle(
                                               color: AppColors.primaryLight,
-                                              fontSize: Responsive.fp(28),
+                                              fontSize: Responsive.fp(product.isVariable && _getSelectedVariantPrice(product) == null ? 22 : 28),
                                               fontWeight: FontWeight.bold,
                                               fontFamily: 'Space Grotesk',
                                             ),
@@ -939,6 +971,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     ),
                                   ),
                                 ),
+                              ],
+
+                              // ── VARIANT SELECTOR (for variable products) ──
+                              if (product.isVariable) ...[
+                                SizedBox(height: Responsive.sp(16)),
+                                ..._buildVariantSelector(product, hPad),
                               ],
 
                               // ── SPECIFICATIONS CARD ──
@@ -1094,5 +1132,140 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
     );
+  }
+
+  // ── Variant selector UI ──────────────────────────────────────────
+
+  /// Get the selected variant price, or null if not all options are selected.
+  double? _getSelectedVariantPrice(ProductModel product) {
+    if (!product.isVariable) return null;
+    final selected = _selectedVariants[product.id];
+    if (selected == null || selected.length < product.options!.length) return null;
+    return product.getVariantPrice(selected);
+  }
+
+  /// Build the variant selector chip groups for a variable product.
+  List<Widget> _buildVariantSelector(ProductModel product, double hPad) {
+    if (!product.isVariable || product.options == null) return [];
+
+    final selected = _selectedVariants[product.id] ?? {};
+
+    return product.options!.map((option) {
+      final optName = option['name'] as String? ?? '';
+      final values = (option['values'] as List?)?.cast<String>() ?? [];
+      if (optName.isEmpty || values.isEmpty) return const SizedBox.shrink();
+
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: hPad + 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              optName,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: Responsive.fp(15),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: Responsive.sp(8)),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: values.map((val) {
+                final isSelected = selected[optName] == val;
+
+                // Check stock for this partial combination
+                int? variantStock;
+                if (product.options!.length == 1 ||
+                    (selected.length == product.options!.length - 1 && !selected.containsKey(optName)) ||
+                    (selected.length == product.options!.length && selected.containsKey(optName))) {
+                  final testCombo = Map<String, String>.from(selected);
+                  testCombo[optName] = val;
+                  if (testCombo.length == product.options!.length) {
+                    variantStock = product.getVariantQuantity(testCombo);
+                  }
+                }
+
+                final isOutOfStock = variantStock != null && variantStock == 0;
+
+                return GestureDetector(
+                  onTap: isOutOfStock ? null : () {
+                    setState(() {
+                      final current = _selectedVariants[product.id] ?? {};
+                      current[optName] = val;
+                      _selectedVariants[product.id] = current;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.sp(16),
+                      vertical: Responsive.sp(10),
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : isOutOfStock
+                              ? AppColors.surfaceDarkAlt.withValues(alpha: 0.5)
+                              : AppColors.surfaceDarkAlt,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : isOutOfStock
+                                ? AppColors.borderDark.withValues(alpha: 0.3)
+                                : AppColors.borderDark,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          val,
+                          style: TextStyle(
+                            color: isSelected
+                                ? AppColors.primary
+                                : isOutOfStock
+                                    ? AppColors.textSlate500
+                                    : AppColors.textPrimary,
+                            fontSize: Responsive.fp(13),
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            decoration: isOutOfStock ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        if (variantStock != null && !isOutOfStock) ...[
+                          SizedBox(width: Responsive.sp(6)),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: Responsive.sp(6), vertical: Responsive.sp(2)),
+                            decoration: BoxDecoration(
+                              color: variantStock > 5
+                                  ? Colors.green.withValues(alpha: 0.15)
+                                  : Colors.orange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '$variantStock',
+                              style: TextStyle(
+                                color: variantStock > 5 ? Colors.green : Colors.orange,
+                                fontSize: Responsive.fp(10),
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Space Grotesk',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: Responsive.sp(12)),
+          ],
+        ),
+      );
+    }).toList();
   }
 }

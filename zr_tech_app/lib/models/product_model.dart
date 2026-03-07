@@ -124,33 +124,59 @@ class ProductModel {
     // Handle images: support both new 'images' list and legacy single 'image' string
     List<String> imagesList = [];
     if (map['images'] != null) {
-      if (map['images'] is List) {
-        imagesList = List<String>.from(map['images']);
+      final raw = map['images'];
+      if (raw is List) {
+        imagesList = List<String>.from(raw);
+      } else if (raw is Map) {
+        imagesList = List<String>.from(raw.values);
       }
     } else if (map['image'] != null && (map['image'] as String).isNotEmpty) {
       imagesList = [map['image'] as String];
     }
 
-    // Parse options
-    List<Map<String, dynamic>>? optionsList;
-    if (map['options'] != null && map['options'] is List) {
-      optionsList = (map['options'] as List).map((o) {
-        if (o is Map) {
-          return Map<String, dynamic>.from(o);
-        }
-        return <String, dynamic>{};
-      }).toList();
+    /// Helper: Firebase may return lists as Maps with integer keys.
+    List<dynamic> _safeList(dynamic val) {
+      if (val is List) return val;
+      if (val is Map) return val.values.toList();
+      return [];
     }
 
-    // Parse variants
-    List<Map<String, dynamic>>? variantsList;
-    if (map['variants'] != null && map['variants'] is List) {
-      variantsList = (map['variants'] as List).map((v) {
-        if (v is Map) {
-          return Map<String, dynamic>.from(v);
+    // Parse options — handle Firebase returning List as Map
+    List<Map<String, dynamic>>? optionsList;
+    if (map['options'] != null) {
+      final rawOptions = _safeList(map['options']);
+      optionsList = rawOptions.map((o) {
+        if (o is Map) {
+          final optMap = Map<String, dynamic>.from(o);
+          // Also convert 'values' inside each option
+          if (optMap['values'] != null) {
+            optMap['values'] = List<String>.from(_safeList(optMap['values']).map((v) => v.toString()));
+          }
+          return optMap;
         }
         return <String, dynamic>{};
-      }).toList();
+      }).where((o) => o.isNotEmpty).toList();
+      if (optionsList.isEmpty) optionsList = null;
+    }
+
+    // Parse variants — handle Firebase returning List as Map
+    List<Map<String, dynamic>>? variantsList;
+    if (map['variants'] != null) {
+      final rawVariants = _safeList(map['variants']);
+      variantsList = rawVariants.map((v) {
+        if (v is Map) {
+          final vMap = Map<String, dynamic>.from(v);
+          // Convert combination map properly
+          if (vMap['combination'] != null && vMap['combination'] is Map) {
+            vMap['combination'] = Map<String, String>.from(
+              (vMap['combination'] as Map).map((k, v) => MapEntry(k.toString(), v.toString())),
+            );
+          }
+          return vMap;
+        }
+        return <String, dynamic>{};
+      }).where((v) => v.isNotEmpty).toList();
+      if (variantsList.isEmpty) variantsList = null;
     }
 
     return ProductModel(
@@ -177,4 +203,5 @@ class ProductModel {
       variants: variantsList,
     );
   }
+
 }

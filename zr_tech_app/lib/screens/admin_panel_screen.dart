@@ -17,6 +17,7 @@ import '../models/order_model.dart';
 import '../models/wilaya_model.dart';
 import '../widgets/admin_statistics_view.dart';
 import '../widgets/admin_ledger_view.dart';
+import '../widgets/order_ledger_dialog.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -4025,13 +4026,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     children: [
                       // Advance to next tracking step
                       ..._buildTrackingActionButtons(order),
-                      // Customer account button (gros only)
+                      // Order detail popup (gros only)
                       if (_orderTypeIndex == 0)
                         _buildPremiumActionButton(
-                          label: 'حساب الزبون',
-                          icon: Icons.account_balance_wallet,
+                          label: 'تفاصيل الطلب',
+                          icon: Icons.receipt_long_rounded,
                           color: Colors.teal,
-                          onTap: () => _openCustomerLedger(order),
+                          onTap: () => _showOrderDetailPopup(order),
                         ),
                       // Cancel (available until delivered)
                       if (order.normalizedStatus != 'delivered' &&
@@ -4211,15 +4212,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
-  /// Open the ledger dialog for the customer who placed this order.
-  Future<void> _openCustomerLedger(OrderModel order) async {
+  /// Open the order-specific ledger popup.
+  Future<void> _showOrderDetailPopup(OrderModel order) async {
     final orderPhone = order.phone.trim();
     if (orderPhone.isEmpty) {
       _showErrorSnackBar('لا يوجد حساب مرتبط بهذا الطلب');
       return;
     }
 
-    // Ensure users are loaded (they may not be if we haven't visited accounts tab)
+    // Ensure users are loaded
     if (_allUsers.isEmpty) {
       try {
         final users = await AuthService().fetchAllUsers().timeout(const Duration(seconds: 10));
@@ -4242,9 +4243,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
 
     if (!mounted) return;
-    openUserLedgerDialog(
+    openOrderLedgerDialog(
       context,
-      user: matchedUser,
+      userId: matchedUser['uid'] ?? '',
+      order: order,
       ledgerService: LedgerService(),
     );
   }

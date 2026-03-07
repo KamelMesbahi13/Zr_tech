@@ -63,4 +63,10 @@ class LedgerService {
         .child(txId)
         .remove();
   }
+
+  /// Fetch transactions linked to a specific order. Admin only.
+  Future<List<LedgerTransaction>> getOrderTransactions(String userId, String orderId) async {
+    final all = await getTransactions(userId);
+    return all.where((tx) => tx.orderId == orderId).toList();
+  }
 }

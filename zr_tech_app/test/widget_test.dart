@@ -1,30 +1,27 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:zr_tech_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('ZRTechApp renders ShoppingTypeScreen choices and Help dialog works', (WidgetTester tester) async {
+    await tester.pumpWidget(const ZRTechApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('ZR Technologie'), findsOneWidget);
+    expect(find.text('اختر نوع التسوق'), findsOneWidget);
+    expect(find.text('بالجملة'), findsOneWidget);
+    expect(find.text('بالتجزئة'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Tap the Help (?) icon button and verify the help dialog opens
+    await tester.tap(find.byIcon(Icons.help_outline));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('حول طرق التسوق'), findsOneWidget);
+    expect(find.text('حسناً'), findsOneWidget);
+
+    // Dismiss the dialog
+    await tester.tap(find.text('حسناً'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('حول طرق التسوق'), findsNothing);
   });
 }

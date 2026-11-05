@@ -27,7 +27,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   List<ProductModel> _products = [];
   bool _isLoading = true;
-  bool _hasSeeded = false;
   String _shoppingType = 'gros';
   String _categoryId = '';
   String _subcategoryId = '';
@@ -87,6 +86,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Future<void> _loadProducts() async {
+    if (_shoppingType == 'gros') {
+      final isApproved = await _authService.isCurrentUserApproved();
+      if (!mounted) return;
+      if (!isApproved) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+    }
+
     if (_categoryId.isEmpty || _subcategoryId.isEmpty) {
       setState(() => _isLoading = false);
       return;
@@ -94,13 +102,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      var products = await _productService
+      final products = await _productService
           .getProducts(_shoppingType, _categoryId, _subcategoryId)
           .timeout(const Duration(seconds: 10));
-
-      if (products.isEmpty && !_hasSeeded) {
-        _hasSeeded = true;
-      }
 
       // Load favorites counts
       final countsMap = <String, int>{};

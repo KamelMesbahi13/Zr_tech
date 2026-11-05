@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
+import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/product_service.dart';
 import '../models/category_model.dart';
@@ -22,7 +23,6 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
   List<CategoryModel> _filteredCategories = [];
   Set<String> _categoriesWithNewProducts = {};
   bool _isLoading = true;
-  bool _hasSeeded = false;
 
   @override
   void initState() {
@@ -39,20 +39,19 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
 
+    final isApproved = await AuthService().isCurrentUserApproved();
+    if (!mounted) return;
+    if (!isApproved) {
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+
     const maxRetries = 2;
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        var categories = await _categoryService
+        final categories = await _categoryService
             .getCategories('gros')
             .timeout(const Duration(seconds: 15));
-
-        if (categories.isEmpty && !_hasSeeded) {
-          _hasSeeded = true;
-          await _categoryService.seedCategories();
-          categories = await _categoryService
-              .getCategories('gros')
-              .timeout(const Duration(seconds: 15));
-        }
 
         if (!mounted) return;
         setState(() {
@@ -136,7 +135,8 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        tooltip: 'متابعة الطلبات',
+                        onPressed: () => Navigator.pushNamed(context, '/order-tracking'),
                         icon: Icon(
                           Icons.notifications_outlined,
                           color: AppColors.textPrimary,

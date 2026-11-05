@@ -26,7 +26,50 @@ class ShoppingTypeScreen extends StatelessWidget {
                         children: [
                           SizedBox(width: Responsive.sp(40)),
                           Text('ZR Technologie', style: TextStyle(color: AppColors.textPrimary, fontSize: Responsive.fp(16), fontWeight: FontWeight.bold, fontFamily: 'Space Grotesk')),
-                          IconButton(onPressed: () {}, icon: Icon(Icons.help_outline, color: AppColors.textSlate400, size: Responsive.sp(24))),
+                          IconButton(
+                            tooltip: 'مساعدة',
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: AppColors.surfaceDark,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: const Text(
+                                    'حول طرق التسوق',
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    '• بالجملة (للشركات والتجار): مخصص لأصحاب المحلات والتجار المسجلين للاستفادة من أسعار الجملة ومتابعة الطلبات وكشف الحساب.\n\n'
+                                    '• بالتجزئة (للاستخدام الشخصي): متاح للجميع للشراء المباشر بدون الحاجة لتسجيل حساب مع توصيل سريع لجميع الولايات (58 ولاية).',
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      color: AppColors.textSlate300,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text(
+                                        'حسناً',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.help_outline, color: AppColors.textSlate400, size: Responsive.sp(24)),
+                          ),
                         ],
                       ),
                       SizedBox(height: Responsive.sp(32)),

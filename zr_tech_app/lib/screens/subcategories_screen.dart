@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
+import '../services/auth_service.dart';
 import '../services/subcategory_service.dart';
 import '../services/product_service.dart';
 import '../models/subcategory_model.dart';
@@ -52,6 +53,15 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
 
   Future<void> _loadSubcategories() async {
     setState(() => _isLoading = true);
+
+    if (_shoppingType == 'gros') {
+      final isApproved = await AuthService().isCurrentUserApproved();
+      if (!mounted) return;
+      if (!isApproved) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+    }
 
     const maxRetries = 2;
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
@@ -143,7 +153,14 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        tooltip: _shoppingType == 'gros' ? 'متابعة الطلبات' : 'السلة',
+                        onPressed: () {
+                          if (_shoppingType == 'gros') {
+                            Navigator.pushNamed(context, '/order-tracking');
+                          } else {
+                            showCartDrawer(context);
+                          }
+                        },
                         icon: Icon(
                           Icons.notifications_outlined,
                           color: AppColors.textPrimary,

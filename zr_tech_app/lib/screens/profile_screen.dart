@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
-import '../providers/cart_provider.dart';
 import '../widgets/cart_drawer.dart';
 import '../theme/responsive_wrapper.dart';
 

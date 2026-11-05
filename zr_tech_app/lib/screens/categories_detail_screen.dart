@@ -22,7 +22,6 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
   List<CategoryModel> _filteredCategories = [];
   Set<String> _categoriesWithNewProducts = {};
   bool _isLoading = true;
-  bool _hasSeeded = false;
 
   @override
   void initState() {
@@ -42,18 +41,9 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
     const maxRetries = 2;
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        var categories = await _categoryService
+        final categories = await _categoryService
             .getCategories('detail')
             .timeout(const Duration(seconds: 15));
-
-        // If no categories exist, seed them first
-        if (categories.isEmpty && !_hasSeeded) {
-          _hasSeeded = true;
-          await _categoryService.seedCategories();
-          categories = await _categoryService
-              .getCategories('detail')
-              .timeout(const Duration(seconds: 15));
-        }
 
         if (!mounted) return;
         setState(() {
@@ -138,7 +128,8 @@ class _CategoriesDetailScreenState extends State<CategoriesDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        tooltip: 'السلة',
+                        onPressed: () => showCartDrawer(context),
                         icon: Icon(
                           Icons.notifications_outlined,
                           color: AppColors.textPrimary,

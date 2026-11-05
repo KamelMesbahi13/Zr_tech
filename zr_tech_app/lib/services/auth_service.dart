@@ -33,6 +33,16 @@ class AuthService {
     return snapshot.exists && snapshot.value == 'admin';
   }
 
+  /// Check if the currently logged-in user is an approved wholesale merchant (or admin).
+  Future<bool> isCurrentUserApproved() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final userData = await getCurrentUserData();
+    if (userData == null) return false;
+    return userData.status == 'approved' || userData.role == 'admin';
+  }
+
   /// Throws an exception if the current user is not an admin.
   /// Call this at the beginning of any admin-only operation.
   Future<void> requireAdmin() async {

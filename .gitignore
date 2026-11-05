@@ -1,0 +1,31 @@
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub/
+.pub-cache/
+build/
+**/build/
+
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.swp
+.DS_Store
+
+# Virtual Environments & dependencies
+.venv/
+node_modules/
+
+# Local properties & keystores
+**/android/local.properties
+**/android/key.properties
+*.jks
+*.keystore
+
+# Temporary media & logs
+*.log
+recordings/
+recorder/
+*.webm

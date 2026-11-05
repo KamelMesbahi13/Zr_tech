@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/responsive_wrapper.dart';
 import '../services/auth_service.dart';
@@ -10,8 +10,7 @@ import '../models/ledger_transaction_model.dart';
 import '../models/order_model.dart';
 import '../models/product_model.dart';
 import '../models/category_model.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import '../utils/html_print_helper.dart';
 
 class AdminLedgerView extends StatefulWidget {
   const AdminLedgerView({super.key});
@@ -1817,11 +1816,7 @@ class _UserLedgerDialogState extends State<UserLedgerDialog> {
     ''';
 
     // Create a Blob URL and open it in a new tab for printing
-    final blob = html.Blob([invoiceHtml], 'text/html');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-    // Revoke after a delay to allow the new tab to load
-    Future.delayed(const Duration(seconds: 5), () => html.Url.revokeObjectUrl(url));
+    openHtmlInvoiceForPrint(invoiceHtml);
   }
 
   // ═══════════════════════════════════════════════════════════════

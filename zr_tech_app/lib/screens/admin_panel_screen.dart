@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../theme/app_colors.dart';
@@ -17,6 +17,7 @@ import '../models/order_model.dart';
 import '../models/wilaya_model.dart';
 import '../widgets/admin_statistics_view.dart';
 import '../widgets/admin_ledger_view.dart';
+import '../widgets/admin_updates_view.dart';
 import '../widgets/order_ledger_dialog.dart';
 
 class AdminPanelScreen extends StatefulWidget {
@@ -1678,6 +1679,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             sectionIndex: 6,
             closeDrawer: isDrawer,
           ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Divider(color: AppColors.borderDark, height: 1),
+          ),
+          _buildSidebarSection(
+            title: 'المستجدات والتواصل',
+            icon: Icons.campaign_rounded,
+            sectionIndex: 7,
+            closeDrawer: isDrawer,
+          ),
         ],
       ),
     );
@@ -1825,6 +1836,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                               Expanded(child: _buildDeliverySettingsView())
                             else if (_sectionIndex == 6)
                               const Expanded(child: AdminLedgerView())
+                            else if (_sectionIndex == 7)
+                              const Expanded(child: AdminUpdatesView())
                             else ...[
                               // ── ITEM COUNT ──
                               Padding(

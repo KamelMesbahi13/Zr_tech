@@ -72,6 +72,34 @@
       "wilayas": {
         ".read": true,
         ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      },
+      "contact": {
+        ".read": true,
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      },
+      "site_updates": {
+        ".read": true,
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+        "$updateId": {
+          "likesCount": {
+            ".write": true
+          },
+          "comments": {
+            ".write": true
+          }
+        }
+      }
+    },
+    "site_updates": {
+      ".read": true,
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$updateId": {
+        "likesCount": {
+          ".write": true
+        },
+        "comments": {
+          ".write": true
+        }
       }
     },
     "favorites": {

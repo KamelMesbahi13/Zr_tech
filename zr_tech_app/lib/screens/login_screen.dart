@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
+import '../services/site_updates_service.dart';
 import '../theme/responsive_wrapper.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -264,7 +265,53 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: Responsive.sp(28)),
+                      SizedBox(height: Responsive.sp(18)),
+
+                      // Admin Contact Phone Banner
+                      StreamBuilder<String>(
+                        stream: SiteUpdatesService().listenToContactPhone(),
+                        builder: (context, snapshot) {
+                          final phone = snapshot.data ?? '';
+                          if (phone.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: Responsive.sp(18)),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.phone_in_talk_rounded, color: AppColors.primary, size: 19),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'للتواصل وتفعيل الحساب: ',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    phone,
+                                    textDirection: TextDirection.ltr,
+                                    style: const TextStyle(
+                                      color: AppColors.primary,
+                                      fontSize: 14,
+                                      fontFamily: 'Space Grotesk',
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
 
                       // Email Field
                       Align(

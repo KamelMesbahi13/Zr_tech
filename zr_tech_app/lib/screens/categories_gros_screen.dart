@@ -7,6 +7,7 @@ import '../services/product_service.dart';
 import '../models/category_model.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_drawer.dart';
+import '../widgets/home_updates_feed.dart';
 import '../theme/responsive_wrapper.dart';
 
 class CategoriesGrosScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
   List<CategoryModel> _filteredCategories = [];
   Set<String> _categoriesWithNewProducts = {};
   bool _isLoading = true;
+  bool _showAllCategories = false;
 
   @override
   void initState() {
@@ -263,138 +265,190 @@ class _CategoriesGrosScreenState extends State<CategoriesGrosScreen> {
                               spacing = 18;
                               gridHPad = 24;
                             }
-                            return GridView.builder(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: gridHPad,
-                                vertical: Responsive.sp(16),
-                              ),
-                              gridDelegate:
-                                  SliverGridDelegateWithMaxCrossAxisExtent(
-                                    maxCrossAxisExtent: maxExtent,
-                                    crossAxisSpacing: spacing,
-                                    mainAxisSpacing: spacing,
-                                    childAspectRatio: 0.75,
-                                  ),
-                              itemCount: _filteredCategories.length,
-                              itemBuilder: (context, index) {
-                                final cat = _filteredCategories[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/subcategories',
-                                      arguments: {
-                                        'shoppingType': 'gros',
-                                        'categoryId': cat.id,
-                                        'categoryName': cat.name,
-                                      },
-                                    );
-                                  },
-                                  child: Column(
-                                    children: [
-                                      Expanded(
-                                        child: Stack(
-                                          clipBehavior: Clip.none,
+                            final isSearching = _searchController.text.isNotEmpty;
+                            final hasMoreCategories = !isSearching && _filteredCategories.length > 8;
+                            final displayedCategories = (hasMoreCategories && !_showAllCategories)
+                                ? _filteredCategories.take(8).toList()
+                                : _filteredCategories;
+
+                            return SingleChildScrollView(
+                              padding: EdgeInsets.only(bottom: Responsive.sp(24)),
+                              child: Column(
+                                children: [
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: gridHPad,
+                                      vertical: Responsive.sp(8),
+                                    ),
+                                    gridDelegate:
+                                        SliverGridDelegateWithMaxCrossAxisExtent(
+                                          maxCrossAxisExtent: maxExtent,
+                                          crossAxisSpacing: spacing,
+                                          mainAxisSpacing: spacing,
+                                          childAspectRatio: 0.78,
+                                        ),
+                                    itemCount: displayedCategories.length,
+                                    itemBuilder: (context, index) {
+                                      final cat = displayedCategories[index];
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/subcategories',
+                                            arguments: {
+                                              'shoppingType': 'gros',
+                                              'categoryId': cat.id,
+                                              'categoryName': cat.name,
+                                            },
+                                          );
+                                        },
+                                        child: Column(
                                           children: [
-                                            AspectRatio(
-                                              aspectRatio: 1,
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: AppColors.surfaceDark,
-                                                  border: Border.all(
-                                                    color: AppColors.borderSubtle,
-                                                    width: 2,
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black.withValues(
-                                                        alpha: 0.06,
+                                            Expanded(
+                                              child: Stack(
+                                                clipBehavior: Clip.none,
+                                                children: [
+                                                  AspectRatio(
+                                                    aspectRatio: 1,
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: AppColors.surfaceDark,
+                                                        border: Border.all(
+                                                          color: AppColors.borderSubtle,
+                                                          width: 2,
+                                                        ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black.withValues(
+                                                              alpha: 0.06,
+                                                            ),
+                                                            blurRadius: 10,
+                                                            offset: const Offset(0, 4),
+                                                          ),
+                                                        ],
                                                       ),
-                                                      blurRadius: 10,
-                                                      offset: const Offset(0, 4),
-                                                    ),
-                                                  ],
-                                                ),
-                                                clipBehavior: Clip.antiAlias,
-                                                child: ClipOval(
-                                                  child: Image.network(
-                                                    cat.image,
-                                                    fit: BoxFit.cover,
-                                                    width: double.infinity,
-                                                    errorBuilder: (c, e, s) => Container(
-                                                      color: AppColors.surfaceDark,
-                                                      child: Icon(
-                                                        Icons.image,
-                                                        color: AppColors.textSlate500,
-                                                        size: Responsive.sp(28),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            if (_categoriesWithNewProducts.contains(cat.id))
-                                              PositionedDirectional(
-                                                top: Responsive.sp(2),
-                                                start: Responsive.sp(2),
-                                                child: Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: Responsive.sp(5), vertical: Responsive.sp(2)),
-                                                  decoration: BoxDecoration(
-                                                    gradient: const LinearGradient(
-                                                      colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
-                                                      begin: Alignment.topLeft,
-                                                      end: Alignment.bottomRight,
-                                                    ),
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
-                                                        blurRadius: 4,
-                                                        offset: const Offset(0, 2),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.auto_awesome,
-                                                        color: Colors.white,
-                                                        size: Responsive.sp(9),
-                                                      ),
-                                                      SizedBox(width: Responsive.sp(2)),
-                                                      Text(
-                                                        'جديد',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: Responsive.fp(8),
-                                                          fontWeight: FontWeight.bold,
+                                                      clipBehavior: Clip.antiAlias,
+                                                      child: ClipOval(
+                                                        child: Image.network(
+                                                          cat.image,
+                                                          fit: BoxFit.cover,
+                                                          width: double.infinity,
+                                                          errorBuilder: (c, e, s) => Container(
+                                                            color: AppColors.surfaceDark,
+                                                            child: Icon(
+                                                              Icons.image,
+                                                              color: AppColors.textSlate500,
+                                                              size: Responsive.sp(28),
+                                                            ),
+                                                          ),
                                                         ),
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
-                                                ),
+                                                  if (_categoriesWithNewProducts.contains(cat.id))
+                                                    PositionedDirectional(
+                                                      top: Responsive.sp(2),
+                                                      start: Responsive.sp(2),
+                                                      child: Container(
+                                                        padding: EdgeInsets.symmetric(horizontal: Responsive.sp(5), vertical: Responsive.sp(2)),
+                                                        decoration: BoxDecoration(
+                                                          gradient: const LinearGradient(
+                                                            colors: [Color(0xFFFF6B35), Color(0xFFFF8F00)],
+                                                            begin: Alignment.topLeft,
+                                                            end: Alignment.bottomRight,
+                                                          ),
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: const Color(0xFFFF6B35).withValues(alpha: 0.4),
+                                                              blurRadius: 4,
+                                                              offset: const Offset(0, 2),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Icon(
+                                                              Icons.auto_awesome,
+                                                              color: Colors.white,
+                                                              size: Responsive.sp(9),
+                                                            ),
+                                                            SizedBox(width: Responsive.sp(2)),
+                                                            Text(
+                                                              'جديد',
+                                                              style: TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: Responsive.fp(8),
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
+                                            ),
+                                            SizedBox(height: Responsive.sp(6)),
+                                            Text(
+                                              cat.name,
+                                              style: TextStyle(
+                                                color: AppColors.textPrimary,
+                                                fontSize: Responsive.fp(11),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ],
                                         ),
-                                      ),
-                                      SizedBox(height: Responsive.sp(6)),
-                                      Text(
-                                        cat.name,
-                                        style: TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: Responsive.fp(11),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ),
-                                );
-                              },
+                                  if (hasMoreCategories)
+                                    Padding(
+                                      padding: EdgeInsets.only(top: Responsive.sp(4)),
+                                      child: TextButton.icon(
+                                        onPressed: () {
+                                          setState(() {
+                                            _showAllCategories = !_showAllCategories;
+                                          });
+                                        },
+                                        icon: Icon(
+                                          _showAllCategories ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                          color: AppColors.primary,
+                                          size: 20,
+                                        ),
+                                        label: Text(
+                                          _showAllCategories
+                                              ? 'طي الفئات'
+                                              : 'عرض جميع الفئات (${_filteredCategories.length})',
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: AppColors.primary.withValues(alpha: 0.08),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: gridHPad),
+                                    child: const HomeUpdatesFeed(),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),

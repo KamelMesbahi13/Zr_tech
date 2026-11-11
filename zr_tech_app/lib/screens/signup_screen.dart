@@ -128,8 +128,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       // Logo
                       Image.asset(
                         'assets/images/logo.png',
-                        width: Responsive.sp(120),
-                        height: Responsive.sp(120),
+                        width: Responsive.sp(185),
+                        height: Responsive.sp(185),
                       ),
                       SizedBox(height: Responsive.sp(8)),
                       // Title
